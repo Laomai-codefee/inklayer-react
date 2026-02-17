@@ -83,7 +83,7 @@ export interface PdfBaseProps {
      * 语言区域，用于国际化
      * @default 'zh-CN'
      */
-    locale?: 'zh-CN' | 'en-US'
+    locale?: 'zh-CN' | 'en-US' | 'de-DE'
 
     /**
      * 默认选项，用于初始化 PDF 阅读器 缩放

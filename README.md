@@ -31,7 +31,7 @@ English | [简体中文](./README.zh-CN.md)
   - Edit native PDF annotations directly
 - 📄 High-fidelity PDF rendering based on PDF.js
 - 🎨 Theme system based on Radix UI Themes
-- 🌍 Internationalization (zh-CN, en-US)
+- 🌍 Internationalization (zh-CN, en-US, de-DE)
 - 🧩 Highly customizable UI
   - Toolbar / Sidebar / Actions fully overridable
 - 🏢 Enterprise-friendly configuration
