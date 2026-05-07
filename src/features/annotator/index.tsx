@@ -18,6 +18,7 @@ import { AnnoIcon } from '@/extensions/annotator/const/icons'
 import { AiOutlineSave, AiOutlineSearch } from 'react-icons/ai'
 import { SearchSidebar } from '@/components/search_sidebar'
 import useSystemAppearance from '@/hooks/useSystemAppearance'
+import { annotationsToStores, storesToAnnotations, storeToAnnotation } from '@/core/adapters/store.mapper'
 
 export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
     appearance = 'auto',
@@ -42,6 +43,11 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
     layoutStyle,
     actions
 }) => {
+    // Annotation[] → IAnnotationStore[]（组件内部格式转换）
+    const effectiveAnnotations = useMemo(
+        () => annotationsToStores(initialAnnotations),
+        [initialAnnotations]
+    )
     const viewerOptions = useMemo(() => ({ textLayerMode: 1, annotationMode: 0, externalLinkTarget: 0, enableRange }), [])
 
     const { t } = useTranslation(['annotator', 'common'], { useSuspense: false })
@@ -75,8 +81,9 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
         const { pdfViewer } = usePdfViewerContext()
         const handleSave = () => {
             if (painter) {
-                const annotations = painter.getData()
-                onSave?.(annotations)
+                const stores = painter.getData()
+                // IAnnotationStore[] → Annotation[]
+                onSave?.(storesToAnnotations(stores))
             }
         }
 
@@ -99,7 +106,7 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
                 return (
                     <ExtraComponent
                         save={handleSave}
-                        getAnnotations={() => painter?.getData() || []}
+                        getAnnotations={() => storesToAnnotations(painter?.getData() || [])}
                         exportToExcel={(fileName?: string) => {
                             handleExportToExcel(fileName)
                         }}
@@ -111,7 +118,7 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
             }
             return React.cloneElement(actions as React.ReactElement, {
                 save: handleSave,
-                getAnnotations: () => painter?.getData() || [],
+                getAnnotations: () => storesToAnnotations(painter?.getData() || []),
                 exportToExcel: (fileName?: string) => {
                     handleExportToExcel(fileName)
                 },
@@ -184,20 +191,14 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
                             onLoad={() => {
                                 onLoad?.()
                             }}
-                            onAnnotationAdd={(annotation) => {
-                                onAnnotationAdded?.(annotation)
-                            }}
+                            onAnnotationAdd={(store) => onAnnotationAdded?.(storeToAnnotation(store))}
                             onAnnotationDelete={(id) => {
                                 onAnnotationDeleted?.(id)
                             }}
-                            onAnnotationSelected={(annotation, isClick) => {
-                                onAnnotationSelected?.(annotation, isClick)
-                            }}
-                            onAnnotationChanged={(annotation) => {
-                                onAnnotationUpdated?.(annotation)
-                            }}
+                            onAnnotationSelected={(store, isClick) => onAnnotationSelected?.(store ? storeToAnnotation(store) : null, isClick)}
+                            onAnnotationChanged={(store) => onAnnotationUpdated?.(storeToAnnotation(store))}
                             enableNativeAnnotations={enableNativeAnnotations}
-                            annotations={initialAnnotations}
+                            annotations={effectiveAnnotations}
                         />
                     </PdfViewerProvider>
                 </OptionsContext.Provider>

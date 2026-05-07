@@ -1,6 +1,6 @@
 import { PdfBaseProps, User } from '@/types'
-import { IAnnotationStore } from '../const/definitions'
 import { DeepPartial } from '@/types/utils'
+import type { Annotation } from '@/core/annotation.core'
 
 export type PdfAnnotatorUserOptions = DeepPartial<PdfAnnotatorOptions>
 
@@ -214,9 +214,14 @@ export interface PdfAnnotatorProps extends PdfBaseProps {
     defaultOptions?: DeepPartial<PdfAnnotatorUserOptions>
 
     /**
-     * 已有的批注列表，用于在初始化时显示已存在的批注
+     * 初始批注列表（Core 格式 Annotation[]），组件内部自动转换。
+     * 从后端/api 拿到数据后直接传入即可，无需额外处理。
+     * 
+     * @example
+     * const annotations = await api.getAnnotations(docId)
+     * <PdfAnnotator initialAnnotations={annotations} />
      */
-    initialAnnotations?: IAnnotationStore[]
+    initialAnnotations?: Annotation[]
 
 
     /**
@@ -230,8 +235,8 @@ export interface PdfAnnotatorProps extends PdfBaseProps {
      * 自定义额外按钮区域组件
      * 可以是一个 React 组件或者 React 元素
      * 组件会接收到以下属性:
-     * - onSave: () => void 保存当前批注
-     * - getData: () => IAnnotationStore[] 获取当前批注数据
+     * - save: () => void 保存当前批注
+     * - getAnnotations: () => Annotation[] 获取当前批注（Core 格式）
      * - exportToExcel: () => void 导出到 Excel
      * - exportToPdf: () => void 导出到 PDF
      */
@@ -239,28 +244,23 @@ export interface PdfAnnotatorProps extends PdfBaseProps {
         | React.ReactNode
         | React.ComponentType<{
               save: () => void
-              getAnnotations: () => IAnnotationStore[]
+              getAnnotations: () => Annotation[]
               exportToExcel: (fileName?: string) => void
               exportToPdf: (fileName?: string) => void
           }>
 
     /**
-     * 保存回调
-     * @param annotations IAnnotationStore
+     * 保存回调（Core 格式 Annotation[]）
+     * 组件内部自动转换，调用方拿到的是干净的 Annotation[]
      */
-    onSave?: (annotations: IAnnotationStore[]) => void
+    onSave?: (annotations: Annotation[]) => void
 
     /**
      * 加载完成回调
      */
     onLoad?: () => void
 
-    /**
-     * 添加批注回调
-     * @param annotation
-     * @returns
-     */
-    onAnnotationAdded?: (annotation: IAnnotationStore) => void
+    onAnnotationAdded?: (annotation: Annotation) => void
 
     /**
      * 删除批注回调
@@ -268,17 +268,6 @@ export interface PdfAnnotatorProps extends PdfBaseProps {
      * @returns
      */
     onAnnotationDeleted?: (id: string) => void
-    /**
-     * 选中批注回调
-     * @param annotation
-     * @param isClick
-     * @returns
-     */
-    onAnnotationSelected?: (annotation: IAnnotationStore | null, isClick: boolean) => void
-    /**
-     * 修改批注回调
-     * @param annotation
-     * @returns
-     */
-    onAnnotationUpdated?: (annotation: IAnnotationStore) => void
+    onAnnotationSelected?: (annotation: Annotation | null, isClick: boolean) => void
+    onAnnotationUpdated?: (annotation: Annotation) => void
 }
