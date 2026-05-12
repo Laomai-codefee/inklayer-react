@@ -148,14 +148,14 @@ export default function App() {
 | `enableNativeAnnotations` | `boolean`                                                         | `false`                           | Native annotations embedded in the PDF file                          |
 | `defaultShowAnnotationsSidebar` | `boolean`                                                   | `false`                           | Show Annotations Sidebar                                             |
 | `defaultOptions`          | `DeepPartial`                                                     | —                                  | Default configuration for the annotator;                             |
-| `initialAnnotations`      | `IAnnotationStore[]`                                              | —                                  | Existing annotations to be rendered during initialization            |
+| `initialAnnotations`      | `Annotation[]`                                              | —                                  | Existing annotations to be rendered during initialization            |
 | `actions`                 | `React.ReactNode \| React.ComponentType`                           | —                                  | Custom actions area                                                 |
-| `onSave`                  | `(annotations: IAnnotationStore[]) => void`                       | —                                  | Callback triggered when annotations are saved                        |
+| `onSave`                  | `(annotations: Annotation[]) => void`                       | —                                  | Callback triggered when annotations are saved                        |
 | `onLoad`                  | `() => void`                                                      | —                                  | Callback triggered when the PDF and annotator are fully loaded       |
-| `onAnnotationAdded`       | `(annotation: IAnnotationStore) => void`                          | —                                  | Fired when a new annotation is created                               |
+| `onAnnotationAdded`       | `(annotation: Annotation) => void`                          | —                                  | Fired when a new annotation is created                               |
 | `onAnnotationDeleted`     | `(id: string) => void`                                            | —                                  | Fired when an annotation is deleted                                  |
-| `onAnnotationSelected`    | `(annotation: IAnnotationStore \| null, isClick: boolean) => void` | —                                  | Fired when an annotation is selected or deselected                   |
-| `onAnnotationUpdated`     | `(annotation: IAnnotationStore) => void`                          | —                                  | Fired when an existing annotation is modified                        |
+| `onAnnotationSelected`    | `(annotation: Annotation \| null, isClick: boolean) => void` | —                                  | Fired when an annotation is selected or deselected                   |
+| `onAnnotationUpdated`     | `(annotation: Annotation) => void`                          | —                                  | Fired when an existing annotation is modified                        |
 
 ### ⚙️ defaultOptions
 
