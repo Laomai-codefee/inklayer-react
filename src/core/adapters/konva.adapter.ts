@@ -93,6 +93,7 @@ export interface RenderOptions {
  */
 export class KonvaAnnotationRenderer {
     private context: KonvaRenderContext
+    // @ts-ignore
     private options: RenderOptions
 
     constructor(context: KonvaRenderContext, options: RenderOptions = {}) {
@@ -131,7 +132,7 @@ export class KonvaAnnotationRenderer {
     /**
      * 从 Konva 节点提取 Annotation（几何信息）
      */
-    extract(node: Konva.Node, annotationId: string): ExtractResult {
+    extract(node: Konva.Node, _annotationId: string): ExtractResult {
         const result: ExtractResult = {
             geometry: this.extractGeometry(node),
             appearance: this.extractAppearance(node)
@@ -144,7 +145,7 @@ export class KonvaAnnotationRenderer {
      * ========================================================================= */
 
     /** 渲染文本标注（高亮、下划线等） */
-    private renderTextMarkup(geometry: QuadGeometry, style: ReturnType<typeof this.getAppearanceStyle>, payload?: TextMarkupPayload): Konva.Node {
+    private renderTextMarkup(geometry: QuadGeometry, _style: ReturnType<typeof this.getAppearanceStyle>, payload?: TextMarkupPayload): Konva.Node {
         const group = new Konva.Group({
             name: 'annotation-group',
             id: ''

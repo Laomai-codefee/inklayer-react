@@ -100,6 +100,7 @@ export function createAnnotationStorage(
  */
 export function parseAnnotationStorage(
   storage: AnnotationStorage,
+  //@ts-ignore
   options: IntegrationOptions = {}
 ): IAnnotationStore[] {
   if (!storage.data) {
@@ -143,6 +144,7 @@ export function parseAnnotationStorage(
  */
 export function commitAnnotations(
   stores: IAnnotationStore[],
+  // @ts-ignore
   options?: IntegrationOptions
 ): Annotation[] {
   return storesToAnnotations(stores)

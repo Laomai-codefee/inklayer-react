@@ -7,7 +7,7 @@
  *
  */
 
-import React, { useCallback, useState } from 'react'
+import React, { useCallback } from 'react'
 import { PdfAnnotator } from '../features/annotator'
 import type { Annotation } from '../core/annotation.core'
 import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf'

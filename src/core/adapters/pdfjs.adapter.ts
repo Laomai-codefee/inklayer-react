@@ -144,6 +144,7 @@ export function pdfJsToAnnotation(
     defaultAuthorId?: string
   }
 ): Annotation {
+  // @ts-ignore
   const { documentId, pageSize, defaultAuthorId = 'unknown' } = options || {}
 
   // 1. 确定 Kind
@@ -381,6 +382,7 @@ export function annotationToPdfJs(
     pageIndex?: number
   }
 ): PdfJsAnnotation {
+  // @ts-ignore
   const { pageIndex = 0 } = options || {}
 
   // 1. 基本信息

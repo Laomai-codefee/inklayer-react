@@ -27,6 +27,7 @@ export class LineParser extends AnnotationParser {
     async parse() {
         const { annotation, page, pdfDoc, pageView } = this
         const context = pdfDoc.context
+        // @ts-ignore
         const pageHeight = page.getHeight()
 
         const konvaGroup = JSON.parse(annotation.konvaString)

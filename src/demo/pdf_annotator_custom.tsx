@@ -6,10 +6,9 @@
  * 组件内部自动转换，调用方零适配成本。
  */
 
-import React, { useCallback, useState } from 'react'
+import React, { useCallback } from 'react'
 import { PdfAnnotator } from '../features/annotator'
 import type { Annotation } from '../core/annotation.core'
-import { storesToAnnotations } from '../core/adapters/store.mapper'
 import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf'
 
 const INITIAL_STORES: Annotation[] = [
