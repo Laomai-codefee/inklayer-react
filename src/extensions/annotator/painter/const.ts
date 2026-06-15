@@ -1,7 +1,7 @@
 /**
- * 常量：PdfjsExtension_Annotator 的样式前缀
+ * 常量：InkLayer_Annotator 的样式前缀
  */
-const STYLE_PREFIX = 'PdfjsExtension_Annotator'
+const STYLE_PREFIX = 'InkLayer_Annotator'
 
 /**
  * 常量：Painter 组件的包裹器样式前缀

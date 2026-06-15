@@ -1,5 +1,5 @@
 import '@radix-ui/themes/styles.css'
-import { Box, Tabs, Theme } from '@radix-ui/themes';
+import { Box, Tabs, Theme, Flex } from '@radix-ui/themes';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import PdfAnnotatorBasic from './pdf_annotator_basic';
@@ -15,7 +15,10 @@ const App = () => {
     return (
         <Theme>
             <Tabs.Root defaultValue="PdfViewerBasic" onValueChange={setActiveTab}>
-                <Tabs.List>
+                <Flex align="center" gap="2" ml="3">
+                    <img src="/logo.svg" alt="InkLayer" style={{ height: 28 }} />
+                    <span style={{ fontSize: 18, fontWeight: 600, marginRight: 12 }}>InkLayer</span>
+                    <Tabs.List>
                     <Tabs.Trigger value="PdfViewerBasic">PdfViewer Basic</Tabs.Trigger>
                     <Tabs.Trigger value="PdfViewerData">PdfViewer Width Data</Tabs.Trigger>
                     <Tabs.Trigger value="PdfViewerCustom">PdfViewer Custom</Tabs.Trigger>
@@ -23,7 +26,7 @@ const App = () => {
                     <Tabs.Trigger value="PdfAnnotatorCustom">PdfAnnotator Custom</Tabs.Trigger>
                     <Tabs.Trigger value="PdfAnnotatorFull">PdfAnnotator Full</Tabs.Trigger>
                 </Tabs.List>
-                
+                </Flex>
             </Tabs.Root>
             <Box pt="0">
     {activeTab === 'PdfViewerBasic' && <PdfViewerBasic />}

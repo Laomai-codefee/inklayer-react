@@ -371,6 +371,7 @@ export abstract class Editor {
         this.konvaStage = konvaStage // 更新 Konva Stage对象
         const ghostGroup = Konva.Node.create(konvaString) // 根据序列化字符串创建 Konva.Group 对象
         const id = ghostGroup.id()
+        ghostGroup.draggable(false)
         this.getBgLayer(konvaStage).add(ghostGroup) // 将 Konva.Group 对象添加到背景图层
         if (this.shapeGroupStore.has(id)) return
         const shapeGroup: IShapeGroup = {
@@ -380,6 +381,7 @@ export abstract class Editor {
             pageNumber: this.pageNumber,
             isDone: true
         }
+        
         this.shapeGroupStore.set(id, shapeGroup)
     }
 

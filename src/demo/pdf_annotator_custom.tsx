@@ -20,10 +20,10 @@ const INITIAL_STORES: Annotation[] = [
             "geometry": {
                 "type": "rect",
                 "rect": {
-                    "x": 105.21,
-                    "y": 16.44,
-                    "width": 407.7,
-                    "height": 45.68
+                    "x": 114.21988950276352,
+                    "y": 36.83954058623022,
+                    "width": 407.7093922651926,
+                    "height": 45.67810206565918
                 }
             },
             "coordinateSystem": "pdf-user-space"
@@ -50,12 +50,12 @@ const INITIAL_STORES: Annotation[] = [
         },
         "extensions": {
             "konva": {
-                "serialized": "{\"attrs\":{\"name\":\"PdfjsExtension_Annotator_shape_group\",\"id\":\"BzGHwy94HKi2Okm7ViT4a\",\"draggable\":true,\"x\":-749.6292037573313,\"y\":-6.835132673383586,\"scaleX\":3.943030872970916,\"scaleY\":0.6223174668345937},\"className\":\"Group\",\"children\":[{\"attrs\":{\"x\":217.80000000000004,\"y\":38.400000000000006,\"width\":101.4,\"height\":71.4,\"strokeScaleEnabled\":false,\"stroke\":\"#da3324\"},\"className\":\"Rect\"}]}",
+                "serialized": "{\"attrs\":{\"name\":\"InkLayer_Annotator_shape_group\",\"id\":\"BzGHwy94HKi2Okm7ViT4a\",\"draggable\":true,\"x\":-740.6292037573312,\"y\":13.564867326616417,\"scaleX\":3.943030872970916,\"scaleY\":0.6223174668345937},\"className\":\"Group\",\"children\":[{\"attrs\":{\"x\":217.80000000000004,\"y\":38.400000000000006,\"width\":101.4,\"height\":71.4,\"strokeScaleEnabled\":false,\"stroke\":\"#da3324\"},\"className\":\"Rect\"}]}",
                 "clientRect": {
-                    "x": 105.21,
-                    "y": 16.44,
-                    "width": 407.7,
-                    "height": 45.68
+                    "x": 114.21988950276352,
+                    "y": 36.83954058623022,
+                    "width": 407.7093922651926,
+                    "height": 45.67810206565918
                 }
             },
             "pdfjs": {
@@ -79,7 +79,7 @@ const INITIAL_STORES: Annotation[] = [
         }
     },
     {
-        "id": "5_nUkaoGZg83BUvownU4X",
+        "id": "PBo08272eddFxgo0-Us2g",
         "kind": "text-markup",
         "target": {
             "pageIndex": 0,
@@ -88,20 +88,20 @@ const INITIAL_STORES: Annotation[] = [
                 "quads": [
                     {
                         "p1": {
-                            "x": 68.3,
-                            "y": 135.88
+                            "x": 68.296875,
+                            "y": 148.20000000000002
                         },
                         "p2": {
-                            "x": 516.73,
-                            "y": 135.88
+                            "x": 516.73125,
+                            "y": 148.20000000000002
                         },
                         "p3": {
-                            "x": 68.3,
-                            "y": 177.56
+                            "x": 68.296875,
+                            "y": 177.253125
                         },
                         "p4": {
-                            "x": 516.73,
-                            "y": 177.56
+                            "x": 516.73125,
+                            "y": 177.253125
                         }
                     }
                 ]
@@ -120,8 +120,8 @@ const INITIAL_STORES: Annotation[] = [
         },
         "relations": {},
         "meta": {
-            "createdAt": "D:20251231222401+08'00'",
-            "updatedAt": "D:20251231222401+08'00'",
+            "createdAt": "D:20260611165820+08'00'",
+            "updatedAt": "D:20260611165820+08'00'",
             "authorId": {
                 "id": "9527",
                 "name": "Lao Mai"
@@ -131,12 +131,12 @@ const INITIAL_STORES: Annotation[] = [
         },
         "extensions": {
             "konva": {
-                "serialized": "{\"attrs\":{\"name\":\"PdfjsExtension_Annotator_shape_group\",\"id\":\"5_nUkaoGZg83BUvownU4X\"},\"className\":\"Group\",\"children\":[{\"attrs\":{\"x\":68.29,\"y\":162.25,\"width\":70.93,\"height\":15.3,\"opacity\":0.5,\"fill\":\"#b4fa56\"},\"className\":\"Rect\"},{\"attrs\":{\"x\":143.94,\"y\":162.25,\"width\":63.04,\"height\":15.3,\"opacity\":0.5,\"fill\":\"#b4fa56\"},\"className\":\"Rect\"}]}",
+                "serialized": "{\"attrs\":{\"name\":\"InkLayer_Annotator_shape_group\",\"id\":\"PBo08272eddFxgo0-Us2g\"},\"className\":\"Group\",\"children\":[{\"attrs\":{\"x\":93.50625000000001,\"y\":148.20000000000002,\"width\":423.225,\"height\":15.000000000000002,\"opacity\":0.5,\"fill\":\"#b4fa56\"},\"className\":\"Rect\"},{\"attrs\":{\"x\":68.296875,\"y\":161.18437500000002,\"width\":143.4,\"height\":15.000000000000002,\"opacity\":0.5,\"fill\":\"#b4fa56\"},\"className\":\"Rect\"},{\"attrs\":{\"x\":214.50000000000003,\"y\":162.253125,\"width\":63.139233398437504,\"height\":15.000000000000002,\"opacity\":0.5,\"fill\":\"#b4fa56\"},\"className\":\"Rect\"}]}",
                 "clientRect": {
-                    "x": 68.3,
-                    "y": 135.88,
-                    "width": 448.43,
-                    "height": 41.68
+                    "x": 68.296875,
+                    "y": 148.20000000000002,
+                    "width": 448.43437500000005,
+                    "height": 29.053124999999994
                 }
             },
             "pdfjs": {
@@ -146,7 +146,7 @@ const INITIAL_STORES: Annotation[] = [
             "legacy": {
                 "title": "Lao Mai",
                 "contentsObj": {
-                    "text": "ch*, Mike Shaver*, David Ander... Rick Reitmaier#, Michael Bebe"
+                    "text": "Mohammad R. Haghighat$, Blake ...n∗, Edwin Smith#, Rick Reitmai"
                 },
                 "comments": []
             }

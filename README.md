@@ -1,13 +1,12 @@
-> ⚠️ **Part of the InkLayer ecosystem**
->
-> This repository provides React bindings and example integrations for InkLayer.
->
-> 👉 **Main entry point:** https://github.com/Laomai-codefee/inklayer
 
 <div>
-    <h1 align="center"><code>pdfjs-annotation-extension-for-react</code> ⚡️ </h1>
     <p align="center">
-        <strong>A lightweight, extensible React PDF annotator and viewer built on top of PDF.js</strong><br/> Supporting the editing of existing PDF file annotations, posting comments, replying, submitting annotation data, and loading for further editing.
+        <img src="https://raw.githubusercontent.com/Laomai-codefee/inklayer-react/main/public/logo.svg" alt="InkLayer" width="80" />
+    </p>
+    <h1 align="center">InkLayer React</h1>
+    <p align="center">
+        Extensible React PDF annotation SDK and viewer built on PDF.js
+        <br/>supporting document review, comments, and annotation editing.
     </p>
 </div>
 
@@ -15,12 +14,12 @@
 English | [简体中文](./README.zh-CN.md)
 ---
 
-[![NPM](https://img.shields.io/npm/v/pdfjs-annotation-extension-for-react.svg)](https://www.npmjs.com/package/pdfjs-annotation-extension-for-react)
-[![License](https://img.shields.io/npm/l/pdfjs-annotation-extension-for-react)](./LICENSE)
+[![NPM](https://img.shields.io/npm/v/inklayer-react.svg)](https://www.npmjs.com/package/inklayer-react)
+[![License](https://img.shields.io/npm/l/inklayer-react)](./LICENSE)
 
-## Online Demo
+### [>>Online Demo](https://laomai-codefee.github.io/inklayer-demos/)
 
-[![Demo](https://img.shields.io/badge/🔥_Live_Demo-React_PDF_Viewer_Plus-FF6F61?style=for-the-badge&logo=github&logoColor=white)](https://laomai-codefee.github.io/pdfjs-annotation-extension-for-react-demo/)
+---
 
 ## ✨ Features
 
@@ -75,9 +74,9 @@ English | [简体中文](./README.zh-CN.md)
 ## 📦 Installation
 
 ```bash
-npm install pdfjs-annotation-extension-for-react
+npm install inklayer-react
 or
-yarn add pdfjs-annotation-extension-for-react
+yarn add inklayer-react
 ```
 
 # 🚀 Quick Start
@@ -85,8 +84,8 @@ yarn add pdfjs-annotation-extension-for-react
 ## 1. PDF Annotator
 
 ```jsx
-import { PdfAnnotator } from 'pdfjs-annotation-extension-for-react'
-import 'pdfjs-annotation-extension-for-react/style'
+import { PdfAnnotator } from 'inklayer-react'
+import 'inklayer-react/style'
 
 export default function App() {
   return (
@@ -105,8 +104,8 @@ export default function App() {
 ## 2. Basic PDF Viewer
 
 ```jsx
-import { PdfViewer } from 'pdfjs-annotation-extension-for-react'
-import 'pdfjs-annotation-extension-for-react/style'
+import { PdfViewer } from 'inklayer-react'
+import 'inklayer-react/style'
 
 export default function App() {
   return (

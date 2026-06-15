@@ -1,4 +1,4 @@
-.PdfjsExtension_Annotator_painter_wrapper {
+.InkLayer_Annotator_painter_wrapper {
     position: absolute;
     text-align: initial;
     top: 0;
@@ -11,21 +11,21 @@
     z-index: 1;
 }
 
-.PdfjsExtension_Annotator_selector_hover {
-    .PdfjsExtension_Annotator_painter_wrapper {
+.InkLayer_Annotator_selector_hover {
+    .InkLayer_Annotator_painter_wrapper {
         cursor: pointer !important;
     }
 }
 
-.PdfjsExtension_Annotator_is_painting {
-    .PdfjsExtension_Annotator_painter_wrapper {
+.InkLayer_Annotator_is_painting {
+    .InkLayer_Annotator_painter_wrapper {
         z-index: 999;
     }
 }
 
-.PdfjsExtension_Annotator_painting_type_1,
-.PdfjsExtension_Annotator_painting_type_2,
-.PdfjsExtension_Annotator_painting_type_3 {
+.InkLayer_Annotator_painting_type_1,
+.InkLayer_Annotator_painting_type_2,
+.InkLayer_Annotator_painting_type_3 {
     .textLayer {
         &:not(.free) span {
             cursor: var(--editorHighlight-editing-cursor);
@@ -33,31 +33,31 @@
     }
 }
 
-.PdfjsExtension_Annotator_painting_type_4,
-.PdfjsExtension_Annotator_painting_type_5,
-.PdfjsExtension_Annotator_painting_type_6,
-.PdfjsExtension_Annotator_painting_type_11,
-.PdfjsExtension_Annotator_painting_type_12,
-.PdfjsExtension_Annotator_painting_type_13 {
-    .PdfjsExtension_Annotator_painter_wrapper {
+.InkLayer_Annotator_painting_type_4,
+.InkLayer_Annotator_painting_type_5,
+.InkLayer_Annotator_painting_type_6,
+.InkLayer_Annotator_painting_type_11,
+.InkLayer_Annotator_painting_type_12,
+.InkLayer_Annotator_painting_type_13 {
+    .InkLayer_Annotator_painter_wrapper {
         cursor: crosshair;
     }
 }
-.PdfjsExtension_Annotator_painting_type_7 {
-    .PdfjsExtension_Annotator_painter_wrapper {
+.InkLayer_Annotator_painting_type_7 {
+    .InkLayer_Annotator_painter_wrapper {
         cursor: var(--editorInk-editing-cursor);
     }
 }
 
-.PdfjsExtension_Annotator_painting_type_8 {
-    .PdfjsExtension_Annotator_painter_wrapper {
+.InkLayer_Annotator_painting_type_8 {
+    .InkLayer_Annotator_painter_wrapper {
         cursor: var(--editorFreeHighlight-editing-cursor);
     }
 }
 
-.PdfjsExtension_Annotator_painting_type_9,
-.PdfjsExtension_Annotator_painting_type_10 {
-    .PdfjsExtension_Annotator_painter_wrapper {
-        cursor: var(--PdfjsExtension_Annotator-image-cursor);
+.InkLayer_Annotator_painting_type_9,
+.InkLayer_Annotator_painting_type_10 {
+    .InkLayer_Annotator_painter_wrapper {
+        cursor: var(--InkLayer_Annotator-image-cursor);
     }
 }

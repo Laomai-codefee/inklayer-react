@@ -1,13 +1,11 @@
-> ⚠️ **InkLayer 生态项目**
->
-> 本仓库提供 InkLayer 的 React 绑定及示例集成，用于在前端应用中快速接入 PDF 批注能力。
->
-> 👉 **InkLayer 主入口：** https://github.com/Laomai-codefee/inklayer
-
 <div>
-    <h1 align="center"><code>pdfjs-annotation-extension-for-react</code> ⚡️ </h1>
     <p align="center">
-        <strong>一个基于 PDF.js 构建的轻量级、可扩展的 React PDF 批注器和查看器</strong><br/> 支持编辑现有 PDF 文件批注、发布评论、回复、提交注释数据和加载以进行进一步编辑。
+        <img src="https://raw.githubusercontent.com/Laomai-codefee/inklayer-react/main/public/logo.svg" alt="InkLayer" width="80" />
+    </p>
+    <h1 align="center"><code>InkLayer React</code></h1>
+    <p align="center">
+        基于PDF.js构建的可扩展React PDF注释SDK和查看器
+        <br/>支持文档审查、评论和注释编辑
     </p>
 </div>
 
@@ -15,12 +13,12 @@
 [English](./README.md) ｜ 简体中文
 ---
 
-[![NPM](https://img.shields.io/npm/v/pdfjs-annotation-extension-for-react.svg)](https://www.npmjs.com/package/pdfjs-annotation-extension-for-react)
-[![License](https://img.shields.io/npm/l/pdfjs-annotation-extension-for-react)](./LICENSE)
+[![NPM](https://img.shields.io/npm/v/inklayer-react.svg)](https://www.npmjs.com/package/inklayer-react)
+[![License](https://img.shields.io/npm/l/inklayer-react)](./LICENSE)
 
-## 在线演示
+### [>>Online Demo](https://laomai-codefee.github.io/inklayer-demos/)
 
-[![Demo](https://img.shields.io/badge/🔥_Live_Demo-React_PDF_Viewer_Plus-FF6F61?style=for-the-badge&logo=github&logoColor=white)](https://laomai-codefee.github.io/pdfjs-annotation-extension-for-react-demo/)
+---
 
 ## ✨ 特性
 

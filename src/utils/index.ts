@@ -63,7 +63,7 @@ function forceToSRGB(color: string) {
 }
 
 export function getThemeColor(): string {
-    const el = document.getElementById('PdfjsExtension')
+    const el = document.getElementById('InkLayer')
     if (el) {
         const styles = getComputedStyle(el)
         const accent9 = styles.getPropertyValue('--accent-9').trim()

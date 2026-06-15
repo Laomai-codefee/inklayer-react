@@ -185,7 +185,7 @@ export const PdfViewerProvider: React.FC<PdfViewerProviderProps> = ({
     return (
         <UserContext.Provider value={userContextValue}>
             <PdfViewerContext.Provider value={contextValue}>
-                <Flex id="PdfjsExtension" className={styles.PdfjsExtensionViewer} style={style} direction="column" width="100%" position="relative">
+                <Flex id="InkLayer" className={styles.InkLayerViewer} style={style} direction="column" width="100%" position="relative">
                     <LoadingIndicator progress={progress} loading={loading} />
                     {loadError && <ErrorDisplay error={loadError} />}
                     <Flex pl="2" pr="2" className={styles.viewerHeader}>
