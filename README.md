@@ -17,7 +17,7 @@ English | [简体中文](./README.zh-CN.md)
 [![NPM](https://img.shields.io/npm/v/inklayer-react.svg)](https://www.npmjs.com/package/inklayer-react)
 [![License](https://img.shields.io/npm/l/inklayer-react)](./LICENSE)
 
-### [>>Online Demo](https://laomai-codefee.github.io/inklayer-demos/)
+### [>>Online Demo](https://laomai-codefee.github.io/inklayer-react/)
 
 ---
 
