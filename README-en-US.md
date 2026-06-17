@@ -1,16 +1,17 @@
+
 <div>
     <p align="center">
         <img src="https://raw.githubusercontent.com/Laomai-codefee/inklayer-react/main/public/logo.svg" alt="InkLayer" width="80" />
     </p>
-    <h1 align="center"><code>InkLayer React</code></h1>
+    <h1 align="center">InkLayer React</h1>
     <p align="center">
-        基于PDF.js构建的可扩展React PDF注释SDK和查看器
-        <br/>支持文档审查、评论和注释编辑
+        Extensible React PDF annotation SDK and viewer built on PDF.js
+        <br/>supporting document review, comments, and annotation editing.
     </p>
 </div>
 
 ---
-[English](./README.md) ｜ 简体中文
+English | [简体中文](./README.md)
 ---
 
 [![NPM](https://img.shields.io/npm/v/inklayer-react.svg)](https://www.npmjs.com/package/inklayer-react)
@@ -20,71 +21,71 @@
 
 ---
 
-## ✨ 特性
+## ✨ Features
 
-- ✍️ 丰富的注释系统
-  - 高亮、绘图、形状、文本注释
-  - 签名（手绘 / 输入 / 上传）
-  - 带编辑器支持的印章
-  - 直接编辑原生 PDF 注释
-- 📄 基于 PDF.js 的高保真 PDF 渲染
-- 🎨 基于 Radix UI Themes 的主题系统
-- 🌍 国际化（中文简体、英文）
-- 🧩 高度可自定义的 UI
-  - 工具栏 / 侧边栏 / 操作完全可覆盖
-- 🏢 企业友好配置
-  - `defaultOptions` 支持深度部分 + 深度合并
-- 💾 导出
-  - 将注释导出为 PDF
-  - 将注释导出为 Excel
-- 🧠 为可扩展性而设计
-  - 清晰的上下文和扩展架构
+- ✍️ Rich annotation system
+  - Highlight, drawing, shapes, text notes
+  - Signatures (draw / enter / upload)
+  - Stamps with editor support
+  - Edit native PDF annotations directly
+- 📄 High-fidelity PDF rendering based on PDF.js
+- 🎨 Theme system based on Radix UI Themes
+- 🌍 Internationalization (zh-CN, en-US)
+- 🧩 Highly customizable UI
+  - Toolbar / Sidebar / Actions fully overridable
+- 🏢 Enterprise-friendly configuration
+  - `defaultOptions` supports DeepPartial + Deep Merge
+- 💾 Export
+  - Export annotations to PDF
+  - Export annotations to Excel
+- 🧠 Designed for extensibility
+  - Clean context & extension architecture
 
-## ✍️ 批注工具
+## ✍️ Annotation Tools
 
-1. 矩形
-2. 圆形
-3. 自由手绘（短时间内绘制的会被分组）
-4. 自由高亮（带自动校正）
-5. 箭头
-6. 云线
-7. 自由文本
-8. 签名 （上传、手绘、输入、默认签名）
-9. 印章（上传自定义图片、自定义印章、 默认印章）
-10. 文本高亮
-11. 文本删除线
-12. 文本下划线
-13. 文本
+1. Rectangle
+2. Circle
+3. Free Hand (grouped if drawn within a short time)
+4. Free Highlight (with auto-correction)
+5. Arrow
+6. Cloud
+7. FreeText
+8. Signature
+9. Stamp (upload custom images)
+10. Text Highlight
+11. Text Strikeout
+12. Text Underline
+13. Text
 
-## ✍️ 编辑 PDF 文件中的现有批注
+## ✍️ Editing existing annotations in PDF files
 
-1. 矩形
-2. 圆形
-3. 绘制
-4. 自由文本
-5. 线条
-6. 多边形
-7. 折线
-8. 文本
-9. 高亮
-10. 下划线
-11. 删除线
+1. Square
+2. Circle
+3. Ink
+4. FreeText
+5. Line
+6. Polygon
+7. PolyLine
+8. Text
+9. Highlight
+10. Underline
+11. StrikeOut
 
-## 📦 安装
+## 📦 Installation
 
 ```bash
-npm install pdfjs-annotation-extension-for-react
+npm install inklayer-react
 or
-yarn add pdfjs-annotation-extension-for-react
+yarn add inklayer-react
 ```
 
-# 🚀 快速开始
+# 🚀 Quick Start
 
-## 1. PDF 批注
+## 1. PDF Annotator
 
 ```jsx
-import { PdfAnnotator } from 'pdfjs-annotation-extension-for-react'
-import 'pdfjs-annotation-extension-for-react/style'
+import { PdfAnnotator } from 'inklayer-react'
+import 'inklayer-react/style'
 
 export default function App() {
   return (
@@ -100,11 +101,11 @@ export default function App() {
 }
 ```
 
-## 2. 基础 PDF 查看器
+## 2. Basic PDF Viewer
 
 ```jsx
-import { PdfViewer } from 'pdfjs-annotation-extension-for-react'
-import 'pdfjs-annotation-extension-for-react/style'
+import { PdfViewer } from 'inklayer-react'
+import 'inklayer-react/style'
 
 export default function App() {
   return (
@@ -117,13 +118,13 @@ export default function App() {
 }
 ```
 
-# 🧩 组件
+# 🧩 Components
 
-### 基础属性
+### Base Props
 
 | Name                   | Type                    | Default                                 | Description                                            |
 | ---------------------- | ----------------------- | --------------------------------------- | ------------------------------------------------------ |
-| `appearance`         | `auto \| dark \| light`       | `auto`                       | Dark or Light theme. 
+| `appearance`         | `auto \| dark \| light`       | `auto`                       | Dark or Light theme.                                  | 
 | `theme`              | Radix Theme Color       | `violet`                              | Theme color of the viewer UI                           |
 | `title`              | `React.ReactNode`     | —                                      | Page title content; accepts text or custom React nodes |
 | `url`              | `string \| URL`        | —                                      | PDF file URL; supports string URLs or `URL` objects  |
@@ -134,11 +135,11 @@ export default function App() {
 | `isSidebarCollapsed` | `boolean`             | `false`                               | Whether the sidebar is collapsed by default            |
 | `enableRange`        | `boolean \| 'auto'`    | `auto`                                | Enables HTTP Range (streaming) loading for PDFs        |
 
-## ✍️ PdfAnnotator -  PDF批注器
+## ✍️ PdfAnnotator
 
-具有注释功能的高级 PDF 查看器
+An advanced PDF viewer with annotation capabilities.
 
-### 属性
+### Props
 
 | Name                        | Type                                                                | Default                             | Description                                                          |
 | --------------------------- | ------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------- |
@@ -155,21 +156,22 @@ export default function App() {
 | `onAnnotationSelected`    | `(annotation: Annotation \| null, isClick: boolean) => void` | —                                  | Fired when an annotation is selected or deselected                   |
 | `onAnnotationUpdated`     | `(annotation: Annotation) => void`                          | —                                  | Fired when an existing annotation is modified                        |
 
-### ⚙️ defaultOptions
+### ⚙️ defaultOptions (Enterprise Design)
 
-#### ✅ 深度部分 + 深度合并
+#### ✅ DeepPartial + Deep Merge
 
-`defaultOptions` 不是完整的配置覆盖
+`defaultOptions` is not a full config override.
 
-- 它被定义为 `DeepPartial<PdfAnnotatorOptions> `
-- 它将与系统默认配置进行深度合并
+- It is defined as `DeepPartial<PdfAnnotatorOptions> `
+- It will be deep merged with the system default configuration
 
-这确保了：
-- 您只需覆盖需要的内容
-- 系统默认值保持稳定
-- 适合长期企业使用
+This ensures:
 
-#### 示例
+- You only override what you need
+- System defaults remain stable
+- Safe for long-term enterprise use
+
+#### Example
 
 ```tsx
 import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf';
@@ -225,9 +227,9 @@ import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf';
 />
 ```
 
-### 🎨 自定义UI
+### 🎨 Custom UI
 
-####  Actions
+#### Custom Actions
 
 ```jsx
 <PdfAnnotator
@@ -246,7 +248,7 @@ import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf';
 />
 ```
 
-### 🖋 签名和印章配置
+### 🖋 Signature & Stamp Configuration
 
 ```jsx
 <PdfAnnotator
@@ -270,9 +272,9 @@ import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf';
 />
 ```
 
-## 📄 PdfViewer - PDF 查看器
+## 📄 PdfViewer
 
-具有工具栏、侧边栏、操作和可扩展 UI 插槽的轻量级 PDF 查看器。
+A lightweight PDF viewer with toolbar, sidebar, actions and extensible UI slots.
 
 ### Props
 
@@ -287,9 +289,9 @@ import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf';
 | `onDocumentLoaded`   | `(pdfViewer: PDFViewer \| null) => void`                                 | —        | Callback invoked when the PDF <br />document is fully loaded and the viewer is initialized |
 | `onEventBusReady`    | `(eventBus: EventBus \| null) => void`                                   | —        | Callback invoked when the pdf.js EventBus is ready                                         |
 
-### 🎨 自定义 UI
+### 🎨 Custom UI
 
-####  Toolbar
+#### Custom Toolbar
 
 ```jsx
 <PdfViewer
@@ -313,7 +315,7 @@ import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf';
 />
 ```
 
-###  Sidebar
+### Custom Sidebar
 
 ```jsx
 <PdfViewer
@@ -351,7 +353,7 @@ import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf';
 />
 ```
 
-### Actions
+### Custom Actions
 
 ```jsx
 <PdfViewer
@@ -377,13 +379,13 @@ import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf';
 
 ---
 
-# 🌍 浏览器支持
+# 🌍 Browser Support
 
 - Chrome (latest)
 - Firefox (latest)
 - Safari (latest)
 - Edge (latest)
 
-# 📄 许可证
+# 📄 License
 
 MIT
