@@ -29,7 +29,7 @@
             "import": "./dist/index.es.js",
             "require": "./dist/index.cjs.js"
         },
-        "./style": "./dist/InkLayerReact.css"
+        "./style": "./dist/inklayer-react.css"
     },
     "sideEffects": [
         "*.css",
@@ -59,8 +59,13 @@
     "dependencies": {
         "@floating-ui/dom": "^1.7.4",
         "@radix-ui/themes": "^3.2.1",
+        "exceljs": "^4.4.0",
+        "file-saver": "^2.0.5",
         "i18next": "^25.6.3",
+        "konva": "^9.0.0",
         "nanoid": "^5.1.6",
+        "pdf-lib": "^1.17.1",
+        "pdfjs-dist": "~4.3.136",
         "react-colorful": "^5.6.1",
         "react-i18next": "^16.3.4",
         "react-icons": "^5.5.0",
@@ -68,11 +73,6 @@
         "zustand": "^4.4.4"
     },
     "peerDependencies": {
-        "exceljs": "^4.4.0",
-        "file-saver": "^2.0.5",
-        "konva": "^9.0.0",
-        "pdf-lib": "^1.17.1",
-        "pdfjs-dist": "~4.3.136",
         "react": "^18.0.0",
         "react-dom": "^18.0.0"
     },
