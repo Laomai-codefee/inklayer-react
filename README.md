@@ -73,9 +73,9 @@
 ## 📦 安装
 
 ```bash
-npm install pdfjs-annotation-extension-for-react
+npm install inklayer-react
 or
-yarn add pdfjs-annotation-extension-for-react
+yarn add inklayer-react
 ```
 
 # 🚀 快速开始
@@ -83,8 +83,8 @@ yarn add pdfjs-annotation-extension-for-react
 ## 1. PDF 批注
 
 ```jsx
-import { PdfAnnotator } from 'pdfjs-annotation-extension-for-react'
-import 'pdfjs-annotation-extension-for-react/style'
+import { PdfAnnotator } from 'inklayer-react'
+import 'inklayer-react/style'
 
 export default function App() {
   return (
@@ -103,8 +103,8 @@ export default function App() {
 ## 2. 基础 PDF 查看器
 
 ```jsx
-import { PdfViewer } from 'pdfjs-annotation-extension-for-react'
-import 'pdfjs-annotation-extension-for-react/style'
+import { PdfViewer } from 'inklayer-react'
+import 'inklayer-react/style'
 
 export default function App() {
   return (
