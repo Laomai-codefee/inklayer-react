@@ -24,7 +24,8 @@ const GithubStar: React.FC = () => (
 );
 
 const App = () => {
-    const [activeTab, setActiveTab] = React.useState('PdfViewerBasic');
+    const [activeTab, setActiveTab] = React.useState('PdfAnnotatorBasic');
+    const headless = window.location.hash === '#headless';
     const showCodeRef = useRef<ShowCodeHandle>(null);
 
     const currentDemo = useMemo(() => `${activeTab}.tsx`, [activeTab]);
@@ -33,16 +34,16 @@ const App = () => {
     return (
         <Theme>
             <Tabs.Root defaultValue="PdfViewerBasic" onValueChange={setActiveTab}>
-                <Flex align="center" gap="2" ml="3">
+                {!headless && (<Flex align="center" gap="2" ml="3">
                     <img src="https://laomai-codefee.github.io/inklayer-react/logo.svg" alt="InkLayer" style={{ height: 20 }} />
                     <span style={{ fontSize: 14, fontWeight: 600, marginRight: 12 }}>InkLayer React</span>
                     <Tabs.List>
-                    <Tabs.Trigger value="PdfViewerBasic">PdfViewer Basic</Tabs.Trigger>
-                    <Tabs.Trigger value="PdfViewerData">PdfViewer Width Data</Tabs.Trigger>
-                    <Tabs.Trigger value="PdfViewerCustom">PdfViewer Custom</Tabs.Trigger>
                     <Tabs.Trigger value="PdfAnnotatorBasic">PdfAnnotator Basic</Tabs.Trigger>
                     <Tabs.Trigger value="PdfAnnotatorCustom">PdfAnnotator Custom</Tabs.Trigger>
                     <Tabs.Trigger value="PdfAnnotatorFull">PdfAnnotator Full</Tabs.Trigger>
+                    <Tabs.Trigger value="PdfViewerBasic">PdfViewer Basic</Tabs.Trigger>
+                    <Tabs.Trigger value="PdfViewerData">PdfViewer Width Data</Tabs.Trigger>
+                    <Tabs.Trigger value="PdfViewerCustom">PdfViewer Custom</Tabs.Trigger>
                 </Tabs.List>
                     <div style={{ flex: 1 }} />
                     <Button
@@ -51,8 +52,7 @@ const App = () => {
                         &lt;/&gt; Show Code
                     </Button>
                     <GithubStar />
-                    
-                </Flex>
+                </Flex>)}
             </Tabs.Root>
             <Box pt="0">
     {activeTab === 'PdfViewerBasic' && <PdfViewerBasic />}
