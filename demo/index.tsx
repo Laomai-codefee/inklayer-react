@@ -33,7 +33,7 @@ const App = () => {
 
     return (
         <Theme>
-            <Tabs.Root defaultValue="PdfViewerBasic" onValueChange={setActiveTab}>
+            <Tabs.Root defaultValue="PdfAnnotatorBasic" onValueChange={setActiveTab}>
                 {!headless && (<Flex align="center" gap="2" ml="3">
                     <img src="https://laomai-codefee.github.io/inklayer-react/logo.svg" alt="InkLayer" style={{ height: 20 }} />
                     <span style={{ fontSize: 14, fontWeight: 600, marginRight: 12 }}>InkLayer React</span>
