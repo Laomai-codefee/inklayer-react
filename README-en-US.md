@@ -1,87 +1,61 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Laomai-codefee/inklayer-react/main/public/logo.svg" alt="InkLayer" width="80" />
+</p>
 
-<div>
-    <p align="center">
-        <img src="https://raw.githubusercontent.com/Laomai-codefee/inklayer-react/main/public/logo.svg" alt="InkLayer" width="80" />
-    </p>
-    <h1 align="center">InkLayer React</h1>
-    <p align="center">
-        Extensible React PDF annotation SDK and viewer built on PDF.js
-        <br/>supporting document review, comments, and annotation editing.
-    </p>
-</div>
+<h1 align="center">InkLayer React</h1>
+
+<p align="center">
+  A PDF annotation SDK built on PDF.js for React.
+  <br/>Simplifies building document review, annotation, and commenting systems.
+</p>
 
 ---
-English | [简体中文](./README.md)
+[简体中文](./README.md) | English 
 ---
+[![NPM](https://img.shields.io/npm/v/inklayer-react.svg)](https://www.npmjs.com/package/inklayer-react)   [![License](https://img.shields.io/npm/l/inklayer-react)](./LICENSE)
 
-[![NPM](https://img.shields.io/npm/v/inklayer-react.svg)](https://www.npmjs.com/package/inklayer-react)
-[![License](https://img.shields.io/npm/l/inklayer-react)](./LICENSE)
+[>> Online Demo](https://laomai-codefee.github.io/inklayer-react/)
 
-### [>>Online Demo](https://laomai-codefee.github.io/inklayer-react/)
 
 ---
 
-## ✨ Features
+## Why InkLayer
 
-- ✍️ Rich annotation system
-  - Highlight, drawing, shapes, text notes
-  - Signatures (draw / enter / upload)
-  - Stamps with editor support
-  - Edit native PDF annotations directly
-- 📄 High-fidelity PDF rendering based on PDF.js
-- 🎨 Theme system based on Radix UI Themes
-- 🌍 Internationalization (zh-CN, en-US)
-- 🧩 Highly customizable UI
-  - Toolbar / Sidebar / Actions fully overridable
-- 🏢 Enterprise-friendly configuration
-  - `defaultOptions` supports DeepPartial + Deep Merge
-- 💾 Export
-  - Export annotations to PDF
-  - Export annotations to Excel
-- 🧠 Designed for extensibility
-  - Clean context & extension architecture
+Building PDF annotation features with PDF.js requires handling:
 
-## ✍️ Annotation Tools
+- coordinate system mapping
+- annotation rendering consistency
+- state synchronization across pages
+- export and persistence logic
 
-1. Rectangle
-2. Circle
-3. Free Hand (grouped if drawn within a short time)
-4. Free Highlight (with auto-correction)
-5. Arrow
-6. Cloud
-7. FreeText
-8. Signature
-9. Stamp (upload custom images)
-10. Text Highlight
-11. Text Strikeout
-12. Text Underline
-13. Text
+InkLayer provides a structured layer to reduce this complexity.
 
-## ✍️ Editing existing annotations in PDF files
+---
 
-1. Square
-2. Circle
-3. Ink
-4. FreeText
-5. Line
-6. Polygon
-7. PolyLine
-8. Text
-9. Highlight
-10. Underline
-11. StrikeOut
+## Features
 
-## 📦 Installation
+- Annotation system (text markup, ink, shapes, stamps, signatures)
+- PDF.js rendering abstraction
+- Comment and review workflows
+- Annotation editing and persistence model
+- Export support (PDF / Excel)
+- Customizable UI (toolbar / sidebar)
+
+---
+
+## Installation
 
 ```bash
 npm install inklayer-react
-or
+# or
 yarn add inklayer-react
 ```
 
-# 🚀 Quick Start
+---
 
-## 1. PDF Annotator
+## Quick Start
+
+### PdfAnnotator
 
 ```jsx
 import { PdfAnnotator } from 'inklayer-react'
@@ -101,7 +75,7 @@ export default function App() {
 }
 ```
 
-## 2. Basic PDF Viewer
+### PdfViewer
 
 ```jsx
 import { PdfViewer } from 'inklayer-react'
@@ -118,116 +92,50 @@ export default function App() {
 }
 ```
 
-# 🧩 Components
+---
+
+## Component API
 
 ### Base Props
 
-| Name                   | Type                    | Default                                 | Description                                            |
-| ---------------------- | ----------------------- | --------------------------------------- | ------------------------------------------------------ |
-| `appearance`         | `auto \| dark \| light`       | `auto`                       | Dark or Light theme.                                  | 
-| `theme`              | Radix Theme Color       | `violet`                              | Theme color of the viewer UI                           |
-| `title`              | `React.ReactNode`     | —                                      | Page title content; accepts text or custom React nodes |
-| `url`              | `string \| URL`        | —                                      | PDF file URL; supports string URLs or `URL` objects  |
-| `data`              | `string \| number[] \| ArrayBuffer \| Uint8Array \| Uint16Array \| Uint32Array`        | —                                      | PDF Data  |
-| `locale`             | `'zh-CN' \| 'en-US'`   | `zh-CN`                               | Locale used for internationalization                   |
-| `initialScale`       | `PdfScale`            | `auto`                                | Initial zoom level of the PDF viewer                   |
-| `layoutStyle`        | `React.CSSProperties` | `{ width: '100vw', height: '100vh' }` | Styles applied to the PDF viewer container             |
-| `isSidebarCollapsed` | `boolean`             | `false`                               | Whether the sidebar is collapsed by default            |
-| `enableRange`        | `boolean \| 'auto'`    | `auto`                                | Enables HTTP Range (streaming) loading for PDFs        |
+| Prop | Type | Default | Description |
+|:-----|:-----|:--------|:------------|
+| `appearance` | `auto \| dark \| light` | `auto` | Dark or light theme |
+| `theme` | Radix Theme Color | `violet` | UI theme color |
+| `title` | `React.ReactNode` | — | Page title |
+| `url` | `string \| URL` | — | PDF file URL |
+| `data` | `string \| number[] \| ArrayBuffer \| TypedArray` | — | Raw PDF binary data |
+| `locale` | `'zh-CN' \| 'en-US'` | `zh-CN` | UI language |
+| `initialScale` | `PdfScale` | `auto` | Initial zoom level |
+| `layoutStyle` | `React.CSSProperties` | `{ width: '100vw', height: '100vh' }` | Viewer container styles |
+| `isSidebarCollapsed` | `boolean` | `false` | Sidebar collapsed by default |
+| `enableRange` | `boolean \| 'auto'` | `auto` | Enable HTTP Range loading |
 
-## ✍️ PdfAnnotator
+---
 
-An advanced PDF viewer with annotation capabilities.
+### PdfAnnotator
 
-### Props
+#### Props
 
-| Name                        | Type                                                                | Default                             | Description                                                          |
-| --------------------------- | ------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------- |
-| `user`                    | `User`                                                            | `{ id: 'null', name: 'unknown' }` | Current user information<br />used to identify the annotation author |
-| `enableNativeAnnotations` | `boolean`                                                         | `false`                           | Native annotations embedded in the PDF file                          |
-| `defaultShowAnnotationsSidebar` | `boolean`                                                   | `false`                           | Show Annotations Sidebar                                             |
-| `defaultOptions`          | `DeepPartial`                                                     | —                                  | Default configuration for the annotator;                             |
-| `initialAnnotations`      | `Annotation[]`                                              | —                                  | Existing annotations to be rendered during initialization            |
-| `actions`                 | `React.ReactNode \| React.ComponentType`                           | —                                  | Custom actions area                                                 |
-| `onSave`                  | `(annotations: Annotation[]) => void`                       | —                                  | Callback triggered when annotations are saved                        |
-| `onLoad`                  | `() => void`                                                      | —                                  | Callback triggered when the PDF and annotator are fully loaded       |
-| `onAnnotationAdded`       | `(annotation: Annotation) => void`                          | —                                  | Fired when a new annotation is created                               |
-| `onAnnotationDeleted`     | `(id: string) => void`                                            | —                                  | Fired when an annotation is deleted                                  |
-| `onAnnotationSelected`    | `(annotation: Annotation \| null, isClick: boolean) => void` | —                                  | Fired when an annotation is selected or deselected                   |
-| `onAnnotationUpdated`     | `(annotation: Annotation) => void`                          | —                                  | Fired when an existing annotation is modified                        |
+| Prop | Type | Default | Description |
+|:-----|:-----|:--------|:------------|
+| (All base props) | | | Inherits all [Base Props](#base-props) |
+| `user` | `User` | `{ id: 'null', name: 'unknown' }` | Current user info |
+| `enableNativeAnnotations` | `boolean` | `false` | Edit PDF-native annotations |
+| `defaultShowAnnotationsSidebar` | `boolean` | `false` | Show annotation sidebar by default |
+| `defaultOptions` | `DeepPartial` | — | Partial config merged with defaults |
+| `initialAnnotations` | `Annotation[]` | — | Preload existing annotations |
 
-### ⚙️ defaultOptions (Enterprise Design)
+#### Events
 
-#### ✅ DeepPartial + Deep Merge
-
-`defaultOptions` is not a full config override.
-
-- It is defined as `DeepPartial<PdfAnnotatorOptions> `
-- It will be deep merged with the system default configuration
-
-This ensures:
-
-- You only override what you need
-- System defaults remain stable
-- Safe for long-term enterprise use
-
-#### Example
-
-```tsx
-import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf';
-
-<PdfAnnotator
-    url="sample.pdf"
-    defaultOptions={{
-        colors: ['#000', '#1677ff'],
-        signature: {
-            colors: ['#000000', '#ff0000', '#1677ff'],
-            type: 'Upload',
-            maxSize: 1024 * 1024 * 5,
-            accept: '.png,.jpg,.jpeg,.bmp',
-            defaultSignature: ['data:image/png;base64,...'],
-            defaultFont: [
-                {
-                    label: '楷体',
-                    value: 'STKaiti',
-                    external: false
-                },
-                {
-                    label: '千图笔锋手写体',
-                    value: 'qiantubifengshouxieti',
-                    external: true,
-                    url: qiantubifengshouxietiFont
-                },
-                {
-                    label: '平方长安体',
-                    value: 'PingFangChangAnTi-2',
-                    external: true,
-                    url: 'http://server/PingFangChangAnTi-2.ttf'
-                }
-            ]
-        },
-        stamp: {
-            maxSize: 1024 * 1024 * 5,
-            accept: '.png,.jpg,.jpeg,.bmp',
-            defaultStamp: ['data:image/png;base64,...'],
-            editor: {
-                defaultBackgroundColor: '#2f9e44',
-                defaultBorderColor: '#2b8a3e',
-                defaultBorderStyle: 'none',
-                defaultTextColor: '#fff',
-                defaultFont: [
-                    {
-                        label: '楷体',
-                        value: 'STKaiti'
-                    }
-                ]
-            }
-        }
-    }}
-/>
-```
-
-### 🎨 Custom UI
+| Event | Payload | Description |
+|:------|:--------|:------------|
+| `onSave` | `(annotations: Annotation[]) => void` | Save annotations |
+| `onLoad` | `() => void` | PDF loaded |
+| `onAnnotationAdded` | `(annotation: Annotation) => void` | Annotation created |
+| `onAnnotationDeleted` | `(id: string) => void` | Annotation deleted |
+| `onAnnotationSelected` | `(annotation: Annotation \| null, isClick: boolean) => void` | Annotation selected |
+| `onAnnotationUpdated` | `(annotation: Annotation) => void` | Annotation modified |
 
 #### Custom Actions
 
@@ -237,141 +145,8 @@ import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf';
   actions={({ save, exportToPdf, exportToExcel }) => (
     <>
       <button onClick={save}>Save</button>
-      <button onClick={() => exportToPdf('annotations')}>
-        Export PDF
-      </button>
-      <button onClick={() => exportToExcel('annotations')}>
-        Export Excel
-      </button>
-    </>
-  )}
-/>
-```
-
-### 🖋 Signature & Stamp Configuration
-
-```jsx
-<PdfAnnotator
-  url={pdfUrl}
-  defaultOptions={{
-    signature: {
-      defaultSignature: ['data:image/png;base64,...'],
-      defaultFont: [
-        {
-          label: 'Custom Font',
-          value: 'MyFont',
-          external: true,
-          url: '/fonts/myfont.ttf'
-        }
-      ]
-    },
-    stamp: {
-      defaultStamp: ['data:image/png;base64,...']
-    }
-  }}
-/>
-```
-
-## 📄 PdfViewer
-
-A lightweight PDF viewer with toolbar, sidebar, actions and extensible UI slots.
-
-### Props
-
-| Name                   | Type                                                                      | Default   | Description                                                                                |
-| ---------------------- | ------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------ |
-| `actions`            | `React.ReactNode \| (context: PdfViewerContextValue) => React.ReactNode` | —        | Custom actions area in the toolbar                                                         |
-| `sidebar`            | `SidebarPanel[]` | —        | Custom sidebar component                                                                   |
-| `toolbar`            | `React.ReactNode \| (context: PdfViewerContextValue) => React.ReactNode` | —        | Custom toolbar component                                                                   |
-| `showTextLayer`      | `boolean`                                                               | `true`  | Whether to render the text layer                                                           |
-| `showAnnotations`      | `boolean`                                                               | `false`  | Whether to render the pdf annotations layer                                              |
-| `defaultActiveSidebarKey`      | `string`                                                     | null  | Default Active Sidebar Key                                                       |
-| `onDocumentLoaded`   | `(pdfViewer: PDFViewer \| null) => void`                                 | —        | Callback invoked when the PDF <br />document is fully loaded and the viewer is initialized |
-| `onEventBusReady`    | `(eventBus: EventBus \| null) => void`                                   | —        | Callback invoked when the pdf.js EventBus is ready                                         |
-
-### 🎨 Custom UI
-
-#### Custom Toolbar
-
-```jsx
-<PdfViewer
-  url={pdfUrl}
-  toolbar={(context) => (
-    <>
-    <button onClick={() => console.log(context.pdfViewer)}>
-        PDF Viewer
-    </button>
-    <button onClick={context.toggleSidebar}>
-        Toggle Sidebar
-    </button>
-    <button onClick={() => context.setSidebarCollapsed(false)}>
-        Open Sidebar
-    </button>
-    <button onClick={() => context.setSidebarCollapsed(true)}>
-        Close Sidebar
-    </button>
-</>
-  )}
-/>
-```
-
-### Custom Sidebar
-
-```jsx
-<PdfViewer
-  url={pdfUrl}
-   sidebar={[{
-            key: 'sidebar-1',
-            title: 'Sidebar 1',
-            icon: <BsLayoutTextSidebar />,
-            render: (context) => (
-                <div style={{ display: 'flex', gap: 10, flexDirection: 'column' }}>
-                    Sidebar 1
-                    <button onClick={context.toggleSidebar}>
-                        toggleSidebar
-                    </button>
-                    <button onClick={() => console.log(context.pdfViewer)}>
-                        Get PDF Viewer
-                    </button>
-                    <button onClick={() => {
-                        context.pdfViewer?.scrollPageIntoView({
-                            pageNumber: 1
-                        })
-                    }}>
-                        goto page1
-                    </button>
-                    <button onClick={() => {
-                        context.pdfViewer?.scrollPageIntoView({
-                            pageNumber: 10
-                        })
-                    }}>
-                        goto page 10
-                    </button>
-                </div>
-            )
-        }]}
-/>
-```
-
-### Custom Actions
-
-```jsx
-<PdfViewer
-  url={pdfUrl}
-  actions={(context) => (
-    <>
-        <button onClick={() => console.log(context.pdfViewer)}>
-            PDF Viewer
-        </button>
-        <button onClick={context.toggleSidebar}>
-            Toggle Sidebar
-        </button>
-        <button onClick={() => context.setSidebarCollapsed(false)}>
-            Open Sidebar
-        </button>
-        <button onClick={() => context.setSidebarCollapsed(true)}>
-            Close Sidebar
-        </button>
+      <button onClick={() => exportToPdf('annotations')}>Export PDF</button>
+      <button onClick={() => exportToExcel('annotations')}>Export Excel</button>
     </>
   )}
 />
@@ -379,13 +154,64 @@ A lightweight PDF viewer with toolbar, sidebar, actions and extensible UI slots.
 
 ---
 
-# 🌍 Browser Support
+### PdfViewer
 
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
+#### Props
 
-# 📄 License
+| Prop | Type | Default | Description |
+|:-----|:-----|:--------|:------------|
+| (All base props) | | | Inherits all [Base Props](#base-props) |
+| `showTextLayer` | `boolean` | `true` | Render text layer |
+| `showAnnotations` | `boolean` | `false` | Render PDF annotation layer |
+| `defaultActiveSidebarKey` | `string` | null | Default active sidebar |
+| `toolbar` | `ReactNode \| (ctx) => ReactNode` | — | Custom toolbar |
+| `sidebar` | `SidebarPanel[]` | — | Custom sidebar panels |
+| `actions` | `ReactNode \| (ctx) => ReactNode` | — | Custom action buttons |
 
-MIT
+#### Events
+
+| Event | Payload | Description |
+|:------|:--------|:------------|
+| `onDocumentLoaded` | `(pdfViewer: PDFViewer \| null) => void` | PDF loaded |
+| `onEventBusReady` | `(eventBus: EventBus \| null) => void` | Event bus ready |
+
+#### Custom Toolbar
+
+```jsx
+<PdfViewer
+  url={pdfUrl}
+  toolbar={(ctx) => (
+    <>
+      <button onClick={ctx.toggleSidebar}>Toggle Sidebar</button>
+    </>
+  )}
+/>
+```
+
+#### Custom Sidebar
+
+```jsx
+<PdfViewer
+  url={pdfUrl}
+  sidebar={[{ key: 'my-panel', title: 'My Panel', render: (ctx) => <div>Content</div> }]}
+/>
+```
+
+---
+
+## Browser Support
+
+Modern browsers (Chrome, Firefox, Safari, Edge latest).
+
+---
+
+## Related Projects
+
+- [InkLayer Vue](https://github.com/Laomai-codefee/inklayer-vue) — Vue 3 binding
+- [PDF.js](https://github.com/mozilla/pdf.js) — Underlying PDF rendering engine
+
+---
+
+## License
+
+MIT © InkLayer

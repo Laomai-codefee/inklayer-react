@@ -1,86 +1,61 @@
-<div>
-    <p align="center">
-        <img src="https://raw.githubusercontent.com/Laomai-codefee/inklayer-react/main/public/logo.svg" alt="InkLayer" width="80" />
-    </p>
-    <h1 align="center"><code>InkLayer React</code></h1>
-    <p align="center">
-        基于PDF.js构建的可扩展React PDF注释SDK和查看器
-        <br/>支持文档审查、评论和注释编辑
-    </p>
-</div>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Laomai-codefee/inklayer-react/main/public/logo.svg" alt="InkLayer" width="80" />
+</p>
+
+<h1 align="center">InkLayer React</h1>
+
+<p align="center">
+  基于 PDF.js 构建的 React PDF 批注 SDK
+  <br/>用于快速构建文档审阅、批注与评论系统
+</p>
 
 ---
-[English](./README-en-US.md) | 简体中文
+简体中文 | [English](./README-en-US.md) 
+---
+[![NPM](https://img.shields.io/npm/v/inklayer-react.svg)](https://www.npmjs.com/package/inklayer-react) [![License](https://img.shields.io/npm/l/inklayer-react)](./LICENSE)
+
+[>> 在线演示](https://laomai-codefee.github.io/inklayer-react/)
+
+
 ---
 
-[![NPM](https://img.shields.io/npm/v/inklayer-react.svg)](https://www.npmjs.com/package/inklayer-react)
-[![License](https://img.shields.io/npm/l/inklayer-react)](./LICENSE)
+## 为什么选择 InkLayer
 
-### [>>Online Demo](https://laomai-codefee.github.io/inklayer-react/)
+直接用 PDF.js 构建 PDF 批注功能需要处理以下问题：
+
+- 坐标系统映射
+- 批注渲染一致性
+- 跨页面的状态同步
+- 导出和持久化逻辑
+
+InkLayer 提供了一个结构化的抽象层来降低这些复杂度。
 
 ---
 
-## ✨ 特性
+## 特性
 
-- ✍️ 丰富的注释系统
-  - 高亮、绘图、形状、文本注释
-  - 签名（手绘 / 输入 / 上传）
-  - 带编辑器支持的印章
-  - 直接编辑原生 PDF 注释
-- 📄 基于 PDF.js 的高保真 PDF 渲染
-- 🎨 基于 Radix UI Themes 的主题系统
-- 🌍 国际化（中文简体、英文）
-- 🧩 高度可自定义的 UI
-  - 工具栏 / 侧边栏 / 操作完全可覆盖
-- 🏢 企业友好配置
-  - `defaultOptions` 支持深度部分 + 深度合并
-- 💾 导出
-  - 将注释导出为 PDF
-  - 将注释导出为 Excel
-- 🧠 为可扩展性而设计
-  - 清晰的上下文和扩展架构
+- 批注系统（文本标记、墨迹、图形、印章、签名）
+- 基于 PDF.js 的渲染抽象
+- 批注编辑与持久化模型
+- 评论与审阅工作流
+- 导出支持（PDF / Excel）
+- 可自定义的 UI（工具栏 / 侧边栏）
 
-## ✍️ 批注工具
+---
 
-1. 矩形
-2. 圆形
-3. 自由手绘（短时间内绘制的会被分组）
-4. 自由高亮（带自动校正）
-5. 箭头
-6. 云线
-7. 自由文本
-8. 签名 （上传、手绘、输入、默认签名）
-9. 印章（上传自定义图片、自定义印章、 默认印章）
-10. 文本高亮
-11. 文本删除线
-12. 文本下划线
-13. 文本
-
-## ✍️ 编辑 PDF 文件中的现有批注
-
-1. 矩形
-2. 圆形
-3. 绘制
-4. 自由文本
-5. 线条
-6. 多边形
-7. 折线
-8. 文本
-9. 高亮
-10. 下划线
-11. 删除线
-
-## 📦 安装
+## 安装
 
 ```bash
 npm install inklayer-react
-or
+# or
 yarn add inklayer-react
 ```
 
-# 🚀 快速开始
+---
 
-## 1. PDF 批注
+## 快速开始
+
+### PdfAnnotator
 
 ```jsx
 import { PdfAnnotator } from 'inklayer-react'
@@ -100,7 +75,7 @@ export default function App() {
 }
 ```
 
-## 2. 基础 PDF 查看器
+### PdfViewer
 
 ```jsx
 import { PdfViewer } from 'inklayer-react'
@@ -117,117 +92,52 @@ export default function App() {
 }
 ```
 
-# 🧩 组件
+---
+
+## 组件 API
 
 ### 基础属性
 
-| Name                   | Type                    | Default                                 | Description                                            |
-| ---------------------- | ----------------------- | --------------------------------------- | ------------------------------------------------------ |
-| `appearance`         | `auto \| dark \| light`       | `auto`                       | Dark or Light theme. 
-| `theme`              | Radix Theme Color       | `violet`                              | Theme color of the viewer UI                           |
-| `title`              | `React.ReactNode`     | —                                      | Page title content; accepts text or custom React nodes |
-| `url`              | `string \| URL`        | —                                      | PDF file URL; supports string URLs or `URL` objects  |
-| `data`              | `string \| number[] \| ArrayBuffer \| Uint8Array \| Uint16Array \| Uint32Array`        | —                                      | PDF Data  |
-| `locale`             | `'zh-CN' \| 'en-US'`   | `zh-CN`                               | Locale used for internationalization                   |
-| `initialScale`       | `PdfScale`            | `auto`                                | Initial zoom level of the PDF viewer                   |
-| `layoutStyle`        | `React.CSSProperties` | `{ width: '100vw', height: '100vh' }` | Styles applied to the PDF viewer container             |
-| `isSidebarCollapsed` | `boolean`             | `false`                               | Whether the sidebar is collapsed by default            |
-| `enableRange`        | `boolean \| 'auto'`    | `auto`                                | Enables HTTP Range (streaming) loading for PDFs        |
+| 属性 | 类型 | 默认值 | 说明 |
+|:-----|:-----|:--------|:------------|
+| `appearance` | `auto \| dark \| light` | `auto` | 亮色 / 暗色主题 |
+| `theme` | Radix Theme Color | `violet` | UI 主题色 |
+| `title` | `React.ReactNode` | — | 页面标题 |
+| `url` | `string \| URL` | — | PDF 文件 URL |
+| `data` | `string \| number[] \| ArrayBuffer \| TypedArray` | — | PDF 原始二进制数据 |
+| `locale` | `'zh-CN' \| 'en-US'` | `zh-CN` | 界面语言 |
+| `initialScale` | `PdfScale` | `auto` | 初始缩放级别 |
+| `layoutStyle` | `React.CSSProperties` | `{ width: '100vw', height: '100vh' }` | 查看器容器样式 |
+| `isSidebarCollapsed` | `boolean` | `false` | 默认是否收起侧边栏 |
+| `enableRange` | `boolean \| 'auto'` | `auto` | 是否启用 HTTP Range 加载 |
 
-## ✍️ PdfAnnotator -  PDF批注器
+---
 
-具有注释功能的高级 PDF 查看器
+### PdfAnnotator
 
-### 属性
+#### Props
 
-| Name                        | Type                                                                | Default                             | Description                                                          |
-| --------------------------- | ------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------- |
-| `user`                    | `User`                                                            | `{ id: 'null', name: 'unknown' }` | Current user information<br />used to identify the annotation author |
-| `enableNativeAnnotations` | `boolean`                                                         | `false`                           | Native annotations embedded in the PDF file                          |
-| `defaultShowAnnotationsSidebar` | `boolean`                                                   | `false`                           | Show Annotations Sidebar                                             |
-| `defaultOptions`          | `DeepPartial`                                                     | —                                  | Default configuration for the annotator;                             |
-| `initialAnnotations`      | `Annotation[]`                                              | —                                  | Existing annotations to be rendered during initialization            |
-| `actions`                 | `React.ReactNode \| React.ComponentType`                           | —                                  | Custom actions area                                                 |
-| `onSave`                  | `(annotations: Annotation[]) => void`                       | —                                  | Callback triggered when annotations are saved                        |
-| `onLoad`                  | `() => void`                                                      | —                                  | Callback triggered when the PDF and annotator are fully loaded       |
-| `onAnnotationAdded`       | `(annotation: Annotation) => void`                          | —                                  | Fired when a new annotation is created                               |
-| `onAnnotationDeleted`     | `(id: string) => void`                                            | —                                  | Fired when an annotation is deleted                                  |
-| `onAnnotationSelected`    | `(annotation: Annotation \| null, isClick: boolean) => void` | —                                  | Fired when an annotation is selected or deselected                   |
-| `onAnnotationUpdated`     | `(annotation: Annotation) => void`                          | —                                  | Fired when an existing annotation is modified                        |
+| 属性 | 类型 | 默认值 | 说明 |
+|:-----|:-----|:--------|:------------|
+| （所有基础属性） | | | 继承所有[基础属性](#基础属性) |
+| `user` | `User` | `{ id: 'null', name: 'unknown' }` | 当前用户信息 |
+| `enableNativeAnnotations` | `boolean` | `false` | 是否编辑 PDF 原生批注 |
+| `defaultShowAnnotationsSidebar` | `boolean` | `false` | 默认显示批注侧边栏 |
+| `defaultOptions` | `DeepPartial` | — | 部分配置，与默认值深度合并 |
+| `initialAnnotations` | `Annotation[]` | — | 挂载时加载已有批注 |
 
-### ⚙️ defaultOptions
+#### 事件
 
-#### ✅ 深度部分 + 深度合并
+| 事件 | 负载 | 说明 |
+|:------|:--------|:------------|
+| `onSave` | `(annotations: Annotation[]) => void` | 保存批注 |
+| `onLoad` | `() => void` | PDF 加载完成 |
+| `onAnnotationAdded` | `(annotation: Annotation) => void` | 新建批注 |
+| `onAnnotationDeleted` | `(id: string) => void` | 删除批注 |
+| `onAnnotationSelected` | `(annotation: Annotation \| null, isClick: boolean) => void` | 选中批注 |
+| `onAnnotationUpdated` | `(annotation: Annotation) => void` | 修改批注 |
 
-`defaultOptions` 不是完整的配置覆盖
-
-- 它被定义为 `DeepPartial<PdfAnnotatorOptions> `
-- 它将与系统默认配置进行深度合并
-
-这确保了：
-- 您只需覆盖需要的内容
-- 系统默认值保持稳定
-- 适合长期企业使用
-
-#### 示例
-
-```tsx
-import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf';
-
-<PdfAnnotator
-    url="sample.pdf"
-    defaultOptions={{
-        colors: ['#000', '#1677ff'],
-        signature: {
-            colors: ['#000000', '#ff0000', '#1677ff'],
-            type: 'Upload',
-            maxSize: 1024 * 1024 * 5,
-            accept: '.png,.jpg,.jpeg,.bmp',
-            defaultSignature: ['data:image/png;base64,...'],
-            defaultFont: [
-                {
-                    label: '楷体',
-                    value: 'STKaiti',
-                    external: false
-                },
-                {
-                    label: '千图笔锋手写体',
-                    value: 'qiantubifengshouxieti',
-                    external: true,
-                    url: qiantubifengshouxietiFont
-                },
-                {
-                    label: '平方长安体',
-                    value: 'PingFangChangAnTi-2',
-                    external: true,
-                    url: 'http://server/PingFangChangAnTi-2.ttf'
-                }
-            ]
-        },
-        stamp: {
-            maxSize: 1024 * 1024 * 5,
-            accept: '.png,.jpg,.jpeg,.bmp',
-            defaultStamp: ['data:image/png;base64,...'],
-            editor: {
-                defaultBackgroundColor: '#2f9e44',
-                defaultBorderColor: '#2b8a3e',
-                defaultBorderStyle: 'none',
-                defaultTextColor: '#fff',
-                defaultFont: [
-                    {
-                        label: '楷体',
-                        value: 'STKaiti'
-                    }
-                ]
-            }
-        }
-    }}
-/>
-```
-
-### 🎨 自定义UI
-
-####  Actions
+#### 自定义 Actions
 
 ```jsx
 <PdfAnnotator
@@ -235,141 +145,8 @@ import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf';
   actions={({ save, exportToPdf, exportToExcel }) => (
     <>
       <button onClick={save}>Save</button>
-      <button onClick={() => exportToPdf('annotations')}>
-        Export PDF
-      </button>
-      <button onClick={() => exportToExcel('annotations')}>
-        Export Excel
-      </button>
-    </>
-  )}
-/>
-```
-
-### 🖋 签名和印章配置
-
-```jsx
-<PdfAnnotator
-  url={pdfUrl}
-  defaultOptions={{
-    signature: {
-      defaultSignature: ['data:image/png;base64,...'],
-      defaultFont: [
-        {
-          label: 'Custom Font',
-          value: 'MyFont',
-          external: true,
-          url: '/fonts/myfont.ttf'
-        }
-      ]
-    },
-    stamp: {
-      defaultStamp: ['data:image/png;base64,...']
-    }
-  }}
-/>
-```
-
-## 📄 PdfViewer - PDF 查看器
-
-具有工具栏、侧边栏、操作和可扩展 UI 插槽的轻量级 PDF 查看器。
-
-### Props
-
-| Name                   | Type                                                                      | Default   | Description                                                                                |
-| ---------------------- | ------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------ |
-| `actions`            | `React.ReactNode \| (context: PdfViewerContextValue) => React.ReactNode` | —        | Custom actions area in the toolbar                                                         |
-| `sidebar`            | `SidebarPanel[]` | —        | Custom sidebar component                                                                   |
-| `toolbar`            | `React.ReactNode \| (context: PdfViewerContextValue) => React.ReactNode` | —        | Custom toolbar component                                                                   |
-| `showTextLayer`      | `boolean`                                                               | `true`  | Whether to render the text layer                                                           |
-| `showAnnotations`      | `boolean`                                                               | `false`  | Whether to render the pdf annotations layer                                              |
-| `defaultActiveSidebarKey`      | `string`                                                     | null  | Default Active Sidebar Key                                                       |
-| `onDocumentLoaded`   | `(pdfViewer: PDFViewer \| null) => void`                                 | —        | Callback invoked when the PDF <br />document is fully loaded and the viewer is initialized |
-| `onEventBusReady`    | `(eventBus: EventBus \| null) => void`                                   | —        | Callback invoked when the pdf.js EventBus is ready                                         |
-
-### 🎨 自定义 UI
-
-####  Toolbar
-
-```jsx
-<PdfViewer
-  url={pdfUrl}
-  toolbar={(context) => (
-    <>
-    <button onClick={() => console.log(context.pdfViewer)}>
-        PDF Viewer
-    </button>
-    <button onClick={context.toggleSidebar}>
-        Toggle Sidebar
-    </button>
-    <button onClick={() => context.setSidebarCollapsed(false)}>
-        Open Sidebar
-    </button>
-    <button onClick={() => context.setSidebarCollapsed(true)}>
-        Close Sidebar
-    </button>
-</>
-  )}
-/>
-```
-
-###  Sidebar
-
-```jsx
-<PdfViewer
-  url={pdfUrl}
-   sidebar={[{
-            key: 'sidebar-1',
-            title: 'Sidebar 1',
-            icon: <BsLayoutTextSidebar />,
-            render: (context) => (
-                <div style={{ display: 'flex', gap: 10, flexDirection: 'column' }}>
-                    Sidebar 1
-                    <button onClick={context.toggleSidebar}>
-                        toggleSidebar
-                    </button>
-                    <button onClick={() => console.log(context.pdfViewer)}>
-                        Get PDF Viewer
-                    </button>
-                    <button onClick={() => {
-                        context.pdfViewer?.scrollPageIntoView({
-                            pageNumber: 1
-                        })
-                    }}>
-                        goto page1
-                    </button>
-                    <button onClick={() => {
-                        context.pdfViewer?.scrollPageIntoView({
-                            pageNumber: 10
-                        })
-                    }}>
-                        goto page 10
-                    </button>
-                </div>
-            )
-        }]}
-/>
-```
-
-### Actions
-
-```jsx
-<PdfViewer
-  url={pdfUrl}
-  actions={(context) => (
-    <>
-        <button onClick={() => console.log(context.pdfViewer)}>
-            PDF Viewer
-        </button>
-        <button onClick={context.toggleSidebar}>
-            Toggle Sidebar
-        </button>
-        <button onClick={() => context.setSidebarCollapsed(false)}>
-            Open Sidebar
-        </button>
-        <button onClick={() => context.setSidebarCollapsed(true)}>
-            Close Sidebar
-        </button>
+      <button onClick={() => exportToPdf('annotations')}>Export PDF</button>
+      <button onClick={() => exportToExcel('annotations')}>Export Excel</button>
     </>
   )}
 />
@@ -377,13 +154,64 @@ import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf';
 
 ---
 
-# 🌍 浏览器支持
+### PdfViewer
 
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
+#### Props
 
-# 📄 许可证
+| 属性 | 类型 | 默认值 | 说明 |
+|:-----|:-----|:--------|:------------|
+| （所有基础属性） | | | 继承所有[基础属性](#基础属性) |
+| `showTextLayer` | `boolean` | `true` | 是否渲染文本层 |
+| `showAnnotations` | `boolean` | `false` | 是否渲染 PDF 批注层 |
+| `defaultActiveSidebarKey` | `string` | null | 默认打开的侧边栏 |
+| `toolbar` | `ReactNode \| (ctx) => ReactNode` | — | 自定义工具栏 |
+| `sidebar` | `SidebarPanel[]` | — | 自定义侧边栏 |
+| `actions` | `ReactNode \| (ctx) => ReactNode` | — | 自定义操作按钮 |
 
-MIT
+#### 事件
+
+| 事件 | 负载 | 说明 |
+|:------|:--------|:------------|
+| `onDocumentLoaded` | `(pdfViewer: PDFViewer \| null) => void` | PDF 加载完成 |
+| `onEventBusReady` | `(eventBus: EventBus \| null) => void` | 事件总线就绪 |
+
+#### 自定义工具栏
+
+```jsx
+<PdfViewer
+  url={pdfUrl}
+  toolbar={(ctx) => (
+    <>
+      <button onClick={ctx.toggleSidebar}>Toggle Sidebar</button>
+    </>
+  )}
+/>
+```
+
+#### 自定义侧边栏
+
+```jsx
+<PdfViewer
+  url={pdfUrl}
+  sidebar={[{ key: 'my-panel', title: 'My Panel', render: (ctx) => <div>Content</div> }]}
+/>
+```
+
+---
+
+## 浏览器支持
+
+Chrome、Firefox、Safari、Edge 最新版本。
+
+---
+
+## 相关项目
+
+- [InkLayer Vue](https://github.com/Laomai-codefee/inklayer-vue) — Vue 3 版本
+- [PDF.js](https://github.com/mozilla/pdf.js) — 底层 PDF 渲染引擎
+
+---
+
+## 许可证
+
+MIT © InkLayer
