@@ -10,13 +10,11 @@ export class SquareParser extends AnnotationParser {
 
         const konvaGroup = JSON.parse(annotation.konvaString)
 
-        const konvaRect = konvaGroup.children.find((child: any) => child.className === 'Rect')
-
-        const strokeWidth = konvaRect.attrs.strokeWidth ?? 2
-
-        const dashArray = konvaRect.attrs.dash ?? []
-
-        const opacity = konvaRect.attrs.opacity ?? 1
+        const konvaShape = konvaGroup.children?.[0] ?? konvaGroup
+        const shapeAttrs = konvaShape.attrs ?? konvaGroup.attrs ?? {}
+        const strokeWidth = shapeAttrs.strokeWidth ?? 2
+        const dashArray = shapeAttrs.dash ?? []
+        const opacity = shapeAttrs.opacity ?? 1
         let bsDict: any = {
             W: PDFNumber.of(strokeWidth),
             S: PDFName.of('S') // Solid

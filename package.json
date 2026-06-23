@@ -18,7 +18,7 @@
     "bugs": {
         "url": "https://github.com/Laomai-codefee/inklayer-react/issues"
     },
-    "homepage": "https://github.com/Laomai-codefee/inklayer-react#readme",
+    "homepage": "https://inklayer.dev",
     "type": "module",
     "main": "dist/index.cjs.js",
     "module": "dist/index.es.js",
