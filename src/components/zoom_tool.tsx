@@ -5,36 +5,49 @@ import { ToolbarButton } from './toolbar_button'
 import { Button, DropdownMenu, Flex } from '@radix-ui/themes'
 import { AiOutlineLine, AiOutlinePlus } from 'react-icons/ai'
 
+const ZOOM_CONFIG = {
+    MIN_SCALE: 0.1,
+    MAX_SCALE: 4,
+    ZOOM_STEP: 0.1,
+    ZOOM_OPTIONS: [
+        { key: 'auto', labelKey: 'viewer:zoom.auto', value: 'auto' },
+        { key: 'page-actual', labelKey: 'viewer:zoom.actual', value: 'page-actual' },
+        { key: 'page-fit', labelKey: 'viewer:zoom.fit', value: 'page-fit' },
+        { key: 'page-width', labelKey: 'viewer:zoom.width', value: 'page-width' },
+        { key: '0.5', label: '50%', value: '0.5' },
+        { key: '0.75', label: '75%', value: '0.75' },
+        { key: '1', label: '100%', value: '1' },
+        { key: '1.25', label: '125%', value: '1.25' },
+        { key: '1.5', label: '150%', value: '1.5' },
+        { key: '2', label: '200%', value: '2' },
+        { key: '3', label: '300%', value: '3' },
+        { key: '4', label: '400%', value: '4' },
+    ] as const,
+}
+
 export const ZoomTool: React.FC = () => {
     const { t } = useTranslation('viewer', { useSuspense: false })
-    const ZOOM_CONFIG = {
-        MIN_SCALE: 0.1,
-        MAX_SCALE: 4,
-        ZOOM_STEP: 0.1,
-        ZOOM_OPTIONS: [
-            { key: 'auto', label: t('viewer:zoom.auto'), value: 'auto' },
-            { key: 'page-actual', label: t('viewer:zoom.actual'), value: 'page-actual' },
-            { key: 'page-fit', label: t('viewer:zoom.fit'), value: 'page-fit' },
-            { key: 'page-width', label: t('viewer:zoom.width'), value: 'page-width' },
-            { key: '0.5', label: '50%', value: '0.5' },
-            { key: '0.75', label: '75%', value: '0.75' },
-            { key: '1', label: '100%', value: '1' },
-            { key: '1.25', label: '125%', value: '1.25' },
-            { key: '1.5', label: '150%', value: '1.5' },
-            { key: '2', label: '200%', value: '2' },
-            { key: '3', label: '300%', value: '3' },
-            { key: '4', label: '400%', value: '4' }
-        ]
-    } as const;
-    const { pdfViewer } = usePdfViewerContext()
+    const { pdfViewer, eventBus } = usePdfViewerContext()
     const [currentScale, setCurrentScale] = useState<string>('auto')
 
+    // Listen to all scale changes via eventBus
     useEffect(() => {
-        if (pdfViewer) {
-            const scale = pdfViewer.currentScaleValue || 'auto'
-            setCurrentScale(scale)
+        if (!eventBus || !pdfViewer) return
+
+        const updateScale = () => {
+            const value = pdfViewer.currentScaleValue
+            setCurrentScale(value || 'auto')
         }
-    }, [pdfViewer])
+
+        eventBus.on('scalechanging', updateScale)
+        // Also fire on pagesloaded to catch initial fit
+        eventBus.on('pagesloaded', updateScale)
+
+        return () => {
+            eventBus.off('scalechanging', updateScale)
+            eventBus.off('pagesloaded', updateScale)
+        }
+    }, [eventBus, pdfViewer])
 
     const getNumericScale = (scale: string): number | null => {
         if (['auto', 'page-actual', 'page-fit', 'page-width'].includes(scale)) {
@@ -84,7 +97,10 @@ export const ZoomTool: React.FC = () => {
     const currentScaleLabel = (() => {
         const matchedOption = ZOOM_CONFIG.ZOOM_OPTIONS.find((opt) => opt.value === currentScale)
         if (matchedOption) {
-            return matchedOption.label
+            if ('labelKey' in matchedOption && matchedOption.labelKey) {
+                return t(matchedOption.labelKey)
+            }
+            return (matchedOption as any).label
         }
         const num = parseFloat(currentScale)
         if (!isNaN(num)) {
@@ -96,7 +112,7 @@ export const ZoomTool: React.FC = () => {
     return (
         <Flex gap="2" align="center">
             <ToolbarButton
-                buttonProps={{ 
+                buttonProps={{
                     size: '1',
                     disabled: isZoomOutDisabled()
                 }}
@@ -104,7 +120,7 @@ export const ZoomTool: React.FC = () => {
                 onClick={zoomOut}
             />
             <ToolbarButton
-                buttonProps={{ 
+                buttonProps={{
                     size: '1',
                     disabled: isZoomInDisabled()
                 }}
@@ -120,11 +136,11 @@ export const ZoomTool: React.FC = () => {
                 </DropdownMenu.Trigger>
                 <DropdownMenu.Content>
                     {ZOOM_CONFIG.ZOOM_OPTIONS.map((option) => (
-                        <DropdownMenu.Item 
-                            key={option.key} 
+                        <DropdownMenu.Item
+                            key={option.key}
                             onSelect={() => handleZoomChange(option.value)}
                         >
-                            {option.label}
+                            {'labelKey' in option ? t(option.labelKey) : option.label}
                         </DropdownMenu.Item>
                     ))}
                 </DropdownMenu.Content>

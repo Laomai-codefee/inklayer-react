@@ -10,6 +10,7 @@ import { LoadingIndicator } from '@/components/loading_indicator'
 import { ErrorDisplay } from '@/components/error_display'
 import { PageIndicator } from '@/components/page_indicator'
 import { usePdfTool } from '@/hooks/usePdfTool'
+import { usePinchZoom } from '@/hooks/usePinchZoom'
 
 export type SidebarPanelKey = string
 
@@ -87,6 +88,14 @@ export const PdfViewerProvider: React.FC<PdfViewerProviderProps> = ({
 
     const { printClean, downloadClean } = usePdfTool(pdfDocument);
 
+    // Pinch zoom: Ctrl+wheel and trackpad pinch zoom with anchor point
+    usePinchZoom({
+        pdfViewer: pdfViewer ?? null,
+        containerRef: viewerContainerRef as React.RefObject<HTMLElement>,
+        minScale: 0.1,
+        maxScale: 10,
+    })
+
     const contextValue = useMemo<PdfViewerContextValue>(
         () => ({
             pdfDocument,
@@ -100,7 +109,7 @@ export const PdfViewerProvider: React.FC<PdfViewerProviderProps> = ({
             closeSidebar,
             isSidebarCollapsed: sidebarCollapsed,
             print: printClean,
-            download: downloadClean
+            download: downloadClean,
         }),
         [
             pdfDocument,
