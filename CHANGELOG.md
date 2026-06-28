@@ -1,11 +1,8 @@
 # Changelog
 
-## [Unreleased]
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### Refactor
-
-- 基于 PDF.js 4.2.67 官方算法重写 PinchZoom，删除废弃的 useSmoothZoom
-- usePinchZoom — two-phase visual+commit zoom, fix anchor coords and ZoomTool sync
+### [1.0.3](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.2...v1.0.3) (2026-06-28)
 
 ## [1.0.2] - 2026-06-26
 
