@@ -5,45 +5,53 @@
 <h1 align="center">InkLayer React</h1>
 
 <p align="center">
-  A PDF annotation SDK built on PDF.js for React.
-  <br/>Simplifies building document review, annotation, and commenting systems.
+  <a href="./README.md">简体中文</a> <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span> <a href="./README-en-US.md">English</a>
+</p>
+
+<p align="center">
+  🖊️ A React PDF annotation SDK built on PDF.js
+  <br/>For building document review, annotation, and commenting systems
+</p>
+
+<div align="center">
+  <a href="https://www.npmjs.com/package/inklayer-react" target="_blank">
+    <img src="https://img.shields.io/npm/v/inklayer-react.svg" alt="NPM" />
+  </a>
+  <a href="./LICENSE" target="_blank">
+    <img src="https://img.shields.io/npm/l/inklayer-react" alt="License" />
+  </a>
+</div>
+
+<br/>
+
+<div align="center">
+  <a href="https://laomai-codefee.github.io/inklayer-react/" target="_blank"><b>🔥 Live Demo</b></a>
+  <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+  <a href="https://inklayer.dev/docs" target="_blank"><b>📚 Docs</b></a>
+  <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+  <a href="https://github.com/Laomai-codefee/inklayer-react" target="_blank"><b>⭐ GitHub</b></a>
+</div>
+
+---
+
+<p align="center">
+  <img src="./screenshot.png" alt="InkLayer React Screenshot" width="80%" />
 </p>
 
 ---
-[简体中文](./README.md) | English 
----
-[![NPM](https://img.shields.io/npm/v/inklayer-react.svg)](https://www.npmjs.com/package/inklayer-react)   [![License](https://img.shields.io/npm/l/inklayer-react)](./LICENSE)
 
-[>> Online Demo](https://laomai-codefee.github.io/inklayer-react/)
+## ✨ Features
 
-
----
-
-## Why InkLayer
-
-Building PDF annotation features with PDF.js requires handling:
-
-- coordinate system mapping
-- annotation rendering consistency
-- state synchronization across pages
-- export and persistence logic
-
-InkLayer provides a structured layer to reduce this complexity.
+- 🚀 **PDF Viewer** — search, zoom, theme system
+- 🖍️ **PDF Annotation System** — text markup, ink, shapes, stamps, signatures
+- 💬 **Comment & Review Workflow**
+- 💾 **Annotation Editing & Persistence Model**
+- 📤 **Export Support** — PDF / Excel
+- 🎨 **Customizable UI** — toolbar / sidebar
 
 ---
 
-## Features
-
-- Annotation system (text markup, ink, shapes, stamps, signatures)
-- PDF.js rendering abstraction
-- Comment and review workflows
-- Annotation editing and persistence model
-- Export support (PDF / Excel)
-- Customizable UI (toolbar / sidebar)
-
----
-
-## Installation
+## 📦 Installation
 
 ```bash
 npm install inklayer-react
@@ -53,7 +61,7 @@ yarn add inklayer-react
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ### PdfAnnotator
 
@@ -94,124 +102,18 @@ export default function App() {
 
 ---
 
-## Component API
+## 📖 Component API
 
-### Base Props
-
-| Prop | Type | Default | Description |
-|:-----|:-----|:--------|:------------|
-| `appearance` | `auto \| dark \| light` | `auto` | Dark or light theme |
-| `theme` | Radix Theme Color | `violet` | UI theme color |
-| `title` | `React.ReactNode` | — | Page title |
-| `url` | `string \| URL` | — | PDF file URL |
-| `data` | `string \| number[] \| ArrayBuffer \| TypedArray` | — | Raw PDF binary data |
-| `locale` | `'zh-CN' \| 'en-US'` | `zh-CN` | UI language |
-| `initialScale` | `PdfScale` | `auto` | Initial zoom level |
-| `layoutStyle` | `React.CSSProperties` | `{ width: '100vw', height: '100vh' }` | Viewer container styles |
-| `isSidebarCollapsed` | `boolean` | `false` | Sidebar collapsed by default |
-| `enableRange` | `boolean \| 'auto'` | `auto` | Enable HTTP Range loading |
+Full component API → [📚 Docs](https://inklayer.dev/docs/react)
 
 ---
 
-### PdfAnnotator
+## 🔗 Related Projects
 
-#### Props
-
-| Prop | Type | Default | Description |
-|:-----|:-----|:--------|:------------|
-| (All base props) | | | Inherits all [Base Props](#base-props) |
-| `user` | `User` | `{ id: 'null', name: 'unknown' }` | Current user info |
-| `enableNativeAnnotations` | `boolean` | `false` | Edit PDF-native annotations |
-| `defaultShowAnnotationsSidebar` | `boolean` | `false` | Show annotation sidebar by default |
-| `defaultOptions` | `DeepPartial` | — | Partial config merged with defaults |
-| `initialAnnotations` | `Annotation[]` | — | Preload existing annotations |
-
-#### Events
-
-| Event | Payload | Description |
-|:------|:--------|:------------|
-| `onSave` | `(annotations: Annotation[]) => void` | Save annotations |
-| `onLoad` | `() => void` | PDF loaded |
-| `onAnnotationAdded` | `(annotation: Annotation) => void` | Annotation created |
-| `onAnnotationDeleted` | `(id: string) => void` | Annotation deleted |
-| `onAnnotationSelected` | `(annotation: Annotation \| null, isClick: boolean) => void` | Annotation selected |
-| `onAnnotationUpdated` | `(annotation: Annotation) => void` | Annotation modified |
-
-#### Custom Actions
-
-```jsx
-<PdfAnnotator
-  url={pdfUrl}
-  actions={({ save, exportToPdf, exportToExcel }) => (
-    <>
-      <button onClick={save}>Save</button>
-      <button onClick={() => exportToPdf('annotations')}>Export PDF</button>
-      <button onClick={() => exportToExcel('annotations')}>Export Excel</button>
-    </>
-  )}
-/>
-```
+- [InkLayer Vue](https://github.com/Laomai-codefee/inklayer-vue) — Vue 3 version
 
 ---
 
-### PdfViewer
-
-#### Props
-
-| Prop | Type | Default | Description |
-|:-----|:-----|:--------|:------------|
-| (All base props) | | | Inherits all [Base Props](#base-props) |
-| `showTextLayer` | `boolean` | `true` | Render text layer |
-| `showAnnotations` | `boolean` | `false` | Render PDF annotation layer |
-| `defaultActiveSidebarKey` | `string` | null | Default active sidebar |
-| `toolbar` | `ReactNode \| (ctx) => ReactNode` | — | Custom toolbar |
-| `sidebar` | `SidebarPanel[]` | — | Custom sidebar panels |
-| `actions` | `ReactNode \| (ctx) => ReactNode` | — | Custom action buttons |
-
-#### Events
-
-| Event | Payload | Description |
-|:------|:--------|:------------|
-| `onDocumentLoaded` | `(pdfViewer: PDFViewer \| null) => void` | PDF loaded |
-| `onEventBusReady` | `(eventBus: EventBus \| null) => void` | Event bus ready |
-
-#### Custom Toolbar
-
-```jsx
-<PdfViewer
-  url={pdfUrl}
-  toolbar={(ctx) => (
-    <>
-      <button onClick={ctx.toggleSidebar}>Toggle Sidebar</button>
-    </>
-  )}
-/>
-```
-
-#### Custom Sidebar
-
-```jsx
-<PdfViewer
-  url={pdfUrl}
-  sidebar={[{ key: 'my-panel', title: 'My Panel', render: (ctx) => <div>Content</div> }]}
-/>
-```
-
----
-
-## Browser Support
-
-Modern browsers (Chrome, Firefox, Safari, Edge latest).
-
----
-
-## Related Projects
-
-- [InkLayer Vue](https://github.com/Laomai-codefee/inklayer-vue) — Vue 3 binding
-- [PDF.js](https://github.com/mozilla/pdf.js) — Underlying PDF rendering engine
-
----
-
-## License
+## 📄 License
 
 MIT © InkLayer
