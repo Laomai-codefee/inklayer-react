@@ -4,7 +4,7 @@ import { PDFPageView } from 'pdfjs-dist/types/web/pdf_page_view';
 import { BsLayoutTextSidebar } from 'react-icons/bs';
 
 const PdfViewerCustom: React.FC = () => {
-    const pdfUrl = './inklayer-demo.pdf';
+    const pdfUrl = 'https://inklayer.dev/inklayer-demo.pdf';
     return (
         <div>
             <PdfViewer

@@ -155,7 +155,7 @@ const INITIAL_STORES: Annotation[] = [
 ]
 
 const PdfAnnotatorCustom: React.FC = () => {
-    const pdfUrl = './inklayer-demo.pdf'
+    const pdfUrl = 'https://inklayer.dev/inklayer-demo.pdf'
 
     const onSave = useCallback((core: Annotation[]) => {
         console.log('Saved:', core)

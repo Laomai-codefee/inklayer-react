@@ -7,7 +7,7 @@ const Demo = () => {
   return (
     <PdfViewer
       title="PDF VIEWER"
-      url="./example.pdf"
+      url="https://inklayer.dev/inklayer-demo.pdf"
       appearance="light"
       locale="en-US"
       layoutStyle={{ width: '100vw', height: '96vh' }}
@@ -25,7 +25,7 @@ const Demo = () => {
   const [pdfData, setPdfData] = useState<ArrayBuffer | null>(null)
 
   useEffect(() => {
-    fetch('./example.pdf')
+    fetch('https://inklayer.dev/inklayer-demo.pdf')
       .then(res => res.arrayBuffer())
       .then(setPdfData)
   }, [])
@@ -54,7 +54,7 @@ const Demo = () => {
   return (
     <PdfViewer
       title="PDF VIEWER CUSTOM"
-      url="./example.pdf"
+      url="https://inklayer.dev/inklayer-demo.pdf"
       locale="en-US"
       appearance="light"
       showTextLayer={false}
@@ -117,7 +117,7 @@ const Demo = () => {
   return (
     <PdfAnnotator
       title="PDF ANNOTATOR"
-      url="./example.pdf"
+      url="https://inklayer.dev/inklayer-demo.pdf"
       appearance="light"
       locale="en-US"
       user={{ id: 'u1', name: 'Alice' }}
@@ -284,7 +284,7 @@ const INITIAL_STORES: Annotation[] = [
 ]
 
 const PdfAnnotatorCustom: React.FC = () => {
-    const pdfUrl = './inklayer-demo.pdf'
+    const pdfUrl = 'https://inklayer.dev/inklayer-demo.pdf'
 
     const onSave = useCallback((core: Annotation[]) => {
         console.log('Saved:', core)
@@ -342,7 +342,7 @@ import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf'
 
 
 const PdfAnnotatorFull: React.FC = () => {
-    const pdfUrl = './inklayer-demo.pdf'
+    const pdfUrl = 'https://inklayer.dev/inklayer-demo.pdf'
 
     const onSave = useCallback((core: Annotation[]) => {
         console.log('Saved:', core)

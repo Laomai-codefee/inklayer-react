@@ -1,7 +1,7 @@
 import React from 'react';
 import { PdfViewer } from '@/features/viewer';
 const PdfViewerBasic: React.FC = () => {
-    const pdfUrl = './inklayer-demo.pdf';
+    const pdfUrl = 'https://inklayer.dev/inklayer-demo.pdf';
     return (
         <PdfViewer
             title="PDF VIEWER"
