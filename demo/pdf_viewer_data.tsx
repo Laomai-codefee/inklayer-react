@@ -3,7 +3,7 @@ import { PdfViewer } from '@/features/viewer';
 
 const PdfViewerWithData: React.FC = () => {
     const [pdfData, setPdfData] = useState<ArrayBuffer | Uint8Array | null>(null);
-    const pdfUrl = './compressed.tracemonkey-pldi-09.pdf';
+    const pdfUrl = './inklayer-demo.pdf';
 
     useEffect(() => {
         const fetchPdfAsData = async () => {

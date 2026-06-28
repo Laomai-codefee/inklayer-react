@@ -4,7 +4,7 @@ import { PDFPageView } from 'pdfjs-dist/types/web/pdf_page_view';
 import { BsLayoutTextSidebar } from 'react-icons/bs';
 
 const PdfViewerCustom: React.FC = () => {
-    const pdfUrl = './compressed.tracemonkey-pldi-09.pdf';
+    const pdfUrl = './inklayer-demo.pdf';
     return (
         <div>
             <PdfViewer

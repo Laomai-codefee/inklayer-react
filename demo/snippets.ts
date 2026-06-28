@@ -284,7 +284,7 @@ const INITIAL_STORES: Annotation[] = [
 ]
 
 const PdfAnnotatorCustom: React.FC = () => {
-    const pdfUrl = './compressed.tracemonkey-pldi-09.pdf'
+    const pdfUrl = './inklayer-demo.pdf'
 
     const onSave = useCallback((core: Annotation[]) => {
         console.log('Saved:', core)
@@ -342,7 +342,7 @@ import qiantubifengshouxietiFont from './fonts/qiantubifengshouxieti.ttf'
 
 
 const PdfAnnotatorFull: React.FC = () => {
-    const pdfUrl = './compressed.tracemonkey-pldi-09.pdf'
+    const pdfUrl = './inklayer-demo.pdf'
 
     const onSave = useCallback((core: Annotation[]) => {
         console.log('Saved:', core)

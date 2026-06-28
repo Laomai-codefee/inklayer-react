@@ -8,7 +8,7 @@ import { PdfAnnotator } from '@/features/annotator'
 import type { Annotation } from '@/core/annotation.core'
 
 const PdfAnnotatorBasic: React.FC = () => {
-    const pdfUrl = './compressed.tracemonkey-pldi-09.pdf'
+    const pdfUrl = './inklayer-demo.pdf'
 
     const INITIAL_STORES: Annotation[] = [
     {
