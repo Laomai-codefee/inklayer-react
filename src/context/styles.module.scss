@@ -122,8 +122,6 @@
     inset: 0;
     overflow: auto;
     padding: 24px 12px;
-    display: flex;
-    justify-content: center;
 
     // 重置 pdf.js
     :global(.pdfViewer) {

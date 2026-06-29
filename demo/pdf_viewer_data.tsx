@@ -29,6 +29,7 @@ const PdfViewerWithData: React.FC = () => {
             title="PDF VIEWER WITH DATA"
             data={pdfData}
             appearance="light"
+            enableRange={false}
             locale="en-US"
             layoutStyle={{ width: '100vw', height: '96vh' }}
         />

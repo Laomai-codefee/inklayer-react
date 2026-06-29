@@ -7,6 +7,7 @@ const PdfViewerBasic: React.FC = () => {
             title="PDF VIEWER"
             url={pdfUrl}
             appearance="light"
+            enableRange={false}
             locale="en-US"
             layoutStyle={{ width: '100vw', height: '96vh' }}
         />

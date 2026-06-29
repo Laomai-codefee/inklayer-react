@@ -428,10 +428,10 @@ const PdfAnnotatorBasic: React.FC = () => {
     return (
         <PdfAnnotator
             title="PDF ANNOTATOR"
-            layoutStyle={{ height: '96vh' }}
-            defaultShowAnnotationsSidebar={true}
+            defaultShowAnnotationsSidebar={false}
             url={pdfUrl}
             appearance="light"
+            enableRange={false}
             user={{ id: 'u1', name: 'Alice' }}
             initialAnnotations={INITIAL_STORES}
             locale="en-US"
