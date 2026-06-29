@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.4](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.3...v1.0.4) (2026-06-29)
+
+
+### Bug Fixes
+
+* remove flex center from viewer container to fix horizontal overflow clipping ([0ee4447](https://github.com/Laomai-codefee/inklayer-react/commit/0ee444731109a304a8d686086f3590ea5de63191))
+
 ### [1.0.3](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.2...v1.0.3) (2026-06-28)
 
 ## [1.0.2] - 2026-06-26
