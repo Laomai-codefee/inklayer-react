@@ -193,7 +193,7 @@ export function usePdfViewer(containerRef: React.RefObject<HTMLDivElement>, opti
 
             loadingTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
                 if (total > 0) {
-                    setProgress(Math.round((loaded / total) * 100))
+                    setProgress(Math.min(100, Math.round((loaded / total) * 100)))
                 }
             }
 
@@ -221,7 +221,7 @@ export function usePdfViewer(containerRef: React.RefObject<HTMLDivElement>, opti
 
                     fallbackTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
                         if (total > 0) {
-                            setProgress(Math.round((loaded / total) * 100))
+                            setProgress(Math.min(100, Math.round((loaded / total) * 100)))
                         }
                     }
 

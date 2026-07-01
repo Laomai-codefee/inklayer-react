@@ -431,7 +431,6 @@ const PdfAnnotatorBasic: React.FC = () => {
             defaultShowAnnotationsSidebar={false}
             url={pdfUrl}
             appearance="light"
-            enableRange={false}
             user={{ id: 'u1', name: 'Alice' }}
             initialAnnotations={INITIAL_STORES}
             locale="en-US"

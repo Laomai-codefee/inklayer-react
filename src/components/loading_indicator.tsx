@@ -104,7 +104,7 @@ export const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ loading, pro
             {/* 顶部进度条 */}
             {progressBar.visible && (
                 <Progress
-                    value={progressBar.value}
+                    value={Math.min(progressBar.value, 100)}
                     size="1"
                     variant={appearance === 'dark' ? 'surface' : 'soft'}
                     style={{
