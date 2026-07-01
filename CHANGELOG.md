@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.6](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.5...v1.0.6) (2026-07-01)
+
+
+### Bug Fixes
+
+* incorrect arrow head coordinates in PDF export (groupX/groupY not scaled by viewport.scale) ([cc6123d](https://github.com/Laomai-codefee/inklayer-react/commit/cc6123d4e7f4bad4111bc5b6cbe9efbc54063bec))
+
 ### [1.0.5](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.4...v1.0.5) (2026-07-01)
 
 
