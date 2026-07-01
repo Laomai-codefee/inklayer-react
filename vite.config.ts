@@ -4,10 +4,10 @@ import dts from 'vite-plugin-dts'
 import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
-    const isDemo = mode === 'demo' || mode === 'development'
+    const isPlayground = mode === 'playground' || mode === 'development'
 
-    if (isDemo) {
-        // Demo 模式：本地开发 / 构建演示站点
+    if (isPlayground) {
+        // Playground 模式：本地开发 / 构建演示站点
         return {
             plugins: [react()],
             esbuild: {
@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
         plugins: [
             dts({
                 include: ['src/**/*'],
-                exclude: ['**/*.stories.tsx', 'demo/**', 'public/**'],
+                exclude: ['**/*.stories.tsx', 'playground/**', 'public/**'],
                 insertTypesEntry: true,
                 rollupTypes: true
             })

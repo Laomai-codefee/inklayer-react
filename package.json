@@ -43,7 +43,7 @@
     "scripts": {
         "dev": "vite --open",
         "build": "tsc && vite build",
-        "build:demo": "vite build --mode demo --base ./ --outDir docs",
+        "build:playground": "vite build --mode playground --base ./ --outDir docs",
         "preview": "vite preview",
         "storybook": "storybook dev -p 6006",
         "build-storybook": "storybook build",

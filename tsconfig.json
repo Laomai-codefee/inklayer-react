@@ -22,5 +22,5 @@
             "@/*": ["src/*"]
         }
     },
-    "include": ["src", "demo", "stories", "src/global.d.ts"]
+    "include": ["src", "playground", "stories", "src/global.d.ts"]
 }
