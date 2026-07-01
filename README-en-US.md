@@ -1,3 +1,4 @@
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/Laomai-codefee/inklayer-react/main/public/logo.svg" alt="InkLayer" width="80" />
 </p>
@@ -5,20 +6,21 @@
 <h1 align="center">InkLayer React</h1>
 
 <p align="center">
-  <a href="./README.md">简体中文</a> <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span> <a href="./README-en-US.md">English</a>
+  <a href="./README.md">简体中文</a> <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+  <a href="./README-en-US.md">English</a>
 </p>
 
 <p align="center">
-  🖊️ A React PDF annotation SDK built on PDF.js
-  <br/>For building document review, annotation, and commenting systems
+  🖊️ A React PDF annotation SDK built on PDF.js<br/>
+  For building document review, annotation, and commenting systems
 </p>
 
 <div align="center">
   <a href="https://www.npmjs.com/package/inklayer-react" target="_blank">
-    <img src="https://img.shields.io/npm/v/inklayer-react.svg" alt="NPM" />
+    <img src="https://img.shields.io/npm/v/inklayer-react.svg" />
   </a>
   <a href="./LICENSE" target="_blank">
-    <img src="https://img.shields.io/npm/l/inklayer-react" alt="License" />
+    <img src="https://img.shields.io/npm/l/inklayer-react" />
   </a>
 </div>
 
@@ -38,16 +40,33 @@
   <img src="./screenshot.png" alt="InkLayer React Screenshot" width="80%" />
 </p>
 
+## ⭐ Quick Start (Recommended)
+
+The fastest way to try InkLayer React: use the [official starter 🚀 ](https://github.com/Laomai-codefee/inklayer-react-starter).
+
+```bash
+git clone https://github.com/Laomai-codefee/inklayer-react-starter.git
+cd inklayer-react-starter
+npm install
+npm run dev
+```
+
+Open:
+
+http://localhost:5173
+
+> 💡 The starter comes with a complete PDF annotation example pre-configured — no extra setup needed to experience the full SDK.
+
 ---
 
 ## ✨ Features
 
-- 🚀 **PDF Viewer** — search, zoom, theme system
-- 🖍️ **PDF Annotation System** — text markup, ink, shapes, stamps, signatures
-- 💬 **Comment & Review Workflow**
-- 💾 **Annotation Editing & Persistence Model**
-- 📤 **Export Support** — PDF / Excel
-- 🎨 **Customizable UI** — toolbar / sidebar
+- 🚀 PDF Viewer (zoom / search / theming)
+- 🖍️ PDF Annotation System (highlight / ink / shapes / stamps / signatures)
+- 💬 Comment & review workflow
+- 💾 Annotation data model (persistable)
+- 📤 Export support (PDF / Excel)
+- 🎨 Customizable UI (toolbar / sidebar)
 
 ---
 
@@ -55,15 +74,13 @@
 
 ```bash
 npm install inklayer-react
-# or
-yarn add inklayer-react
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Basic Usage
 
-### PdfAnnotator
+### PdfAnnotator (annotation)
 
 ```jsx
 import { PdfAnnotator } from 'inklayer-react'
@@ -83,7 +100,9 @@ export default function App() {
 }
 ```
 
-### PdfViewer
+---
+
+### PdfViewer (viewer)
 
 ```jsx
 import { PdfViewer } from 'inklayer-react'
@@ -102,15 +121,17 @@ export default function App() {
 
 ---
 
-## 📖 Component API
+## 📖 API Docs
 
-Full component API → [📚 Docs](https://inklayer.dev/docs/react)
+👉 https://inklayer.dev/docs/react
 
 ---
 
 ## 🔗 Related Projects
 
-- [InkLayer Vue](https://github.com/Laomai-codefee/inklayer-vue) — Vue 3 version
+- InkLayer Vue: https://github.com/Laomai-codefee/inklayer-vue
+- Vue Starter: https://github.com/Laomai-codefee/inklayer-vue-starter
+- React Starter: https://github.com/Laomai-codefee/inklayer-react-starter
 
 ---
 

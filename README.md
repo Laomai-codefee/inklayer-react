@@ -1,3 +1,4 @@
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/Laomai-codefee/inklayer-react/main/public/logo.svg" alt="InkLayer" width="80" />
 </p>
@@ -5,20 +6,21 @@
 <h1 align="center">InkLayer React</h1>
 
 <p align="center">
-  <a href="./README.md">简体中文</a> <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span> <a href="./README-en-US.md">English</a>
+  <a href="./README.md">简体中文</a> <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+  <a href="./README-en-US.md">English</a>
 </p>
 
 <p align="center">
-  🖊️ 基于 PDF.js 构建的 React PDF 批注 SDK
-  <br/>用于快速构建文档审阅、批注与评论系统
+  🖊️ 基于 PDF.js 构建的 React PDF 批注 SDK<br/>
+  用于快速构建文档审阅、批注与评论系统
 </p>
 
 <div align="center">
   <a href="https://www.npmjs.com/package/inklayer-react" target="_blank">
-    <img src="https://img.shields.io/npm/v/inklayer-react.svg" alt="NPM" />
+    <img src="https://img.shields.io/npm/v/inklayer-react.svg" />
   </a>
   <a href="./LICENSE" target="_blank">
-    <img src="https://img.shields.io/npm/l/inklayer-react" alt="License" />
+    <img src="https://img.shields.io/npm/l/inklayer-react" />
   </a>
 </div>
 
@@ -33,21 +35,38 @@
 </div>
 
 ---
-
 <p align="center">
-  <img src="./screenshot.png" alt="InkLayer React 截图" width="80%" />
+  <img src="./screenshot.png" alt="InkLayer React Screenshot" width="80%" />
 </p>
+
+
+## ⭐ 快速开始（推荐）
+
+最快体验 InkLayer React 的方式：直接使用 [官方 Starter 🚀 ](https://github.com/Laomai-codefee/inklayer-react-starter)
+
+```bash
+git clone https://github.com/Laomai-codefee/inklayer-react-starter.git
+cd inklayer-react-starter
+npm install
+npm run dev
+```
+
+打开：
+
+http://localhost:5173
+
+> 💡 Starter 已内置完整 PDF 批注能力示例，无需额外配置即可体验 SDK 全功能。
 
 ---
 
 ## ✨ 特性
 
-- 🚀 **PDF查看器** — 搜索、缩放、主题系统
-- 🖍️ **PDF批注系统** — 文本标记、墨迹、图形、印章、签名
-- 💬 **评论与审阅工作流**
-- 💾 **批注编辑与持久化模型**
-- 📤 **导出支持** — PDF / Excel
-- 🎨 **可自定义 UI** — 工具栏 / 侧边栏
+- 🚀 PDF 查看器（缩放 / 搜索 / 主题）
+- 🖍️ PDF 批注系统（高亮 / 笔迹 / 图形 / 印章 / 签名）
+- 💬 评论与审阅流程
+- 💾 批注数据模型（可持久化）
+- 📤 导出能力（PDF / Excel）
+- 🎨 可自定义 UI（工具栏 / 侧边栏）
 
 ---
 
@@ -55,15 +74,13 @@
 
 ```bash
 npm install inklayer-react
-# or
-yarn add inklayer-react
 ```
 
 ---
 
-## 🚀 快速开始
+## 🚀 基础用法
 
-### PdfAnnotator 批注
+### PdfAnnotator（批注）
 
 ```jsx
 import { PdfAnnotator } from 'inklayer-react'
@@ -83,7 +100,9 @@ export default function App() {
 }
 ```
 
-### PdfViewer 查看
+---
+
+### PdfViewer（查看器）
 
 ```jsx
 import { PdfViewer } from 'inklayer-react'
@@ -102,18 +121,20 @@ export default function App() {
 
 ---
 
-## 📖 组件 API
+## 📖 API 文档
 
-查看完整组件 API → [📚 文档](https://inklayer.dev/docs/react)
+👉 https://inklayer.dev/docs/react
 
 ---
 
 ## 🔗 相关项目
 
-- [InkLayer Vue](https://github.com/Laomai-codefee/inklayer-vue) — Vue 3 版本
+- InkLayer Vue：https://github.com/Laomai-codefee/inklayer-vue
+- Vue Starter：https://github.com/Laomai-codefee/inklayer-vue-starter
+- React Starter：https://github.com/Laomai-codefee/inklayer-react-starter
 
 ---
 
-## 📄 许可证
+## 📄 License
 
 MIT © InkLayer
