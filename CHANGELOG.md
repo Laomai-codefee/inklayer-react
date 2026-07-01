@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.5](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.4...v1.0.5) (2026-07-01)
+
+
+### Bug Fixes
+
+* clamp progress bar value to prevent exceeding max=100 ([db0a210](https://github.com/Laomai-codefee/inklayer-react/commit/db0a210df637e7f95ac94be873fda7dcf73c141b))
+
 ### [1.0.4](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.3...v1.0.4) (2026-06-29)
 
 
