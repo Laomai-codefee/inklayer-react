@@ -56,10 +56,10 @@ export class LineParser extends AnnotationParser {
                 // ② 箭头头部（新增）
                 if (points.length >= 4) {
                     const len = points.length
-                    const x1 = groupX + points[len - 4] * scaleX * viewport.scale
-                    const y1 = groupY + points[len - 3] * scaleY * viewport.scale
-                    const x2 = groupX + points[len - 2] * scaleX * viewport.scale
-                    const y2 = groupY + points[len - 1] * scaleY * viewport.scale
+                    const x1 = (groupX + points[len - 4] * scaleX) * viewport.scale
+                    const y1 = (groupY + points[len - 3] * scaleY) * viewport.scale
+                    const x2 = (groupX + points[len - 2] * scaleX) * viewport.scale
+                    const y2 = (groupY + points[len - 1] * scaleY) * viewport.scale
 
                     const pointerLength = line.attrs.pointerLength ?? 10
                     const pointerWidth = line.attrs.pointerWidth ?? 10
