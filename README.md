@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  🖊️ 基于 PDF.js 构建的 React PDF 批注 SDK<br/>
+  🖊️ 基于 PDF.js 构建的 React PDF 查看与批注 SDK<br/>
   用于快速构建文档审阅、批注与评论系统
 </p>
 

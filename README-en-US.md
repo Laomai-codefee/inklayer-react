@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  🖊️ A React PDF annotation SDK built on PDF.js<br/>
+  🖊️ A React PDF viewer & annotation SDK built on PDF.js<br/>
   For building document review, annotation, and commenting systems
 </p>
 
