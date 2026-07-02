@@ -42,7 +42,10 @@
             "import": "./dist/index.es.js",
             "require": "./dist/index.cjs.js"
         },
-        "./style": "./dist/inklayer-react.css"
+        "./style": {
+            "types": "./dist/style.d.ts",
+            "default": "./dist/inklayer-react.css"
+        }
     },
     "sideEffects": [
         "*.css",
