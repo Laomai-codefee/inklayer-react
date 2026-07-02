@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.9](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.8...v1.0.9) (2026-07-02)
+
+
+### Bug Fixes
+
+* add type declaration for ./style export to resolve TS2882 error ([61bd0b6](https://github.com/Laomai-codefee/inklayer-react/commit/61bd0b68a892a1af5da5e8cb101a53a1b7bea9c8))
+
 ### [1.0.8](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.7...v1.0.8) (2026-07-02)
 
 ### [1.0.7](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.6...v1.0.7) (2026-07-01)
