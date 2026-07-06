@@ -1,6 +1,6 @@
 {
     "name": "inklayer-react",
-    "version": "1.0.11",
+    "version": "1.0.12",
     "description": "Extensible React PDF viewer & annotation SDK built on PDF.js. PdfViewer + PdfAnnotator for display, review, comments, and markup.",
     "keywords": [
         "pdf",
