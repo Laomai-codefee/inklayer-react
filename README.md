@@ -135,6 +135,14 @@ export default function App() {
 
 ---
 
+## 💬 反馈
+
+有问题？想提建议？欢迎来 [GitHub Discussions](https://github.com/Laomai-codefee/inklayer-react/discussions) 聊聊，或者直接发邮件：[codefee@foxmail.com](mailto:codefee@foxmail.com)
+
+Bug 报告请走 [GitHub Issues](https://github.com/Laomai-codefee/inklayer-react/issues)
+
+---
+
 ## 📄 License
 
 MIT © InkLayer
