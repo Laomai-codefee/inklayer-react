@@ -208,7 +208,7 @@ export const PdfViewerProvider: React.FC<PdfViewerProviderProps> = ({
                             </div>
                         </div>
                     </Flex>
-                    <Flex flexGrow="1" minHeight="0">
+                    <Flex flexGrow="1" minHeight="0" className={styles.viewerWrapper}>
                         <Flex className={styles.viewerContainer} direction="column" flexGrow="1">
                             {toolbar && (
                                 <Flex align="center" justify="center" className={styles['viewerContainer-header']}>
@@ -222,10 +222,23 @@ export const PdfViewerProvider: React.FC<PdfViewerProviderProps> = ({
                                 </div>
                             </Box>
                         </Flex>
-                        {activePanel && (
-                            <Box className={styles.viewerSidebar} pl="1" pr="1">
+                        <Box
+                            className={[
+                                styles.viewerSidebar,
+                                !activePanel ? styles['viewerSidebar--hidden'] : '',
+                            ].join(' ')}
+                            pl="1"
+                            pr="1"
+                        >
+                            {activePanel && (
                                 <div className={styles['viewerSidebar-container']}>{activePanel.render(contextValue)}</div>
-                            </Box>
+                            )}
+                        </Box>
+                        {activePanel && (
+                            <div
+                                className={styles.sidebarOverlay}
+                                onClick={() => setActiveSidebarPanel(null)}
+                            />
                         )}
                     </Flex>
                     {children}

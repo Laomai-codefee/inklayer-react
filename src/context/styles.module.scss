@@ -93,6 +93,11 @@
 }
 
 // LAYOUT
+.viewerWrapper {
+    position: relative;
+    overflow: hidden;
+}
+
 .viewerContainer {
     display: flex;
     flex-direction: column;
@@ -189,12 +194,22 @@
     flex-shrink: 0;
     width: 320px;
     z-index: 2;
+    overflow: hidden;
+    transition: width 200ms ease;
+
+    &--hidden {
+        width: 0;
+        min-width: 0;
+        padding: 0 !important;
+        border: none;
+    }
 
     &-container {
         height: 100%;
         display: flex;
         flex-direction: column;
         overflow: auto;
+        min-width: 320px;
 
         // SCROLLBAR
         &::-webkit-scrollbar {
@@ -218,5 +233,47 @@
         &::-webkit-scrollbar-corner {
             background: transparent;
         }
+    }
+}
+
+// Backdrop overlay for narrow screens
+.sidebarOverlay {
+    display: none;
+}
+
+// Overlay sidebar on narrow screens (≤840px)
+@media (max-width: 840px) {
+    .sidebarOverlay {
+        display: block;
+        position: absolute;
+        inset: 0;
+        z-index: 999;
+        background-color: rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(2px);
+    }
+
+    .viewerSidebar {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        width: 320px;
+        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+        transition: transform 200ms ease, visibility 0ms ease 0ms;
+
+        &--hidden {
+            transform: translateX(100%);
+            visibility: hidden;
+            transition: transform 200ms ease, visibility 0ms ease 200ms;
+            width: 320px;
+            padding: 0 8px !important;
+        }
+    }
+
+    // Semi-transparent overlay in dark mode
+    [data-theme='dark'] .viewerSidebar,
+    .dark .viewerSidebar {
+        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
     }
 }
