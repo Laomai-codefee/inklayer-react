@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.11](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.10...v1.0.11) (2026-07-06)
+
+
+### Features
+
+* sidebar overlay on narrow screens (≤840px) ([b126c49](https://github.com/Laomai-codefee/inklayer-react/commit/b126c494d48d945f0e5294e8bb14a61cf4cf8fcd))
+
 ### [1.0.10](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.9...v1.0.10) (2026-07-02)
 
 ### [1.0.9](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.8...v1.0.9) (2026-07-02)
