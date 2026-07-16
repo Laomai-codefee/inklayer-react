@@ -84,6 +84,7 @@
     "dependencies": {
         "@floating-ui/dom": "^1.7.4",
         "@radix-ui/themes": "^3.2.1",
+        "dayjs": "^1.11.19",
         "exceljs": "^4.4.0",
         "file-saver": "^2.0.5",
         "i18next": "^25.6.3",
