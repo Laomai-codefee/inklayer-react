@@ -852,6 +852,7 @@ export class Painter {
     public destroy(): void {
 
         this.disablePainting()
+        this.webSelection.destroy()
 
         // 移除全局事件监听器
         window.removeEventListener('keyup', this.globalKeyUpHandler)
