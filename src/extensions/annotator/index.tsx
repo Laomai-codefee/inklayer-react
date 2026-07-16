@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 import { usePdfViewerContext } from '../../context/pdf_viewer_context'
 import { Painter } from './painter'
 import { useUserContext } from '@/context/user_context'
@@ -42,7 +42,24 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
     const clearAnnotations = useAnnotationStore(state => state.clearAnnotations)
 
 
-    const resolvedAnnotations = annotations ?? []
+    const latestPropsRef = useRef({
+        annotations: annotations ?? [],
+        enableNativeAnnotations,
+        onLoad,
+        onAnnotationAdd,
+        onAnnotationDelete,
+        onAnnotationSelected,
+        onAnnotationChanged
+    })
+    latestPropsRef.current = {
+        annotations: annotations ?? [],
+        enableNativeAnnotations,
+        onLoad,
+        onAnnotationAdd,
+        onAnnotationDelete,
+        onAnnotationSelected,
+        onAnnotationChanged
+    }
 
     const selectionBarRef = useRef<PopoverBarRef>(null)
     const menuBarRef = useRef<MenuBarRef>(null)
@@ -67,15 +84,18 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
         )
     ).current
 
-    const handleViewAreaChanged = () => {
+    const handleViewAreaChanged = useCallback(() => {
         debouncedViewAreaChanged()
-    }
+    }, [debouncedViewAreaChanged])
 
     useEffect(() => {
-
-        clearAnnotations();
+        clearAnnotations()
 
         if (!isReady || !pdfViewer || !eventBus || !user) return
+
+        let disposed = false
+        let documentLoadStarted = false
+        let rerenderTimer: ReturnType<typeof setTimeout> | null = null
 
         const painterInstance = new Painter({
             primaryColor,
@@ -88,18 +108,18 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
             },
 
             onAnnotationAdd: (annotation) => {
-                onAnnotationAdd(annotation)
+                latestPropsRef.current.onAnnotationAdd(annotation)
             },
 
             onAnnotationDelete: (id) => {
-                onAnnotationDelete(id)
+                latestPropsRef.current.onAnnotationDelete(id)
             },
 
             onAnnotationSelected: (annotation, isClick, selectorRect) => {
                 if (isClick && annotation) {
                     menuBarRef.current?.open(annotation, selectorRect)
                 }
-                onAnnotationSelected(annotation ?? null, isClick)
+                latestPropsRef.current.onAnnotationSelected(annotation ?? null, isClick)
             },
 
             onAnnotationChanging: () => {
@@ -111,7 +131,7 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
                     menuBarRef.current?.open(annotation, selectorRect)
                 }
                 if (annotation) {
-                    onAnnotationChanged(annotation)
+                    latestPropsRef.current.onAnnotationChanged(annotation)
                 }
             }
         })
@@ -135,42 +155,64 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
 
         // 检查文档是否已经加载
         const handleDocumentLoaded = async () => {
-            await painterInstance.initAnnotationsOnce(resolvedAnnotations, enableNativeAnnotations)
-            setTimeout(() => {
+            if (disposed || documentLoadStarted) return
+            documentLoadStarted = true
+
+            try {
+                const { annotations: latestAnnotations, enableNativeAnnotations: latestEnableNativeAnnotations } = latestPropsRef.current
+                await painterInstance.initAnnotationsOnce(latestAnnotations, latestEnableNativeAnnotations)
+            } catch (error) {
+                if (!disposed) {
+                    console.error('[Annotator] Failed to initialize annotations', error)
+                }
+                return
+            }
+
+            if (disposed) return
+
+            rerenderTimer = setTimeout(() => {
+                rerenderTimer = null
+                if (disposed) return
+
                 for (let i = 0; i < pdfViewer.pagesCount; i++) {
-                    const pageView = pdfViewer.getPageView(i);
+                    const pageView = pdfViewer.getPageView(i)
                     if (pageView && pageView.div && pageView.canvas) {
-                        const konvaCanvasStore = painterInstance.getKonvaCanvasStore();
+                        const konvaCanvasStore = painterInstance.getKonvaCanvasStore()
                         if (konvaCanvasStore && konvaCanvasStore.has(i + 1)) {
-                            painterInstance.reRenderAnnotations(i + 1);
+                            painterInstance.reRenderAnnotations(i + 1)
                         }
                     }
                 }
-            }, 0);
-            onLoad?.()
+            }, 0)
+            latestPropsRef.current.onLoad?.()
 
         }
 
         if (pdfViewer.pdfDocument) {
-            handleDocumentLoaded();
+            void handleDocumentLoaded()
         } else {
-            eventBus.on('documentloaded', handleDocumentLoaded);
+            eventBus.on('documentloaded', handleDocumentLoaded)
         }
 
         return () => {
-            painterInstance.destroy()
-            eventBus.off('pagerendered', handlePageRendered);
+            disposed = true
+            if (rerenderTimer) {
+                clearTimeout(rerenderTimer)
+                rerenderTimer = null
+            }
+            eventBus.off('pagerendered', handlePageRendered)
             eventBus.off('updateviewarea', handleViewAreaChanged)
-            eventBus.off('documentloaded', handleDocumentLoaded);
+            eventBus.off('documentloaded', handleDocumentLoaded)
+            painterInstance.destroy()
+            setPainter(null)
+        }
 
-        };
-
-    }, [isReady, pdfViewer, eventBus, user]);
+    }, [clearAnnotations, defaultOptions, eventBus, handleViewAreaChanged, isReady, pdfViewer, primaryColor, setPainter, user])
 
 
     useEffect(() => {
         handleViewAreaChanged()
-    }, [isSidebarCollapsed])
+    }, [handleViewAreaChanged, isSidebarCollapsed])
 
     return (
         <>
