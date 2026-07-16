@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
 import { KeywordResult, MatchSnippet, PageMatch } from '@/types'
 
@@ -10,6 +10,16 @@ interface SearchOptions {
     caseSensitive?: boolean
     entireWord?: boolean
     matchDiacritics?: boolean
+}
+
+interface FindControllerState {
+    _matchesCountTotal?: number
+    _pageMatches?: number[][]
+}
+
+interface FindControlStateEvent {
+    rawQuery?: string | string[] | null
+    source?: FindControllerState
 }
 
 async function getPageText(pdfViewer: PDFViewer, pageIndex: number, cache: Map<number, string>): Promise<string> {
@@ -32,8 +42,25 @@ export function usePdfSearch({ pdfViewer }: UsePdfSearchProps) {
         matchDiacritics: false
     })
     const textContentCache = useRef<Map<number, string>>(new Map())
+    const searchOptionsRef = useRef(searchOptions)
+    const searchRequestRef = useRef(0)
+    const activeSearchCancelRef = useRef<(() => void) | null>(null)
 
-    async function jumpToMatch({ pageNumber, matchIndex }: { pageNumber: number; matchIndex: number }) {
+    const cancelActiveSearch = useCallback(() => {
+        activeSearchCancelRef.current?.()
+        activeSearchCancelRef.current = null
+    }, [])
+
+    useEffect(() => {
+        textContentCache.current.clear()
+
+        return () => {
+            searchRequestRef.current += 1
+            cancelActiveSearch()
+        }
+    }, [pdfViewer, cancelActiveSearch])
+
+    const jumpToMatch = useCallback(({ pageNumber, matchIndex }: { pageNumber: number; matchIndex: number }) => {
         if (!pdfViewer || !query) return
         const findController = pdfViewer.findController
         if (!findController) return
@@ -56,34 +83,79 @@ export function usePdfSearch({ pdfViewer }: UsePdfSearchProps) {
             matchDiacritics: searchOptions.matchDiacritics,
             highlightAll: true
         })
-    }
+    }, [pdfViewer, query, searchOptions])
 
     const search = useCallback(
         async (keyword: string, options?: SearchOptions) => {
             if (!pdfViewer) return
+
+            const requestId = searchRequestRef.current + 1
+            searchRequestRef.current = requestId
+            cancelActiveSearch()
+
+            const effectiveOptions = {
+                ...searchOptionsRef.current,
+                ...options
+            }
+            searchOptionsRef.current = effectiveOptions
+
             setSearching(true)
             setQuery(keyword)
-            setSearchOptions({ ...searchOptions, ...options })
-            const resultsTemp: KeywordResult[] = []
+            setSearchOptions(effectiveOptions)
+
             try {
-                const res = await new Promise<KeywordResult>((resolve) => {
+                const res = await new Promise<KeywordResult | null>((resolve, reject) => {
                     const pagesCount = pdfViewer.pagesCount
                     let retries = 0
                     const maxRetries = 60
                     const delay = 200
+                    let timer: ReturnType<typeof setTimeout> | null = null
+                    let settled = false
+                    let latestSource: FindControllerState | null = null
 
-                    const handler = ({ source }: any) => {
-                        const check = async () => {
-                            if (source._pageMatches.length === pagesCount) {
-                                pdfViewer.eventBus.off('updatefindcontrolstate', handler)
+                    const cleanup = () => {
+                        if (timer) {
+                            clearTimeout(timer)
+                            timer = null
+                        }
+                        pdfViewer.eventBus.off('updatefindcontrolstate', handler)
+                    }
 
+                    const finish = (value: KeywordResult | null) => {
+                        if (settled) return
+                        settled = true
+                        cleanup()
+                        resolve(value)
+                    }
+
+                    const fail = (error: unknown) => {
+                        if (settled) return
+                        settled = true
+                        cleanup()
+                        reject(error)
+                    }
+
+                    const check = async () => {
+                        if (settled || requestId !== searchRequestRef.current) {
+                            finish(null)
+                            return
+                        }
+
+                        try {
+                            const pageMatchIndexes = latestSource?._pageMatches
+                            if (Array.isArray(pageMatchIndexes) && pageMatchIndexes.length === pagesCount) {
                                 const pageMatches: PageMatch[] = []
 
-                                for (let i = 0; i < source._pageMatches.length; i++) {
-                                    const matchIndexes: number[] = source._pageMatches[i]
+                                for (let i = 0; i < pageMatchIndexes.length; i++) {
+                                    const matchIndexes = pageMatchIndexes[i]
                                     if (!matchIndexes || matchIndexes.length === 0) continue
 
                                     const fullText = await getPageText(pdfViewer, i, textContentCache.current)
+
+                                    if (settled || requestId !== searchRequestRef.current) {
+                                        finish(null)
+                                        return
+                                    }
 
                                     const matches: MatchSnippet[] = matchIndexes.map((charIndex, matchIndex) => {
                                         const context = 30
@@ -104,56 +176,83 @@ export function usePdfSearch({ pdfViewer }: UsePdfSearchProps) {
                                     })
                                 }
 
-                                resolve({
+                                finish({
                                     query: keyword,
-                                    countTotal: source._matchesCountTotal,
+                                    countTotal: latestSource?._matchesCountTotal ?? 0,
                                     pageMatches
                                 })
                             } else if (retries < maxRetries) {
-                                retries++
-                                setTimeout(check, delay)
+                                retries += 1
+                                timer = setTimeout(() => {
+                                    timer = null
+                                    void check()
+                                }, delay)
                             } else {
-                                pdfViewer.eventBus.off('updatefindcontrolstate', handler)
-                                resolve({
+                                finish({
                                     query: keyword,
                                     countTotal: 0,
                                     pageMatches: []
                                 })
                             }
+                        } catch (error) {
+                            fail(error)
                         }
-                        check()
                     }
 
+                    const handler = ({ source, rawQuery }: FindControlStateEvent) => {
+                        const normalizedQuery = Array.isArray(rawQuery) ? rawQuery.join('') : rawQuery
+                        if (normalizedQuery !== undefined && normalizedQuery !== null && normalizedQuery !== keyword) {
+                            return
+                        }
+
+                        latestSource = source ?? null
+                        if (timer) {
+                            clearTimeout(timer)
+                            timer = null
+                        }
+                        void check()
+                    }
+
+                    activeSearchCancelRef.current = () => finish(null)
                     pdfViewer.eventBus.on('updatefindcontrolstate', handler)
 
                     pdfViewer.eventBus.dispatch('find', {
                         type: 'highlightallchange',
                         query: keyword,
-                        caseSensitive: options?.caseSensitive ?? false,
-                        entireWord: options?.entireWord ?? false,
+                        caseSensitive: effectiveOptions.caseSensitive ?? false,
+                        entireWord: effectiveOptions.entireWord ?? false,
                         findPrevious: false,
-                        matchDiacritics: options?.matchDiacritics ?? false,
+                        matchDiacritics: effectiveOptions.matchDiacritics ?? false,
                         highlightAll: true
                     })
                 })
 
-                resultsTemp.push(res)
+                if (res && requestId === searchRequestRef.current) {
+                    setResults([res])
+                }
             } catch (err) {
                 console.error(err)
-                resultsTemp.push({ query: keyword, countTotal: 0, pageMatches: [] })
+                if (requestId === searchRequestRef.current) {
+                    setResults([{ query: keyword, countTotal: 0, pageMatches: [] }])
+                }
+            } finally {
+                if (requestId === searchRequestRef.current) {
+                    activeSearchCancelRef.current = null
+                    setSearching(false)
+                }
             }
-
-            setResults(resultsTemp)
-            setSearching(false)
         },
-        [pdfViewer]
+        [pdfViewer, cancelActiveSearch]
     )
 
     const clearSearch = useCallback(() => {
+        searchRequestRef.current += 1
+        cancelActiveSearch()
         pdfViewer?.eventBus.dispatch('find', { query: '' })
         setQuery('')
         setResults([])
-    }, [pdfViewer])
+        setSearching(false)
+    }, [pdfViewer, cancelActiveSearch])
 
     return { query, setQuery, results, searching, search, clearSearch, jumpToMatch, searchOptions }
 }

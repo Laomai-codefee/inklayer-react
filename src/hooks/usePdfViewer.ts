@@ -62,15 +62,20 @@ export function usePdfViewer(containerRef: React.RefObject<HTMLDivElement>, opti
         externalLinkTarget = 2
     } = options
 
-    const stableOnLoadSuccess = useCallback((pdfDocument: PDFDocumentProxy) => onLoadSuccess?.(pdfDocument), [onLoadSuccess])
-    const stableOnLoadError = useCallback((error: Error) => onLoadError?.(error), [onLoadError])
-    const stableOnLoadEnd = useCallback(() => onLoadEnd?.(), [onLoadEnd])
-    const stableOnViewerInit = useCallback((viewer: PDFViewer) => onViewerInit?.(viewer), [onViewerInit])
+    const onLoadSuccessRef = useRef(onLoadSuccess)
+    const onLoadErrorRef = useRef(onLoadError)
+    const onLoadEndRef = useRef(onLoadEnd)
+    const onViewerInitRef = useRef(onViewerInit)
+    onLoadSuccessRef.current = onLoadSuccess
+    onLoadErrorRef.current = onLoadError
+    onLoadEndRef.current = onLoadEnd
+    onViewerInitRef.current = onViewerInit
 
     const pdfViewerRef = useRef<PDFViewer | null>(null)
     const linkServiceRef = useRef<PDFLinkService | null>(null)
     const eventBusRef = useRef<EventBus | null>(null)
     const cleanupRef = useRef<(() => void) | null>(null)
+    const loadGenerationRef = useRef(0)
 
     const [loading, setLoading] = useState(true)
     const [progress, setProgress] = useState(0)
@@ -119,9 +124,9 @@ export function usePdfViewer(containerRef: React.RefObject<HTMLDivElement>, opti
             if (!externalEventBus && eventBusRef.current) eventBusRef.current = null
         }
 
-        stableOnViewerInit?.(viewer)
+        onViewerInitRef.current?.(viewer)
         return { bus, linkService, viewer }
-    }, [containerRef, externalEventBus, textLayerMode, annotationMode, externalLinkTarget, stableOnViewerInit])
+    }, [containerRef, externalEventBus, textLayerMode, annotationMode, externalLinkTarget])
 
     const createTransport = useCallback(async (url: string) => {
         const headResp = await fetch(url, { method: 'HEAD' })
@@ -162,9 +167,18 @@ export function usePdfViewer(containerRef: React.RefObject<HTMLDivElement>, opti
     const loadingTaskRef = useRef<PDFDocumentLoadingTask | null>(null)
 
     const loadPdf = useCallback(async () => {
+        const generation = loadGenerationRef.current + 1
+        loadGenerationRef.current = generation
+        const isCurrentLoad = () => loadGenerationRef.current === generation
+
         if (!url && !data) {
-            setLoadError(new Error('Either url or data must be provided'))
-            setLoading(false)
+            const error = new Error('Either url or data must be provided')
+            if (isCurrentLoad()) {
+                setLoadError(error)
+                setLoading(false)
+                onLoadErrorRef.current?.(error)
+                onLoadEndRef.current?.()
+            }
             return
         }
 
@@ -173,86 +187,124 @@ export function usePdfViewer(containerRef: React.RefObject<HTMLDivElement>, opti
         setLoadError(null)
         setPdfDocument(null)
 
-        const { linkService, viewer } = createPdfViewer()
-
         let triedRange = false
+        let activeTask: PDFDocumentLoadingTask | null = null
+        let viewerContext: ReturnType<typeof createPdfViewer> | null = null
 
         try {
+            viewerContext = createPdfViewer()
+            const { linkService, viewer } = viewerContext
             const shouldTryRange = enableRange === true || enableRange === 'auto'
-
-            let loadingTask: PDFDocumentLoadingTask
 
             if (shouldTryRange) {
                 triedRange = true
-                loadingTask = await createLoadingTask(true)
+                activeTask = await createLoadingTask(true)
             } else {
-                loadingTask = await createLoadingTask(false)
+                activeTask = await createLoadingTask(false)
             }
 
-            loadingTaskRef.current = loadingTask
+            if (!isCurrentLoad()) {
+                await activeTask.destroy()
+                return
+            }
 
-            loadingTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
-                if (total > 0) {
+            loadingTaskRef.current = activeTask
+
+            activeTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
+                if (isCurrentLoad() && total > 0) {
                     setProgress(Math.min(100, Math.round((loaded / total) * 100)))
                 }
             }
 
-            const pdf = await loadingTask.promise
+            const pdf = await activeTask.promise
+            if (!isCurrentLoad()) {
+                await pdf.destroy()
+                return
+            }
+
             setPdfDocument(pdf)
             linkService.setDocument(pdf)
             viewer.setDocument(pdf)
 
             const docMetadata = await pdf.getMetadata()
+            if (!isCurrentLoad()) return
+
             setMetadata(docMetadata)
-            stableOnLoadSuccess?.(pdf)
+            onLoadSuccessRef.current?.(pdf)
         } catch (err) {
+            if (!isCurrentLoad()) return
+
             // auto 模式下，Range 失败 → fallback
             if (enableRange === 'auto' && triedRange && isRangeFailure(err)) {
                 console.warn('[PDF] Range failed, fallback to full loading')
 
                 // 清理失败的 task
-                loadingTaskRef.current?.destroy()
-                loadingTaskRef.current = null
+                await activeTask?.destroy()
+                if (loadingTaskRef.current === activeTask) {
+                    loadingTaskRef.current = null
+                }
 
                 // fallback 再来一次（不再 Range）
                 try {
+                    if (!viewerContext) {
+                        throw new Error('PDF viewer was not initialized')
+                    }
                     const fallbackTask = await createLoadingTask(false)
+                    activeTask = fallbackTask
+
+                    if (!isCurrentLoad()) {
+                        await fallbackTask.destroy()
+                        return
+                    }
+
                     loadingTaskRef.current = fallbackTask
 
                     fallbackTask.onProgress = ({ loaded, total }: { loaded: number; total: number }) => {
-                        if (total > 0) {
+                        if (isCurrentLoad() && total > 0) {
                             setProgress(Math.min(100, Math.round((loaded / total) * 100)))
                         }
                     }
 
                     const pdf = await fallbackTask.promise
+                    if (!isCurrentLoad()) {
+                        await pdf.destroy()
+                        return
+                    }
+
+                    const { linkService, viewer } = viewerContext
                     setPdfDocument(pdf)
                     linkService.setDocument(pdf)
                     viewer.setDocument(pdf)
 
                     const docMetadata = await pdf.getMetadata()
+                    if (!isCurrentLoad()) return
+
                     setMetadata(docMetadata)
-                    stableOnLoadSuccess?.(pdf)
+                    onLoadSuccessRef.current?.(pdf)
                     return
                 } catch (fallbackErr) {
+                    if (!isCurrentLoad()) return
                     setLoadError(fallbackErr as Error)
-                    stableOnLoadError?.(fallbackErr as Error)
+                    onLoadErrorRef.current?.(fallbackErr as Error)
                     return
                 }
             }
 
             // 非 Range 错误，直接抛
             setLoadError(err as Error)
-            stableOnLoadError?.(err as Error)
+            onLoadErrorRef.current?.(err as Error)
         } finally {
-            setLoading(false)
-            stableOnLoadEnd?.()
+            if (isCurrentLoad()) {
+                setLoading(false)
+                onLoadEndRef.current?.()
+            }
         }
-    }, [url, data, enableRange, createPdfViewer, createLoadingTask, stableOnLoadSuccess, stableOnLoadError, stableOnLoadEnd])
+    }, [url, data, enableRange, createPdfViewer, createLoadingTask])
 
     useEffect(() => {
         loadPdf()
         return () => {
+            loadGenerationRef.current += 1
             if (cleanupRef.current) {
                 cleanupRef.current()
                 cleanupRef.current = null
