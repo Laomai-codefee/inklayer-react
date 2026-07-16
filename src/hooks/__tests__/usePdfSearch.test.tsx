@@ -161,4 +161,31 @@ describe('usePdfSearch', () => {
         await pendingSearch
         expect(eventBus.listenerCount('updatefindcontrolstate')).toBe(0)
     })
+
+    it('keeps listener usage bounded during rapid repeated searches', async () => {
+        const eventBus = new FakeEventBus(false)
+        const viewer = createViewer(eventBus)
+        const { result } = renderHook(() => usePdfSearch({ pdfViewer: viewer }))
+        const searches: Promise<void>[] = []
+
+        act(() => {
+            for (let index = 0; index < 25; index++) {
+                searches.push(result.current.search(`query-${index}`))
+            }
+        })
+
+        expect(eventBus.listenerCount('updatefindcontrolstate')).toBe(1)
+
+        await act(async () => {
+            for (let index = 0; index < 24; index++) {
+                eventBus.emitFindResult(`query-${index}`, [[index]])
+            }
+            eventBus.emitFindResult('query-24', [[24]])
+            await Promise.all(searches)
+        })
+
+        expect(result.current.query).toBe('query-24')
+        expect(result.current.results[0].query).toBe('query-24')
+        expect(eventBus.listenerCount('updatefindcontrolstate')).toBe(0)
+    })
 })

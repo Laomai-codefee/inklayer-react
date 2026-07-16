@@ -66,4 +66,25 @@ describe('WebSelection', () => {
 
         webSelection.destroy()
     })
+
+    it('does not retain document listeners across repeated mount cycles', () => {
+        const onSelect = jest.fn()
+        const selection = { type: 'Caret', anchorNode: null } as unknown as Selection
+        const getSelection = jest.spyOn(window, 'getSelection').mockReturnValue(selection)
+        const webSelection = new WebSelection({ onSelect, onHighlight: jest.fn() })
+
+        for (let index = 0; index < 50; index++) {
+            webSelection.create(document.createElement('div'))
+            webSelection.destroy()
+        }
+
+        document.dispatchEvent(new Event('selectionchange'))
+        expect(onSelect).not.toHaveBeenCalled()
+        expect(Highlighter).toHaveBeenCalledTimes(50)
+        for (let index = 0; index < 50; index++) {
+            expect(getHighlighterInstance(index).dispose).toHaveBeenCalledTimes(1)
+        }
+
+        getSelection.mockRestore()
+    })
 })
