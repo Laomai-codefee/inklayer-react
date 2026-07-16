@@ -143,6 +143,17 @@ Bug reports → [GitHub Issues](https://github.com/Laomai-codefee/inklayer-react
 
 ---
 
+## 🌐 Runtime Environment
+
+InkLayer React is browser-only and does not support server-side rendering (SSR). Its components depend on the DOM, Canvas, and Web Workers, so import and render them only in client-side code.
+
+- Supports React 18 and React 19
+- Supports Vite and Webpack 5
+- Provides both ESM and CommonJS entry points; ESM is recommended
+- In isomorphic frameworks such as Next.js or Remix, keep the components behind a client boundary and disable SSR for them
+
+---
+
 ## 📄 License
 
 MIT © InkLayer

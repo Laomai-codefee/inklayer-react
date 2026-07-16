@@ -143,6 +143,17 @@ Bug 报告请走 [GitHub Issues](https://github.com/Laomai-codefee/inklayer-reac
 
 ---
 
+## 🌐 运行环境
+
+InkLayer React 仅支持浏览器环境，不支持服务端渲染（SSR）。组件依赖 DOM、Canvas 和 Web Worker，请只在客户端代码中导入和渲染。
+
+- 支持 React 18 和 React 19
+- 支持 Vite 和 Webpack 5
+- 同时提供 ESM 和 CommonJS 入口，推荐优先使用 ESM
+- 在 Next.js、Remix 等同构框架中使用时，需要将组件放在客户端边界内，并关闭该组件的 SSR
+
+---
+
 ## 📄 License
 
 MIT © InkLayer
