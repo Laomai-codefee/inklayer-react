@@ -136,7 +136,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
             externalLinkTarget: 0,
             enableRange
         }),
-        [showTextLayer]
+        [showTextLayer, showAnnotations, enableRange]
     )
 
     useEffect(() => {

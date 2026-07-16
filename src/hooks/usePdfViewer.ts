@@ -248,7 +248,7 @@ export function usePdfViewer(containerRef: React.RefObject<HTMLDivElement>, opti
             setLoading(false)
             stableOnLoadEnd?.()
         }
-    }, [url, enableRange, createPdfViewer, createLoadingTask, stableOnLoadSuccess, stableOnLoadError, stableOnLoadEnd])
+    }, [url, data, enableRange, createPdfViewer, createLoadingTask, stableOnLoadSuccess, stableOnLoadError, stableOnLoadEnd])
 
     useEffect(() => {
         loadPdf()

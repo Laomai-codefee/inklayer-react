@@ -4,6 +4,7 @@ import { AiFillCloseCircle, AiOutlineLeft, AiOutlineRight, AiOutlineSearch } fro
 import { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
 import { usePdfSearch } from '@/hooks/usePdfSearch'
 import { useTranslation } from 'react-i18next'
+import { splitSearchText } from './search_text'
 
 interface SearchOptions {
     caseSensitive: boolean
@@ -38,23 +39,16 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ pdfViewer }) => {
         text: string
         query: string
     }> = ({ text, query }) => {
-        const highlightMatchText = (text: string, query: string, caseSensitive: boolean) => {
-            if (!query) return text
-
-            const flags = caseSensitive ? 'gi' : 'gi' // 'g' 表示全局匹配
-            const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-            const regex = new RegExp(`(${escapedQuery})`, flags)
-
-            return text.split(regex).map((part, index) =>
-                regex.test(part) ? (
-                    <mark key={`${index}-${part}`} style={{ backgroundColor: 'rgba(255, 255, 0, 0.2)', padding: '0 2px' }}>
-                        {part}
+        const highlightMatchText = (text: string, query: string, caseSensitive: boolean) =>
+            splitSearchText(text, query, caseSensitive).map((part, index) =>
+                part.highlighted ? (
+                    <mark key={`${index}-${part.text}`} style={{ backgroundColor: 'rgba(255, 255, 0, 0.2)', padding: '0 2px' }}>
+                        {part.text}
                     </mark>
                 ) : (
-                    part
+                    part.text
                 )
             )
-        }
         return <>{highlightMatchText(text, query, searchOptions.caseSensitive)}</>
     }
 
@@ -178,7 +172,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ pdfViewer }) => {
             matchIndex: nextMatch.matchIndex
         })
         scrollToMatch(nextMatch.pageNumber, nextMatch.matchIndex)
-    }, [results, currentMatch, getAllMatches, findCurrentMatchIndex, jumpToMatch])
+    }, [results, currentMatch, getAllMatches, findCurrentMatchIndex, jumpToMatch, scrollToMatch])
 
     // 跳转到上一个匹配项
     const goToPreviousMatch = useCallback(() => {
@@ -203,7 +197,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ pdfViewer }) => {
             matchIndex: prevMatch.matchIndex
         })
         scrollToMatch(prevMatch.pageNumber, prevMatch.matchIndex)
-    }, [results, currentMatch, getAllMatches, findCurrentMatchIndex, jumpToMatch])
+    }, [results, currentMatch, getAllMatches, findCurrentMatchIndex, jumpToMatch, scrollToMatch])
 
     useEffect(() => {
         prevResultsRef.current = results;
@@ -223,7 +217,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ pdfViewer }) => {
             setCurrentMatch(null)
             setQuery('')
         }
-    }, [clearSearch])
+    }, [clearSearch, setQuery])
 
     // 渲染搜索结果
     const renderSearchResults = useCallback(() => {

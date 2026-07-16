@@ -32,7 +32,7 @@ export const ViewerExtension: React.FC<ViewerExtensionProps> = ({
             eventBus.off('documentloaded', handleDocumentLoaded);
         };
 
-    }, [isReady, pdfViewer, eventBus]);
+    }, [isReady, pdfViewer, eventBus, onDocumentLoaded, onEventBusReady]);
 
     useEffect(() => {
         if (eventBus && pdfViewer) {

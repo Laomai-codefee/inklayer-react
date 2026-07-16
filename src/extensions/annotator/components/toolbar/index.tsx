@@ -37,7 +37,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({ defaultAnnotationName, stamps,
             const newType = annotation?.type ?? null
             if (lastActivatedType.current === newType) return
             lastActivatedType.current = newType
-            const _dataTransfer = [AnnotationType.SIGNATURE, AnnotationType.STAMP].includes(annotation?.type!)
+            const acceptsDataTransfer = newType !== null && [AnnotationType.SIGNATURE, AnnotationType.STAMP].includes(newType)
+            const _dataTransfer = acceptsDataTransfer
                 ? dataTransfer
                 : null
             painter?.activate(annotation, _dataTransfer)
@@ -83,7 +84,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ defaultAnnotationName, stamps,
             setCurrentAnnotationType(null)
             safeActivate(null, null)
         }
-    }, [])
+    }, [safeActivate, setCurrentAnnotationType])
 
     /**
      * 初始化 defaultAnnotation

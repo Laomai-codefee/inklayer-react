@@ -204,7 +204,7 @@ export function canvasToPdfPoint(
   // 逆向旋转
   if (rotation === 90) {
     const temp = x
-    x = pageSize.height - y / scale
+    x = pageSize.width - y / scale
     y = temp / scale
   } else if (rotation === 180) {
     x = (pageSize.width - x / scale)
@@ -212,7 +212,7 @@ export function canvasToPdfPoint(
   } else if (rotation === 270) {
     const temp = x
     x = y / scale
-    y = pageSize.width - temp / scale
+    y = pageSize.height - temp / scale
   } else {
     x = x / scale
     y = y / scale
