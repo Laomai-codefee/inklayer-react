@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.0.13](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.12...v1.0.13) (2026-07-17)
+
+
+### Bug Fixes
+
+* cancel stale annotator initialization ([01dd779](https://github.com/Laomai-codefee/inklayer-react/commit/01dd7799461e775968bc648ea8bc32cc84326fb9))
+* clean up text selection listeners ([214061b](https://github.com/Laomai-codefee/inklayer-react/commit/214061bd00ab0aa30150ea584ff58458f459408a))
+* improve consumer compatibility ([fedbfa8](https://github.com/Laomai-codefee/inklayer-react/commit/fedbfa8f834b7718c64234e26ee528fa93b14f0d))
+* prevent stale PDF async updates ([508507c](https://github.com/Laomai-codefee/inklayer-react/commit/508507cd533b3cf279ab93f6a628c77bf094f266))
+* strengthen runtime stability and quality checks ([f8edc2f](https://github.com/Laomai-codefee/inklayer-react/commit/f8edc2f63ffa2f1d696e18043f021ca5e0bddb1c))
+
 ### [1.0.12](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.11...v1.0.12) (2026-07-06)
 
 ### [1.0.11](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.10...v1.0.11) (2026-07-06)
