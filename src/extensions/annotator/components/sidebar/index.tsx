@@ -268,7 +268,7 @@ const Sidebar: React.FC = () => {
                 text: comment
             },
             date: formatTimestamp(Date.now())
-        })
+        }, 'annotation.edit')
 
         setEditAnnotation(null)
     }
@@ -288,7 +288,7 @@ const Sidebar: React.FC = () => {
 
         painter?.update(annotation.id, {
             comments: [...(annotation.comments || []), newReply]
-        })
+        }, action)
 
         setReplyAnnotation(null)
     }
@@ -309,7 +309,7 @@ const Sidebar: React.FC = () => {
 
         painter?.update(annotation.id, {
             comments: updatedComments
-        })
+        }, 'comment.edit', reply)
 
         setCurrentReply(null)
     }
@@ -325,7 +325,7 @@ const Sidebar: React.FC = () => {
 
         painter?.update(annotation.id, {
             comments: updatedComments
-        })
+        }, 'comment.delete', reply)
 
         if (currentReply?.id === reply.id) {
             setCurrentReply(null)

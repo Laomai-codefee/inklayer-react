@@ -118,15 +118,13 @@ export class Painter {
             },
             onChanged: async (id, groupString, _rawAnnotationStore, konvaClientRect, transformerRect) => {
                 const editor = this.findEditorForGroupId(id)
-                const currentAnnotation = useAnnotationStore.getState().getAnnotation(id)
-                if (editor) {
-                    this.updateStore(id, { konvaString: groupString, konvaClientRect }, false)
-                }
-                if (currentAnnotation) {
-                    useAnnotationStore.getState().setSelectedAnnotation(currentAnnotation, SelectionSource.SIDEBAR)
-                }
+                const updatedAnnotation = editor
+                    ? this.updateStore(id, { konvaString: groupString, konvaClientRect }, false, 'annotation.transform')
+                    : undefined
+                if (!updatedAnnotation) return
+                useAnnotationStore.getState().setSelectedAnnotation(updatedAnnotation, SelectionSource.SIDEBAR)
 
-                this.onAnnotationChanged(currentAnnotation, transformerRect)
+                this.onAnnotationChanged(updatedAnnotation, transformerRect)
             },
             onCancel: () => {
                 this.onAnnotationChanging() // 批注正在更改的回调
@@ -141,6 +139,7 @@ export class Painter {
                 this.onTextSelected(range)
             },
             onHighlight: (selection) => {
+                if (!this.can('annotation.create')) return
                 Object.keys(selection).forEach((key) => {
                     const pageNumber = Number(key)
                     const elements = selection[key]
@@ -182,6 +181,11 @@ export class Painter {
         this.currentUser = currentUser
         this.annotationPermissions = annotationPermissions
         this.editorStore.forEach(editor => editor.setCurrentUser(currentUser))
+        if (this.currentAnnotation?.type !== AnnotationType.SELECT && !this.can('annotation.create')) {
+            this.currentAnnotation = null
+            this.disablePainting()
+            this.setDefaultMode()
+        }
         this.selector.refreshCurrentSelection()
     }
 
@@ -316,6 +320,7 @@ export class Painter {
      * 保存到存储
      */
     private saveToStore(annotationStore: IAnnotationStore, isOriginal: boolean = false) {
+        if (!isOriginal && !this.can('annotation.create')) return
         const currentAnnotation = annotationDefinitions.find((item) => item.pdfjsAnnotationType === annotationStore.pdfjsType)
         useAnnotationStore.getState().addAnnotation(annotationStore, isOriginal)
         if (isOriginal) return
@@ -332,12 +337,21 @@ export class Painter {
     /**
      * 更新存储
      */
-    private updateStore(id: string, updates: Partial<IAnnotationStore>, emitChange: boolean = true) {
+    private updateStore(
+        id: string,
+        updates: Partial<IAnnotationStore>,
+        emitChange: boolean = true,
+        action: AnnotationPermissionAction | null = 'annotation.edit',
+        comment?: IAnnotationComment
+    ) {
+        const annotationStore = useAnnotationStore.getState().getAnnotation(id)
+        if (!annotationStore || (action && !this.can(action, annotationStore, comment))) return
         const updatedAnnotationStore = useAnnotationStore.getState().updateAnnotation(id, updates)
 
         if (updatedAnnotationStore && emitChange) {
             this.onAnnotationChanged(updatedAnnotationStore)
         }
+        return updatedAnnotationStore
     }
 
     /**
@@ -635,11 +649,9 @@ export class Painter {
      * 删除批注
      * @param id - 批注 ID
      */
-    private deleteAnnotation(id: string, emit: boolean = false): void {
+    private deleteAnnotation(id: string, emit: boolean = false): boolean {
         const annotationStore = useAnnotationStore.getState().getAnnotation(id)
-        if (!annotationStore) {
-            return
-        }
+        if (!annotationStore || !this.can('annotation.delete', annotationStore)) return false
         useAnnotationStore.getState().removeAnnotation(id)
         const storeEditor = this.findEditor(annotationStore.pageNumber, annotationStore.type)
         const konvaCanvasStore = this.konvaCanvasStore.get(annotationStore.pageNumber) // 获取 KonvaCanvas 实例
@@ -649,6 +661,7 @@ export class Painter {
         if (emit) {
             this.onAnnotationDelete(id)
         }
+        return true
     }
 
     /**
@@ -705,6 +718,12 @@ export class Painter {
      * @param dataTransfer - 数据传输
      */
     public activate(annotation: IAnnotationType | null, dataTransfer: string | null): void {
+        if (annotation?.type !== AnnotationType.SELECT && annotation && !this.can('annotation.create')) {
+            this.currentAnnotation = null
+            this.disablePainting()
+            this.setDefaultMode()
+            return
+        }
         this.currentAnnotation = annotation
         this.disablePainting()
         this.saveTempDataTransfer(dataTransfer || '')
@@ -747,6 +766,7 @@ export class Painter {
      * @param annotation
      */
     public highlightRange(range: Range | null, annotation: IAnnotationType) {
+        if (!this.can('annotation.create')) return
         this.currentAnnotation = annotation
         this.webSelection.highlight(range)
     }
@@ -774,7 +794,7 @@ export class Painter {
             // 再用外部数据覆盖
             annotations.forEach((annotation) => {
                 if (annotationMap.has(annotation.id)) {
-                    this.updateStore(annotation.id, annotation)
+                    this.updateStore(annotation.id, annotation, true, null)
                 } else {
                     this.saveToStore(annotation, true)
                 }
@@ -791,17 +811,23 @@ export class Painter {
      * @param id
      * @param updates
      */
-    public update(id: string, updates: Partial<IAnnotationStore>) {
-        this.updateStore(id, updates, true)
+    public update(
+        id: string,
+        updates: Partial<IAnnotationStore>,
+        action: AnnotationPermissionAction = 'annotation.edit',
+        comment?: IAnnotationComment
+    ) {
+        return this.updateStore(id, updates, true, action, comment)
     }
 
     /**
      * @description 删除 annotation
      * @param id
      */
-    public delete(id: string, emit: boolean = false) {
-        this.selector.delete()
-        this.deleteAnnotation(id, emit)
+    public delete(id: string, emit: boolean = false): boolean {
+        const deleted = this.deleteAnnotation(id, emit)
+        if (deleted) this.selector.delete()
+        return deleted
     }
 
     /**
@@ -854,6 +880,7 @@ export class Painter {
      * @param styles
      */
     public updateAnnotationStyle(annotationStore: IAnnotationStore, style: IAnnotationStyle) {
+        if (!this.can('annotation.edit', annotationStore)) return
         const editor = this.findEditorForGroupId(annotationStore.id)
         if (editor) {
             editor.updateStyle(annotationStore, style) // 更新编辑器样式
