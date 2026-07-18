@@ -1,14 +1,84 @@
 export const snippets: Record<string, string> = {
-  PdfAnnotatorPermissions: `const permissions = {
+  PdfAnnotatorPermissions: `import React, { useState } from 'react'
+import { PdfAnnotator } from 'inklayer-react'
+import type { AnnotationPermissions, User } from 'inklayer-react'
+import 'inklayer-react/style'
+
+const USERS: User[] = [
+  { id: 'alice', name: 'Alice' },
+  { id: 'bob', name: 'Bob' },
+  { id: 'admin', name: 'Admin' }
+]
+
+const OWNER_ONLY_PERMISSIONS: AnnotationPermissions = {
   mode: 'owner-only',
+  // Returning undefined keeps the owner-only default for Alice and Bob.
+  // Admin is allowed to perform every action on every annotation.
   can: ({ currentUser }) => currentUser?.id === 'admin' ? true : undefined
 }
 
-<PdfAnnotator
-  user={currentUser}
-  annotationPermissions={permissions}
-  initialAnnotations={annotations}
-/>`,
+const READ_ONLY_PERMISSIONS: AnnotationPermissions = {
+  // The annotation remains selectable, but all mutations are denied.
+  can: () => false
+}
+
+// Replace this with annotations loaded from your API. Each annotation's
+// meta.authorId determines who owns it in owner-only mode.
+const INITIAL_ANNOTATIONS = []
+
+const Demo = () => {
+  const [user, setUser] = useState(USERS[0])
+  const [permissionPreset, setPermissionPreset] = useState<'owner-only' | 'read-only'>('owner-only')
+  const permissions = permissionPreset === 'read-only'
+    ? READ_ONLY_PERMISSIONS
+    : OWNER_ONLY_PERMISSIONS
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8 }}>
+        <strong>Current user: {user.name}</strong>
+        {USERS.map(option => (
+          <button
+            key={option.id}
+            aria-pressed={option.id === user.id}
+            onClick={() => setUser(option)}
+          >
+            {option.name}
+          </button>
+        ))}
+
+        <strong style={{ marginLeft: 12 }}>
+          Permission: {permissionPreset === 'read-only' ? 'Read only' : 'Owner only'}
+        </strong>
+        <button
+          aria-pressed={permissionPreset === 'owner-only'}
+          onClick={() => setPermissionPreset('owner-only')}
+        >
+          Owner only
+        </button>
+        <button
+          aria-pressed={permissionPreset === 'read-only'}
+          onClick={() => setPermissionPreset('read-only')}
+        >
+          Read only
+        </button>
+      </div>
+
+      <PdfAnnotator
+        title="COLLABORATION PERMISSIONS"
+        url="https://inklayer.dev/inklayer-demo.pdf"
+        user={user}
+        annotationPermissions={permissions}
+        initialAnnotations={INITIAL_ANNOTATIONS}
+        defaultShowAnnotationsSidebar
+        locale="en-US"
+        layoutStyle={{ height: '90vh' }}
+      />
+    </div>
+  )
+}
+
+export default Demo`,
   PdfViewerBasic: `import React from 'react'
 import { PdfViewer } from 'inklayer-react'
 import 'inklayer-react/style'

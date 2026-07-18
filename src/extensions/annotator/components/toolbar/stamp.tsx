@@ -30,6 +30,7 @@ dayjs.extend(customParseFormat)
 
 interface SignatureToolProps {
     annotation: IAnnotationType
+    disabled?: boolean
     default_stamps?: string[]
     onAdd: (signatureDataUrl: string) => void
 }
@@ -90,7 +91,7 @@ const DATE_FORMAT_OPTIONS = [
     }
 ]
 
-const StampTool: React.FC<SignatureToolProps> = ({ annotation, default_stamps, onAdd }) => {
+const StampTool: React.FC<SignatureToolProps> = ({ annotation, disabled = false, default_stamps, onAdd }) => {
     const { defaultOptions } = useOptionsContext()
 
     const maxSize = defaultOptions.stamp!.maxSize!
@@ -411,7 +412,7 @@ const StampTool: React.FC<SignatureToolProps> = ({ annotation, default_stamps, o
         <>
             <Popover.Root>
                 <Popover.Trigger>
-                    <ToolbarButton title={t(`annotator:tool.${annotation.name}`)} icon={annotation.icon} />
+                    <ToolbarButton disabled={disabled} title={t(`annotator:tool.${annotation.name}`)} icon={annotation.icon} />
                 </Popover.Trigger>
                 <Popover.Content
                     size="1"

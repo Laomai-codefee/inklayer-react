@@ -144,6 +144,8 @@ export default function App() {
 
 The optional synchronous `can(request)` resolver overrides the mode: return `true` to allow, `false` to deny, or `undefined` to keep the mode's default decision. The request includes `action`, `currentUser`, `annotation`, `comment`, and `defaultAllowed`, so applications can add administrator, workflow-state, or document-level rules.
 
+For a fully read-only annotator, pass `annotationPermissions={{ can: () => false }}`. Users can still select and inspect annotations, while every mutation is denied.
+
 > These are browser interaction permissions for InkLayer UI and local mutations. Your backend API must still authorize every read and write; client-side decisions are not a security boundary.
 
 ---

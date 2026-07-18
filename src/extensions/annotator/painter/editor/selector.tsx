@@ -4,6 +4,7 @@ import { annotationDefinitions, IAnnotationStore } from '../../const/definitions
 import { SELECTOR_HOVER_STYLE, SHAPE_GROUP_NAME } from '../const'
 import { KonvaCanvas } from '../index'
 import { IRect } from 'konva/lib/types'
+import { getTransformerPermissionStyle } from './selector_permissions'
 /**
  * 定义选择器的选项接口
  */
@@ -220,18 +221,19 @@ export class Selector {
 
         const currentAnnotation = annotationDefinitions.find((item) => item.pdfjsAnnotationType === rawAnnotationStore.pdfjsType)
         const transformAllowed = this.canTransform(rawAnnotationStore)
+        const permissionStyle = getTransformerPermissionStyle(transformAllowed)
 
         const transformer = new Konva.Transformer({
             resizeEnabled: transformAllowed && currentAnnotation?.resizable,
             rotateEnabled: false,
-            borderStrokeWidth: transformAllowed ? 2 : 0,
+            borderStrokeWidth: permissionStyle.borderStrokeWidth,
             borderStroke: this.primaryColor,
-            anchorFill: '#fff',
+            anchorFill: permissionStyle.anchorFill,
             anchorStroke: this.primaryColor,
-            opacity: transformAllowed ? 1 : 0,
+            opacity: permissionStyle.opacity,
             anchorCornerRadius: 5,
-            anchorStrokeWidth: 2,
-            anchorSize: 10,
+            anchorStrokeWidth: permissionStyle.anchorStrokeWidth,
+            anchorSize: permissionStyle.anchorSize,
             padding: 2,
             boundBoxFunc: (_oldBox, newBox) => {
                 newBox.width = Math.max(30, newBox.width)

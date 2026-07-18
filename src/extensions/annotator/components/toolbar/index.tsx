@@ -64,6 +64,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ defaultAnnotationName, stamps,
     const currentAnnotationType = useAnnotationStore((s) => s.currentAnnotationType)
     const setCurrentAnnotationType = useAnnotationStore((s) => s.setCurrentAnnotationType)
     const selectedType = currentAnnotationType?.type
+    const canCreate = painter?.can('annotation.create') ?? true
 
     const isColorDisabled = !currentAnnotationType?.styleEditable?.color
 
@@ -147,6 +148,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ defaultAnnotationName, stamps,
             case AnnotationType.STAMP:
                 return (
                     <StampTool
+                        disabled={!canCreate}
                         default_stamps={stamps}
                         key={index}
                         annotation={annotation}
@@ -157,6 +159,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ defaultAnnotationName, stamps,
             case AnnotationType.SIGNATURE:
                 return (
                     <SignatureTool
+                        disabled={!canCreate}
                         default_signatures={signatures}
                         key={index}
                         annotation={annotation}
@@ -167,6 +170,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ defaultAnnotationName, stamps,
             default:
                 return (
                     <ToolbarButton
+                        disabled={annotation.type !== AnnotationType.SELECT && !canCreate}
                         selected={isSelected}
                         key={index}
                         title={t(`annotator:tool.${annotation.name}`)}
@@ -191,7 +195,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ defaultAnnotationName, stamps,
                 presets={defaultOptions.colors!}
                 popover={true}
                 trigger={<ToolbarButton
-                    disabled={isColorDisabled}
+                    disabled={isColorDisabled || !canCreate}
                     icon={
                         <PaletteIcon
                             style={{ '--palette-preview-color': currentAnnotationType?.style?.color } as React.CSSProperties}

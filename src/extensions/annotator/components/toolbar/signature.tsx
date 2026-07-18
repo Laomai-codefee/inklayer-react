@@ -17,13 +17,14 @@ import { AiOutlineImport, AiOutlinePlusCircle } from 'react-icons/ai';
 
 interface SignatureToolProps {
     annotation: IAnnotationType
+    disabled?: boolean
     default_signatures?: string[]
     onAdd: (signatureDataUrl: string) => void
 }
 
 const BASE_FONT_SIZE = 80
 
-const SignatureTool: React.FC<SignatureToolProps> = ({ annotation, onAdd, default_signatures }) => {
+const SignatureTool: React.FC<SignatureToolProps> = ({ annotation, disabled = false, onAdd, default_signatures }) => {
     const { defaultOptions } = useOptionsContext()
 
     const signatureColors = defaultOptions.signature!.colors!
@@ -318,7 +319,7 @@ const SignatureTool: React.FC<SignatureToolProps> = ({ annotation, onAdd, defaul
         <>
             <Popover.Root>
                 <Popover.Trigger>
-                    <ToolbarButton title={t(`annotator:tool.${annotation.name}`)} icon={annotation.icon} />
+                    <ToolbarButton disabled={disabled} title={t(`annotator:tool.${annotation.name}`)} icon={annotation.icon} />
                 </Popover.Trigger>
                 <Popover.Content size="1" style={{ width: 180 }} onCloseAutoFocus={(event) => event.preventDefault()}>
                     <div className={styles.SignaturePop}>

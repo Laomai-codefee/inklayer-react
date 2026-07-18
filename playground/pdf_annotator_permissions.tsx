@@ -10,9 +10,13 @@ const USERS: User[] = [
     { id: 'admin', name: 'Admin' }
 ]
 
-const PERMISSIONS: AnnotationPermissions = {
+const OWNER_ONLY_PERMISSIONS: AnnotationPermissions = {
     mode: 'owner-only',
     can: ({ currentUser }) => currentUser?.id === 'admin' ? true : undefined
+}
+
+const READ_ONLY_PERMISSIONS: AnnotationPermissions = {
+    can: () => false
 }
 
 const INITIAL_ANNOTATIONS: Annotation[] = [
@@ -71,7 +75,9 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
 
 const PdfAnnotatorPermissions: React.FC = () => {
     const [user, setUser] = useState(USERS[0])
+    const [permissionPreset, setPermissionPreset] = useState<'owner-only' | 'read-only'>('owner-only')
     const [lastEvent, setLastEvent] = useState('Waiting for PDF')
+    const permissions = permissionPreset === 'read-only' ? READ_ONLY_PERMISSIONS : OWNER_ONLY_PERMISSIONS
 
     return (
         <div>
@@ -96,13 +102,30 @@ const PdfAnnotatorPermissions: React.FC = () => {
                         {option.name}
                     </button>
                 ))}
+                <strong style={{ marginLeft: 12 }}>
+                    Permission: <span data-testid="current-permission">{permissionPreset === 'read-only' ? 'Read only' : 'Owner only'}</span>
+                </strong>
+                <button
+                    data-testid="permission-owner-only"
+                    aria-pressed={permissionPreset === 'owner-only'}
+                    onClick={() => setPermissionPreset('owner-only')}
+                >
+                    Owner only
+                </button>
+                <button
+                    data-testid="permission-read-only"
+                    aria-pressed={permissionPreset === 'read-only'}
+                    onClick={() => setPermissionPreset('read-only')}
+                >
+                    Read only
+                </button>
                 <span style={{ marginLeft: 'auto' }} data-testid="permission-event">{lastEvent}</span>
             </div>
             <PdfAnnotator
                 title={<strong>COLLABORATION PERMISSIONS</strong>}
                 url="https://inklayer.dev/inklayer-demo.pdf"
                 user={user}
-                annotationPermissions={PERMISSIONS}
+                annotationPermissions={permissions}
                 initialAnnotations={INITIAL_ANNOTATIONS}
                 defaultShowAnnotationsSidebar
                 locale="en-US"

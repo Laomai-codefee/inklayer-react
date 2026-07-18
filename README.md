@@ -144,6 +144,8 @@ export default function App() {
 
 `can(request)` 是可选的同步覆盖函数。返回 `true` 强制允许，`false` 强制拒绝，`undefined` 保留 `mode` 的默认结果。`request` 包含 `action`、`currentUser`、`annotation`、`comment` 和 `defaultAllowed`，因此可以接入应用自己的管理员、审批状态或文档级规则。
 
+如果需要整个批注器只读，传入 `annotationPermissions={{ can: () => false }}`。用户仍可选中和查看批注，但所有写操作都会被禁止。
+
 > 这是浏览器交互权限，用于控制 InkLayer UI 和本地写入。后端 API 仍必须独立验证读写权限，不能把客户端结果当作安全边界。
 
 ---
