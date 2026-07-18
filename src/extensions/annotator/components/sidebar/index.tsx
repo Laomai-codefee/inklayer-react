@@ -121,18 +121,19 @@ const Sidebar: React.FC = () => {
     const { t } = useTranslation(['common', 'annotator'], { useSuspense: false })
 
     useEffect(() => {
-        if (currentAnnotation && currentAnnotation?.source === SelectionSource.CANVAS && !isSidebarCollapsed) {
-            const isOwn = currentAnnotation?.store?.title === currentUser?.user?.name
-            const isEmptyComment = currentAnnotation?.store?.contentsObj?.text === ''
-            const isEmptyReply = currentAnnotation?.store?.comments?.length === 0
+        if (currentAnnotation?.store && currentAnnotation.source === SelectionSource.CANVAS && !isSidebarCollapsed) {
+            const annotation = currentAnnotation.store
+            const canEdit = Boolean(painter?.can('annotation.edit', annotation))
+            const isEmptyComment = annotation.contentsObj?.text === ''
+            const isEmptyReply = annotation.comments?.length === 0
             // 👇 根据批注归属与内容决定打开评论或回复
-            if (isOwn && isEmptyComment && isEmptyReply) {
-                setEditAnnotation(currentAnnotation.store)
-            } else {
-                setReplyAnnotation(currentAnnotation.store)
+            if (canEdit && isEmptyComment && isEmptyReply) {
+                setEditAnnotation(annotation)
+            } else if (painter?.can('annotation.comment', annotation)) {
+                setReplyAnnotation(annotation)
             }
         }
-    }, [currentAnnotation])
+    }, [currentAnnotation, isSidebarCollapsed, painter])
 
     const annotationRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -260,6 +261,7 @@ const Sidebar: React.FC = () => {
     }
 
     const updateComment = (annotation: IAnnotationStore, comment: string) => {
+        if (!painter?.can('annotation.edit', annotation)) return
         painter?.update(annotation.id, {
             contentsObj: {
                 ...(annotation.contentsObj || { text: '' }),
@@ -272,6 +274,8 @@ const Sidebar: React.FC = () => {
     }
 
     const addReply = (annotation: IAnnotationStore, comment: string, status?: CommentStatus) => {
+        const action = status === undefined ? 'annotation.comment' : 'annotation.change-status'
+        if (!painter?.can(action, annotation)) return
         const replyUser = currentUser?.user ?? undefined
         const newReply = {
             id: generateUUID(),
@@ -290,6 +294,7 @@ const Sidebar: React.FC = () => {
     }
 
     const updateReply = (annotation: IAnnotationStore, reply: IAnnotationComment, comment: string) => {
+        if (!painter?.can('comment.edit', annotation, reply)) return
         const updatedComments = (annotation.comments || []).map((r) => {
             if (r.id === reply.id) {
                 return {
@@ -310,10 +315,12 @@ const Sidebar: React.FC = () => {
     }
 
     const deleteAnnotation = (annotation: IAnnotationStore) => {
+        if (!painter?.can('annotation.delete', annotation)) return
         painter?.delete(annotation.id, true)
     }
 
     const deleteReply = (annotation: IAnnotationStore, reply: IAnnotationComment) => {
+        if (!painter?.can('comment.delete', annotation, reply)) return
         const updatedComments = (annotation.comments || []).filter((comment) => comment.id !== reply.id)
 
         painter?.update(annotation.id, {
@@ -492,6 +499,10 @@ const Sidebar: React.FC = () => {
                 </Flex>
                 {sortedAnnotations.map((annotation) => {
                     const isSelected = annotation.id === currentAnnotation?.store?.id
+                    const canComment = Boolean(painter?.can('annotation.comment', annotation))
+                    const canEdit = Boolean(painter?.can('annotation.edit', annotation))
+                    const canDelete = Boolean(painter?.can('annotation.delete', annotation))
+                    const canChangeStatus = Boolean(painter?.can('annotation.change-status', annotation))
                     const commonProps = { className: isSelected ? `${styles.comment} ${styles.selected}` : styles.comment, id: `annotation-${annotation.id}` }
                     return (
                         <div
@@ -517,7 +528,7 @@ const Sidebar: React.FC = () => {
                                     </Text>
                                 </div>
                                 <span className={styles.tool}>
-                                    <DropdownMenu.Root>
+                                    {canChangeStatus && <DropdownMenu.Root>
                                         <DropdownMenu.Trigger>
                                             <Button
                                                 variant="ghost"
@@ -549,8 +560,8 @@ const Sidebar: React.FC = () => {
                                                 </DropdownMenu.Item>
                                             ))}
                                         </DropdownMenu.Content>
-                                    </DropdownMenu.Root>
-                                    <DropdownMenu.Root>
+                                    </DropdownMenu.Root>}
+                                    {(canComment || canEdit || canDelete) && <DropdownMenu.Root>
                                         <DropdownMenu.Trigger>
                                             <Button
                                                 variant="ghost"
@@ -566,32 +577,32 @@ const Sidebar: React.FC = () => {
                                             </Button>
                                         </DropdownMenu.Trigger>
                                         <DropdownMenu.Content onCloseAutoFocus={(event) => event.preventDefault()}>
-                                            <DropdownMenu.Item
+                                            {canComment && <DropdownMenu.Item
                                                 onSelect={(e) => {
                                                     e.stopPropagation()
                                                     setReplyAnnotation(annotation)
                                                 }}
                                             >
                                                 {t('reply')}
-                                            </DropdownMenu.Item>
-                                            <DropdownMenu.Item
+                                            </DropdownMenu.Item>}
+                                            {canEdit && <DropdownMenu.Item
                                                 onSelect={(e) => {
                                                     e.stopPropagation()
                                                     setEditAnnotation(annotation)
                                                 }}
                                             >
                                                 {t('edit')}
-                                            </DropdownMenu.Item>
-                                            <DropdownMenu.Item
+                                            </DropdownMenu.Item>}
+                                            {canDelete && <DropdownMenu.Item
                                                 onSelect={(e) => {
                                                     e.stopPropagation()
                                                     deleteAnnotation(annotation)
                                                 }}
                                             >
                                                 {t('delete')}
-                                            </DropdownMenu.Item>
+                                            </DropdownMenu.Item>}
                                         </DropdownMenu.Content>
-                                    </DropdownMenu.Root>
+                                    </DropdownMenu.Root>}
                                 </span>
                             </div>
                             {commentInput(annotation)}
@@ -606,7 +617,7 @@ const Sidebar: React.FC = () => {
                                                 {formatPDFDate(reply.date, true)}
                                             </Text>
                                         </div>
-                                        <span className={styles.tool}>
+                                        {(painter?.can('comment.edit', annotation, reply) || painter?.can('comment.delete', annotation, reply)) && <span className={styles.tool}>
                                             <DropdownMenu.Root>
                                                 <DropdownMenu.Trigger>
                                                     <Button
@@ -622,32 +633,32 @@ const Sidebar: React.FC = () => {
                                                     </Button>
                                                 </DropdownMenu.Trigger>
                                                 <DropdownMenu.Content onCloseAutoFocus={(event) => event.preventDefault()}>
-                                                    <DropdownMenu.Item
+                                                    {painter?.can('comment.edit', annotation, reply) && <DropdownMenu.Item
                                                         onSelect={(e) => {
                                                             e.stopPropagation()
                                                             setCurrentReply(reply)
                                                         }}
                                                     >
                                                         {t('edit')}
-                                                    </DropdownMenu.Item>
-                                                    <DropdownMenu.Item
+                                                    </DropdownMenu.Item>}
+                                                    {painter?.can('comment.delete', annotation, reply) && <DropdownMenu.Item
                                                         onSelect={(e) => {
                                                             e.stopPropagation()
                                                             deleteReply(annotation, reply)
                                                         }}
                                                     >
                                                         {t('delete')}
-                                                    </DropdownMenu.Item>
+                                                    </DropdownMenu.Item>}
                                                 </DropdownMenu.Content>
                                             </DropdownMenu.Root>
-                                        </span>
+                                        </span>}
                                     </div>
                                     {editReplyInput(annotation, reply)}
                                 </div>
                             ))}
                             <div>
                                 {replyInput(annotation)}
-                                {!replyAnnotation && !currentReply && !editAnnotation && currentAnnotation?.store?.id === annotation.id && (
+                                {canComment && !replyAnnotation && !currentReply && !editAnnotation && currentAnnotation?.store?.id === annotation.id && (
                                     <Button mt="2" style={{ width: '100%' }} onClick={() => setReplyAnnotation(annotation)}>
                                         {t('reply')}
                                     </Button>

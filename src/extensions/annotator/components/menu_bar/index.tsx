@@ -102,14 +102,17 @@ const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(function MenuBar(props, ref
     }))
 
     const isStyleSupported = currentAnnotation && annotationDefinitions.find((item) => item.type === currentAnnotation.type)?.styleEditable
+    const canComment = Boolean(currentAnnotation && painter?.can('annotation.comment', currentAnnotation))
+    const canEdit = Boolean(currentAnnotation && painter?.can('annotation.edit', currentAnnotation))
+    const canDelete = Boolean(currentAnnotation && painter?.can('annotation.delete', currentAnnotation))
 
     const handleAnnotationStyleChange = (style: IAnnotationStyle) => {
-        if (!currentAnnotation) return
+        if (!currentAnnotation || !painter?.can('annotation.edit', currentAnnotation)) return
         painter?.updateAnnotationStyle(currentAnnotation, style)
     }
 
     const handleAnnotationDelete = () => {
-        if (!currentAnnotation) return
+        if (!currentAnnotation || !painter?.can('annotation.delete', currentAnnotation)) return
         painter?.delete(currentAnnotation.id, true)
     }
 
@@ -127,7 +130,7 @@ const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(function MenuBar(props, ref
             renderButtons={() => {
                 if (currentAnnotation) {
                     return [
-                        ...(activeSidebarPanel !== 'annotator-sidebar-toggle'
+                        ...(canComment && activeSidebarPanel !== 'annotator-sidebar-toggle'
                             ? [
                                   {
                                       key: 'comment',
@@ -140,7 +143,7 @@ const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(function MenuBar(props, ref
                                   }
                               ]
                             : []),
-                        ...(isStyleSupported
+                        ...(canEdit && isStyleSupported
                             ? [
                                   {
                                       key: 'palette',
@@ -152,15 +155,17 @@ const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(function MenuBar(props, ref
                                   }
                               ]
                             : []),
-                        {
-                            key: 'delete',
-                            icon: <DeleteIcon/>,
-                            onClick: () => {
-                                handleAnnotationDelete()
-                                popoverBarRef.current?.close()
-                            },
-                            title: t('delete')
-                        }
+                        ...(canDelete
+                            ? [{
+                                  key: 'delete',
+                                  icon: <DeleteIcon/>,
+                                  onClick: () => {
+                                      handleAnnotationDelete()
+                                      popoverBarRef.current?.close()
+                                  },
+                                  title: t('delete')
+                              }]
+                            : [])
                     ]
                 }
 
@@ -168,7 +173,7 @@ const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(function MenuBar(props, ref
             }}
             {...popoverBarProps}
         >
-            {showStyle && currentAnnotation && isStyleSupported && (
+            {showStyle && currentAnnotation && canEdit && isStyleSupported && (
                 <div style={{margin: 8}}>
                     {isStyleSupported?.color && (
                         <ColorPicker
