@@ -2,6 +2,9 @@
 
 import { Painter } from '..'
 import type { IAnnotationStore } from '../../const/definitions'
+import { AnnotationPermissionController } from '../../permissions/permission_controller'
+import type { AnnotationPermissions } from '../../types/annotator'
+import type { User } from '@/types'
 
 jest.mock('../../utils/utils', () => ({
     isElementInDOM: jest.fn(() => true),
@@ -53,6 +56,16 @@ function createPainter(can: boolean) {
     return painter
 }
 
+function createCollaborativePainter(currentUser: User, permissions: AnnotationPermissions) {
+    const painter = createPainter(false)
+    const permissionController = new AnnotationPermissionController({
+        getCurrentUser: () => currentUser,
+        getPermissions: () => permissions
+    })
+    Object.assign(painter as unknown as Record<string, unknown>, { permissionController })
+    return painter
+}
+
 describe('Painter permission guards', () => {
     beforeEach(() => jest.clearAllMocks())
 
@@ -97,5 +110,25 @@ describe('Painter permission guards', () => {
         expect((painter as unknown as { disablePainting: jest.Mock }).disablePainting).toHaveBeenCalledTimes(1)
         expect((painter as unknown as { setDefaultMode: jest.Mock }).setDefaultMode).toHaveBeenCalledTimes(1)
         expect((painter as unknown as { webSelection: { highlight: jest.Mock } }).webSelection.highlight).not.toHaveBeenCalled()
+    })
+
+    it('enforces the Alice, Bob, and admin collaboration flow through public mutations', () => {
+        const ownerOnly = { mode: 'owner-only' as const }
+        const alice = createCollaborativePainter({ id: 'alice', name: 'Alice' }, ownerOnly)
+        const bob = createCollaborativePainter({ id: 'bob', name: 'Bob' }, ownerOnly)
+        const admin = createCollaborativePainter(
+            { id: 'admin', name: 'Admin' },
+            {
+                mode: 'owner-only',
+                can: ({ currentUser }) => currentUser?.id === 'admin' ? true : undefined
+            }
+        )
+
+        expect(alice.update(annotation.id, { title: 'Alice edited' })).toBeDefined()
+        expect(bob.update(annotation.id, { title: 'Bob edited' })).toBeUndefined()
+        expect(bob.update(annotation.id, { comments: [] }, 'annotation.comment')).toBeDefined()
+        expect(bob.delete(annotation.id, true)).toBe(false)
+        expect(admin.update(annotation.id, { title: 'Admin edited' })).toBeDefined()
+        expect(admin.delete(annotation.id, true)).toBe(true)
     })
 })
