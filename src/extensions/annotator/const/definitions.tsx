@@ -129,6 +129,8 @@ export interface IAnnotationComment {
     date: string | null; // 批注日期
     content: string; // 批注内容
     status?: CommentStatus;
+    /** Stable author identity used by collaboration permissions. */
+    user?: User;
 }
 
 export enum CommentStatus {

@@ -17,7 +17,7 @@
  */
 
 import type { Annotation, AnnotationKind, Geometry, AnnotationTarget, AnnotationPayload, AnnotationAppearance, AnnotationMeta, AnnotationRelations } from '../annotation.core'
-import { type PdfjsAnnotationSubtype, AnnotationType, PdfjsAnnotationType, IAnnotationStore } from '@/extensions/annotator/const/definitions'
+import { type PdfjsAnnotationSubtype, AnnotationType, PdfjsAnnotationType, IAnnotationStore, type IAnnotationComment } from '@/extensions/annotator/const/definitions'
 
 /* ============================================================================
  * 局部类型：映射层需要知道的 extensions 子结构
@@ -38,7 +38,7 @@ interface KnownExtensions {
   legacy?: {
     title?: string
     contentsObj?: { text: string; image?: string } | null
-    comments?: Array<{ id: string; title: string; date: string; content: string }>
+    comments?: IAnnotationComment[]
   }
 }
 

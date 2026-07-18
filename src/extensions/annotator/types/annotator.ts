@@ -1,6 +1,38 @@
 import { PdfBaseProps, User } from '@/types'
 import { DeepPartial } from '@/types/utils'
 import type { Annotation } from '@/core/annotation.core'
+import type { IAnnotationComment } from '@/extensions/annotator/const/definitions'
+
+export type AnnotationPermissionMode = 'unrestricted' | 'owner-only'
+
+export type AnnotationPermissionAction =
+    | 'annotation.create'
+    | 'annotation.transform'
+    | 'annotation.edit'
+    | 'annotation.delete'
+    | 'annotation.comment'
+    | 'annotation.change-status'
+    | 'comment.edit'
+    | 'comment.delete'
+
+export interface AnnotationPermissionRequest {
+    action: AnnotationPermissionAction
+    currentUser: User | null
+    annotation?: Readonly<Annotation>
+    comment?: Readonly<IAnnotationComment>
+    /** Result calculated by the configured permission mode. */
+    defaultAllowed: boolean
+}
+
+export interface AnnotationPermissions {
+    /** @default 'unrestricted' */
+    mode?: AnnotationPermissionMode
+    /**
+     * Synchronously overrides the configured mode. Return undefined to keep
+     * the default decision.
+     */
+    can?: (request: AnnotationPermissionRequest) => boolean | undefined
+}
 
 export type PdfAnnotatorUserOptions = DeepPartial<PdfAnnotatorOptions>
 
@@ -200,6 +232,13 @@ export interface PdfAnnotatorProps extends PdfBaseProps {
      * @default: { id: 'null', name: 'unknown' }
      */
     user?: User
+
+    /**
+     * Client-side interaction permissions for collaborative review.
+     * This does not replace server-side authorization.
+     * @default { mode: 'unrestricted' }
+     */
+    annotationPermissions?: AnnotationPermissions
 
     /**
      * 是否加载PDF自带的批注

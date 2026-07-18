@@ -272,12 +272,14 @@ const Sidebar: React.FC = () => {
     }
 
     const addReply = (annotation: IAnnotationStore, comment: string, status?: CommentStatus) => {
+        const replyUser = currentUser?.user ?? undefined
         const newReply = {
             id: generateUUID(),
-            title: currentUser?.user?.name!,
+            title: replyUser?.name ?? 'Anonymous',
             date: formatTimestamp(Date.now()),
             content: comment,
-            status
+            status,
+            user: replyUser
         }
 
         painter?.update(annotation.id, {

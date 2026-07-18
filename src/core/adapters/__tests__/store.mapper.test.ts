@@ -82,6 +82,38 @@ describe('annotation store mapping', () => {
     expect(restored).toEqual(original);
   });
 
+  it('preserves stable comment authors during a round trip', () => {
+    const original = makeStore({
+      comments: [{
+        id: 'comment-1',
+        title: 'Alice',
+        date: '2026-07-18T00:00:00Z',
+        content: 'Please review this.',
+        user: { id: 'user-alice', name: 'Alice' },
+      }],
+    });
+
+    const restored = annotationToStore(storeToAnnotation(original));
+
+    expect(restored.comments).toEqual(original.comments);
+  });
+
+  it('keeps legacy comments without an author compatible', () => {
+    const original = makeStore({
+      comments: [{
+        id: 'legacy-comment',
+        title: 'Legacy reviewer',
+        date: null,
+        content: 'No stable author id.',
+      }],
+    });
+
+    const restored = annotationToStore(storeToAnnotation(original));
+
+    expect(restored.comments).toEqual(original.comments);
+    expect(restored.comments[0].user).toBeUndefined();
+  });
+
   it('converts arrays in both directions', () => {
     const stores = [makeStore(), makeStore({ id: 'annotation-2' })];
 
