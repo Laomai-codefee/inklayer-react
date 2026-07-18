@@ -93,6 +93,10 @@ export abstract class Editor {
         this.enableEditMode() // 启用编辑模式
     }
 
+    public setCurrentUser(currentUser: User): void {
+        this.currentUser = currentUser
+    }
+
     /**
      * 发送添加事件的私有方法，调用 onAdd 回调函数。
      * @param pdfjsAnnotationStorage PDF.js 注解存储对象

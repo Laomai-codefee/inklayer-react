@@ -29,6 +29,7 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
     url,
     locale = 'zh-CN',
     user = { id: 'null', name: 'unknown' },
+    annotationPermissions,
     defaultOptions,
     initialScale,
     enableNativeAnnotations = false,
@@ -202,6 +203,7 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
                             onAnnotationChanged={(store) => onAnnotationUpdated?.(storeToAnnotation(store))}
                             enableNativeAnnotations={enableNativeAnnotations}
                             annotations={effectiveAnnotations}
+                            annotationPermissions={annotationPermissions}
                         />
                     </PdfViewerProvider>
                 </OptionsContext.Provider>

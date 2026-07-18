@@ -12,10 +12,12 @@ import { IAnnotationStore } from './const/definitions'
 import { FREE_TEXT_EDITOR } from './painter/const'
 import { useAnnotationStore } from './store'
 import { debounce } from '@/utils'
+import type { AnnotationPermissions } from './types/annotator'
 
 interface AnnotatorExtensionProps {
     enableNativeAnnotations: boolean
     annotations?: IAnnotationStore[]
+    annotationPermissions?: AnnotationPermissions
 
     onLoad: () => void
 
@@ -28,6 +30,7 @@ interface AnnotatorExtensionProps {
 export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
     enableNativeAnnotations,
     annotations,
+    annotationPermissions,
     onLoad,
     onAnnotationAdd,
     onAnnotationDelete,
@@ -63,6 +66,11 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
 
     const selectionBarRef = useRef<PopoverBarRef>(null)
     const menuBarRef = useRef<MenuBarRef>(null)
+    const painterRef = useRef<Painter | null>(null)
+    const latestUserRef = useRef(user)
+    const latestPermissionsRef = useRef(annotationPermissions)
+    latestUserRef.current = user
+    latestPermissionsRef.current = annotationPermissions
 
     const debouncedViewAreaChanged = useRef(
         debounce(
@@ -91,7 +99,7 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
     useEffect(() => {
         clearAnnotations()
 
-        if (!isReady || !pdfViewer || !eventBus || !user) return
+        if (!isReady || !pdfViewer || !eventBus || !latestUserRef.current) return
 
         let disposed = false
         let documentLoadStarted = false
@@ -100,7 +108,8 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
         const painterInstance = new Painter({
             primaryColor,
             defaultOptions,
-            currentUser: user,
+            currentUser: latestUserRef.current,
+            annotationPermissions: latestPermissionsRef.current,
             PDFViewerApplication: pdfViewer,
 
             onTextSelected: (range) => {
@@ -136,6 +145,7 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
             }
         })
 
+        painterRef.current = painterInstance
         setPainter(painterInstance)
 
         const handlePageRendered = ({ source, cssTransform, pageNumber }: { source: PDFPageView; cssTransform: boolean; pageNumber: number }) => {
@@ -204,10 +214,19 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
             eventBus.off('updateviewarea', handleViewAreaChanged)
             eventBus.off('documentloaded', handleDocumentLoaded)
             painterInstance.destroy()
+            if (painterRef.current === painterInstance) {
+                painterRef.current = null
+            }
             setPainter(null)
         }
 
-    }, [clearAnnotations, defaultOptions, eventBus, handleViewAreaChanged, isReady, pdfViewer, primaryColor, setPainter, user])
+    }, [clearAnnotations, defaultOptions, eventBus, handleViewAreaChanged, isReady, pdfViewer, primaryColor, setPainter])
+
+    useEffect(() => {
+        if (latestUserRef.current) {
+            painterRef.current?.setPermissionContext(latestUserRef.current, latestPermissionsRef.current)
+        }
+    }, [annotationPermissions, user])
 
 
     useEffect(() => {

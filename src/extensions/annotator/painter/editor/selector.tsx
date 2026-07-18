@@ -11,6 +11,7 @@ export interface ISelectorOptions {
     primaryColor: string
     konvaCanvasStore: Map<number, KonvaCanvas> // 存储各个页面的 Konva 画布实例
     getAnnotationStore: (id: string) => IAnnotationStore | undefined // 获取注解存储的方法
+    canTransform: (annotation: IAnnotationStore) => boolean
     onSelected: (id: string, isClick: boolean, transformerRect: IRect) => void // 选中回调
     onCancel: () => void
     onChanged: (id: string, konvaGroupString: string, rawAnnotationStore: IAnnotationStore, konvaClientRect: IRect, transformerRect: IRect) => void // 注解变化时的回调
@@ -28,6 +29,7 @@ export class Selector {
     public readonly onCancel: () => void
     private transformerStore: Map<string, Konva.Transformer> = new Map() // 存储变换器实例
     private getAnnotationStore: (id: string) => IAnnotationStore | undefined // 获取注解存储的方法
+    private canTransform: (annotation: IAnnotationStore) => boolean
     private konvaCanvasStore: Map<number, KonvaCanvas> // 存储各个页面的 Konva 画布实例
 
     private _currentTransformerId: string | null = null // 当前激活的变换器ID
@@ -42,10 +44,11 @@ export class Selector {
 
 
     // 构造函数，初始化选择器类
-    constructor({ primaryColor, konvaCanvasStore, getAnnotationStore, onDelete, onSelected, onCancel, onChanged }: ISelectorOptions) {
+    constructor({ primaryColor, konvaCanvasStore, getAnnotationStore, canTransform, onDelete, onSelected, onCancel, onChanged }: ISelectorOptions) {
         this.primaryColor = primaryColor
         this.konvaCanvasStore = konvaCanvasStore
         this.getAnnotationStore = getAnnotationStore
+        this.canTransform = canTransform
         this.onDelete = onDelete
         this.onSelected = onSelected
         this.onCancel = onCancel
@@ -216,15 +219,16 @@ export class Selector {
         if (!rawAnnotationStore) return
 
         const currentAnnotation = annotationDefinitions.find((item) => item.pdfjsAnnotationType === rawAnnotationStore.pdfjsType)
+        const transformAllowed = this.canTransform(rawAnnotationStore)
 
         const transformer = new Konva.Transformer({
-            resizeEnabled: currentAnnotation?.resizable,
+            resizeEnabled: transformAllowed && currentAnnotation?.resizable,
             rotateEnabled: false,
-            borderStrokeWidth: 2,
+            borderStrokeWidth: transformAllowed ? 2 : 0,
             borderStroke: this.primaryColor,
             anchorFill: '#fff',
             anchorStroke: this.primaryColor,
-            opacity: 1,
+            opacity: transformAllowed ? 1 : 0,
             anchorCornerRadius: 5,
             anchorStrokeWidth: 2,
             anchorSize: 10,
@@ -239,27 +243,27 @@ export class Selector {
             transformer.resizeEnabled(false)
         }
 
-        group.draggable(currentAnnotation?.draggable)
+        group.draggable(Boolean(transformAllowed && currentAnnotation?.draggable))
 
         transformer.off('transformend')
         transformer.off('transformstart')
-        transformer.on('transformend', () => {
+        if (transformAllowed) transformer.on('transformend', () => {
             this.onChanged(group.id(), group.toJSON(), { ...rawAnnotationStore }, Konva.Node.create(group.toJSON()).getClientRect(), transformer.getClientRect())
         })
-        transformer.on('transformstart', () => {
+        if (transformAllowed) transformer.on('transformstart', () => {
             this.onCancel()
         })
 
-        transformer.on('dragstart', () => {
+        if (transformAllowed) transformer.on('dragstart', () => {
             this.onCancel()
         })
 
-        transformer.on('dragend', () => {
+        if (transformAllowed) transformer.on('dragend', () => {
             this.onChanged(group.id(), group.toJSON(), { ...rawAnnotationStore }, Konva.Node.create(group.toJSON()).getClientRect(), transformer.getClientRect())
         })
 
         let dragMoveRequestId: number | null = null;
-        transformer.on('dragmove', () => {
+        if (transformAllowed) transformer.on('dragmove', () => {
             // 取消之前的 requestAnimationFrame
             if (dragMoveRequestId) {
                 cancelAnimationFrame(dragMoveRequestId);
@@ -572,6 +576,24 @@ export class Selector {
     public select(id: string, isClick: boolean = false): void {
         this.selectedId = id
         this.isSelectedByClick = isClick
+    }
+
+    public refreshCurrentSelection(): void {
+        const groupId = this._currentTransformerId
+        if (!groupId) return
+
+        const transformer = this.transformerStore.get(groupId)
+        const group = transformer?.nodes()[0]
+        const konvaStage = group?.getStage()
+        if (!(group instanceof Konva.Group) || !konvaStage) return
+
+        transformer?.off('transformend transformstart dragstart dragend dragmove')
+        transformer?.nodes([])
+        transformer?.destroy()
+        this.cleanupTween(groupId)
+        this.transformerStore.delete(groupId)
+        this._currentTransformerId = null
+        this.createTransformer(group, konvaStage, false)
     }
 
     public delete() {

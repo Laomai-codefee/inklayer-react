@@ -17,12 +17,15 @@ const mockPdfViewer = {
     getPageView: jest.fn(() => ({ div: document.createElement('div'), canvas: document.createElement('canvas') }))
 }
 const mockPainterInstances: MockPainter[] = []
+const mockDefaultOptions = {}
 let mockInitAnnotations: () => Promise<void>
+let mockUser = { id: 'user-1', name: 'User' }
 
 interface MockPainter {
     destroy: jest.Mock
     initAnnotationsOnce: jest.Mock
     reRenderAnnotations: jest.Mock
+    setPermissionContext: jest.Mock
 }
 
 jest.mock('../../../context/pdf_viewer_context', () => ({
@@ -35,7 +38,7 @@ jest.mock('../../../context/pdf_viewer_context', () => ({
 }))
 
 jest.mock('@/context/user_context', () => ({
-    useUserContext: () => ({ user: { id: 'user-1', name: 'User' } })
+    useUserContext: () => ({ user: mockUser })
 }))
 
 jest.mock('../context/painter_context', () => ({
@@ -43,7 +46,7 @@ jest.mock('../context/painter_context', () => ({
 }))
 
 jest.mock('../context/options_context', () => ({
-    useOptionsContext: () => ({ defaultOptions: {}, primaryColor: '#000000' })
+    useOptionsContext: () => ({ defaultOptions: mockDefaultOptions, primaryColor: '#000000' })
 }))
 
 jest.mock('../store', () => ({
@@ -59,6 +62,7 @@ jest.mock('../painter', () => ({
         initAnnotationsOnce = jest.fn(() => mockInitAnnotations())
         getKonvaCanvasStore = jest.fn(() => new Map([[1, {}]]))
         reRenderAnnotations = jest.fn()
+        setPermissionContext = jest.fn()
 
         constructor() {
             mockPainterInstances.push(this)
@@ -90,6 +94,7 @@ describe('AnnotatorExtension lifecycle', () => {
         jest.useFakeTimers()
         jest.clearAllMocks()
         mockPainterInstances.length = 0
+        mockUser = { id: 'user-1', name: 'User' }
         requiredProps.onLoad = jest.fn()
     })
 
@@ -134,5 +139,25 @@ describe('AnnotatorExtension lifecycle', () => {
         act(() => jest.runOnlyPendingTimers())
 
         expect(painter.reRenderAnnotations).not.toHaveBeenCalled()
+    })
+
+    it('updates permission context without recreating the painter', async () => {
+        mockInitAnnotations = async () => undefined
+        const initialPermissions = { mode: 'owner-only' as const }
+
+        const { rerender } = render(
+            <AnnotatorExtension {...requiredProps} annotationPermissions={initialPermissions} />
+        )
+        await act(async () => {
+            await Promise.resolve()
+        })
+        const painter = mockPainterInstances[0]
+
+        mockUser = { id: 'user-2', name: 'Another User' }
+        const nextPermissions = { mode: 'unrestricted' as const }
+        rerender(<AnnotatorExtension {...requiredProps} annotationPermissions={nextPermissions} />)
+
+        expect(mockPainterInstances).toHaveLength(1)
+        expect(painter.setPermissionContext).toHaveBeenLastCalledWith(mockUser, nextPermissions)
     })
 })
