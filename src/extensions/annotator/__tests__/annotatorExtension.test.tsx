@@ -4,6 +4,7 @@ import { act, render, waitFor } from '@testing-library/react'
 import { AnnotatorExtension } from '..'
 
 const mockSetPainter = jest.fn()
+const mockRefreshPainter = jest.fn()
 const mockClearAnnotations = jest.fn()
 const mockEventBus = {
     on: jest.fn(),
@@ -42,7 +43,7 @@ jest.mock('@/context/user_context', () => ({
 }))
 
 jest.mock('../context/painter_context', () => ({
-    usePainter: () => ({ setPainter: mockSetPainter })
+    usePainter: () => ({ setPainter: mockSetPainter, refreshPainter: mockRefreshPainter })
 }))
 
 jest.mock('../context/options_context', () => ({
@@ -159,5 +160,6 @@ describe('AnnotatorExtension lifecycle', () => {
 
         expect(mockPainterInstances).toHaveLength(1)
         expect(painter.setPermissionContext).toHaveBeenLastCalledWith(mockUser, nextPermissions)
+        expect(mockRefreshPainter).toHaveBeenCalled()
     })
 })

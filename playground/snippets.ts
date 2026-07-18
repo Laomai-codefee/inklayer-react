@@ -1,4 +1,14 @@
 export const snippets: Record<string, string> = {
+  PdfAnnotatorPermissions: `const permissions = {
+  mode: 'owner-only',
+  can: ({ currentUser }) => currentUser?.id === 'admin' ? true : undefined
+}
+
+<PdfAnnotator
+  user={currentUser}
+  annotationPermissions={permissions}
+  initialAnnotations={annotations}
+/>`,
   PdfViewerBasic: `import React from 'react'
 import { PdfViewer } from 'inklayer-react'
 import 'inklayer-react/style'

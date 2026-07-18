@@ -127,6 +127,27 @@ export default function App() {
 
 ---
 
+## 🔐 Collaborative Annotation Permissions
+
+`user` identifies the current user; callers do not need to provide a separate `role`. In `owner-only` mode, authenticated users may create annotations and replies, while only the annotation owner may move, resize, edit, change status, or delete that annotation. A reply can be edited or deleted only by its author.
+
+```tsx
+<PdfAnnotator
+  user={{ id: currentUser.id, name: currentUser.name }}
+  annotationPermissions={{
+    mode: 'owner-only',
+    can: ({ currentUser }) =>
+      currentUser?.id === 'admin' ? true : undefined
+  }}
+/>
+```
+
+The optional synchronous `can(request)` resolver overrides the mode: return `true` to allow, `false` to deny, or `undefined` to keep the mode's default decision. The request includes `action`, `currentUser`, `annotation`, `comment`, and `defaultAllowed`, so applications can add administrator, workflow-state, or document-level rules.
+
+> These are browser interaction permissions for InkLayer UI and local mutations. Your backend API must still authorize every read and write; client-side decisions are not a security boundary.
+
+---
+
 ## 🔗 Related Projects
 
 - InkLayer Vue: https://github.com/Laomai-codefee/inklayer-vue

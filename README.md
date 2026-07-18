@@ -127,6 +127,27 @@ export default function App() {
 
 ---
 
+## 🔐 协作批注权限
+
+`user` 代表当前用户，不需要额外传入 `role`。使用 `owner-only` 后，登录用户可新建批注和回复，但只有批注拥有者可移动、缩放、编辑、改状态或删除该批注；回复也只能由其作者编辑或删除。
+
+```tsx
+<PdfAnnotator
+  user={{ id: currentUser.id, name: currentUser.name }}
+  annotationPermissions={{
+    mode: 'owner-only',
+    can: ({ currentUser }) =>
+      currentUser?.id === 'admin' ? true : undefined
+  }}
+/>
+```
+
+`can(request)` 是可选的同步覆盖函数。返回 `true` 强制允许，`false` 强制拒绝，`undefined` 保留 `mode` 的默认结果。`request` 包含 `action`、`currentUser`、`annotation`、`comment` 和 `defaultAllowed`，因此可以接入应用自己的管理员、审批状态或文档级规则。
+
+> 这是浏览器交互权限，用于控制 InkLayer UI 和本地写入。后端 API 仍必须独立验证读写权限，不能把客户端结果当作安全边界。
+
+---
+
 ## 🔗 相关项目
 
 - InkLayer Vue：https://github.com/Laomai-codefee/inklayer-vue

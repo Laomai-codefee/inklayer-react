@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { usePdfViewerContext } from '../../context/pdf_viewer_context'
 import { Painter } from './painter'
 import { useUserContext } from '@/context/user_context'
@@ -39,7 +39,7 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
 }) => {
     const { isReady, pdfViewer, eventBus, isSidebarCollapsed } = usePdfViewerContext()
     const { user } = useUserContext()
-    const { setPainter } = usePainter()
+    const { refreshPainter, setPainter } = usePainter()
     const { defaultOptions, primaryColor } = useOptionsContext()
 
     const clearAnnotations = useAnnotationStore(state => state.clearAnnotations)
@@ -222,11 +222,12 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
 
     }, [clearAnnotations, defaultOptions, eventBus, handleViewAreaChanged, isReady, pdfViewer, primaryColor, setPainter])
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (latestUserRef.current) {
             painterRef.current?.setPermissionContext(latestUserRef.current, latestPermissionsRef.current)
+            if (painterRef.current) refreshPainter()
         }
-    }, [annotationPermissions, user])
+    }, [annotationPermissions, refreshPainter, user])
 
 
     useEffect(() => {

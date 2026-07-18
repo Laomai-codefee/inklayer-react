@@ -7,6 +7,7 @@ import PdfViewerBasic from './pdf_viewer_basic';
 import PdfViewerCustom from './pdf_viewer_custom';
 import PdfAnnotatorFull from './pdf_annotator_full';
 import PdfAnnotatorCustom from './pdf_annotator_custom';
+import PdfAnnotatorPermissions from './pdf_annotator_permissions';
 import PdfViewerWithData from './pdf_viewer_data';
 import ShowCode, { ShowCodeHandle } from './components/ShowCode';
 import { snippets } from './snippets';
@@ -41,6 +42,7 @@ const App = () => {
                     <Tabs.Trigger value="PdfAnnotatorBasic">PdfAnnotator Basic</Tabs.Trigger>
                     <Tabs.Trigger value="PdfAnnotatorCustom">PdfAnnotator Custom</Tabs.Trigger>
                     <Tabs.Trigger value="PdfAnnotatorFull">PdfAnnotator Full</Tabs.Trigger>
+                    <Tabs.Trigger value="PdfAnnotatorPermissions">Collaboration Permissions</Tabs.Trigger>
                     <Tabs.Trigger value="PdfViewerBasic">PdfViewer Basic</Tabs.Trigger>
                     <Tabs.Trigger value="PdfViewerData">PdfViewer Width Data</Tabs.Trigger>
                     <Tabs.Trigger value="PdfViewerCustom">PdfViewer Custom</Tabs.Trigger>
@@ -61,6 +63,7 @@ const App = () => {
     {activeTab === 'PdfAnnotatorBasic' && <PdfAnnotatorBasic />}
     {activeTab === 'PdfAnnotatorCustom' && <PdfAnnotatorCustom />}
     {activeTab === 'PdfAnnotatorFull' && <PdfAnnotatorFull />}
+    {activeTab === 'PdfAnnotatorPermissions' && <PdfAnnotatorPermissions />}
 </Box>
             <ShowCode ref={showCodeRef} filename={currentDemo} code={currentCode} />
         </Theme>
