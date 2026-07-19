@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  🖊️ 为 JavaScript 应用打造的 PDF 查看与批注 SDK（React）<br/>
+  🖊️ 为 React 应用打造的 PDF 查看与批注 SDK<br/>
   用于快速构建文档审阅、协作批注与评论系统
 </p>
 
@@ -29,14 +29,14 @@
 <div align="center">
   <a href="https://laomai-codefee.github.io/inklayer-react/" target="_blank"><b>🔥 在线体验</b></a>
   <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
-  <a href="https://inklayer.dev/docs" target="_blank"><b>📚 文档</b></a>
+  <a href="https://inklayer.dev/zh-cn/docs/react" target="_blank"><b>📚 文档</b></a>
   <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
   <a href="https://github.com/Laomai-codefee/inklayer-react" target="_blank"><b>⭐ GitHub</b></a>
 </div>
 
 ---
 <p align="center">
-  <img src="./screenshot.png" alt="InkLayer React Screenshot" width="80%" />
+  <img src="https://raw.githubusercontent.com/Laomai-codefee/inklayer-react/main/screenshot.png" alt="InkLayer React Screenshot" width="80%" />
 </p>
 
 
@@ -64,7 +64,7 @@ http://localhost:5173
 - 🚀 PDF 查看器（缩放 / 搜索 / 主题）
 - 🖍️ PDF 批注系统（高亮 / 笔迹 / 图形 / 印章 / 签名）
 - 💬 评论与审阅流程
-- 🔐 协作批注权限（拥有者规则 / 管理员覆盖 / 全局只读）
+- 🔐 协作批注权限（拥有者规则 / 管理员覆盖 / 整体只读）
 - 💾 批注数据模型（可持久化）
 - 📤 导出能力（PDF / Excel）
 - 🎨 可自定义 UI（工具栏 / 侧边栏）
@@ -130,15 +130,16 @@ export default function App() {
 
 ## 🔐 协作批注权限
 
-`user` 代表当前用户，不需要额外传入 `role`。使用 `owner-only` 后，登录用户可新建批注和回复，但只有批注拥有者可移动、缩放、编辑、改状态或删除该批注；回复也只能由其作者编辑或删除。
+`user` 是调用方传入的当前业务用户。InkLayer 只使用该身份判断批注与回复的归属，不负责用户登录或身份认证，也不要求额外传入 `role`。启用 `owner-only` 后，具有有效 `user.id` 的当前用户可以新建批注和回复，但只有批注拥有者可移动、缩放、编辑、修改状态或删除该批注；回复也只能由其作者编辑或删除。
 
 ```tsx
 <PdfAnnotator
   user={{ id: currentUser.id, name: currentUser.name }}
   annotationPermissions={{
     mode: 'owner-only',
+    // isAdmin 由你的业务系统实现
     can: ({ currentUser }) =>
-      currentUser?.id === 'admin' ? true : undefined
+      isAdmin(currentUser?.id) ? true : undefined
   }}
 />
 ```

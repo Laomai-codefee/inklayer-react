@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  🖊️ A JavaScript PDF viewer & annotation SDK for React<br/>
+  🖊️ A PDF viewer and annotation SDK for React applications<br/>
   For building document review, collaborative annotation, and commenting workflows
 </p>
 
@@ -29,7 +29,7 @@
 <div align="center">
   <a href="https://laomai-codefee.github.io/inklayer-react/" target="_blank"><b>🔥 Live Demo</b></a>
   <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
-  <a href="https://inklayer.dev/docs" target="_blank"><b>📚 Docs</b></a>
+  <a href="https://inklayer.dev/docs/react" target="_blank"><b>📚 Docs</b></a>
   <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
   <a href="https://github.com/Laomai-codefee/inklayer-react" target="_blank"><b>⭐ GitHub</b></a>
 </div>
@@ -37,7 +37,7 @@
 ---
 
 <p align="center">
-  <img src="./screenshot.png" alt="InkLayer React Screenshot" width="80%" />
+  <img src="https://raw.githubusercontent.com/Laomai-codefee/inklayer-react/main/screenshot.png" alt="InkLayer React Screenshot" width="80%" />
 </p>
 
 ## ⭐ Quick Start (Recommended)
@@ -130,15 +130,16 @@ export default function App() {
 
 ## 🔐 Collaborative Annotation Permissions
 
-`user` identifies the current user; callers do not need to provide a separate `role`. In `owner-only` mode, authenticated users may create annotations and replies, while only the annotation owner may move, resize, edit, change status, or delete that annotation. A reply can be edited or deleted only by its author.
+`user` is the current application user supplied by the host application. InkLayer uses this identity only to determine annotation and reply ownership; authentication remains the host application's responsibility, and callers do not need to provide a separate `role`. In `owner-only` mode, a current user with a valid `user.id` may create annotations and replies, while only the annotation owner may move, resize, edit, change status, or delete that annotation. A reply can be edited or deleted only by its author.
 
 ```tsx
 <PdfAnnotator
   user={{ id: currentUser.id, name: currentUser.name }}
   annotationPermissions={{
     mode: 'owner-only',
+    // isAdmin is implemented by your application
     can: ({ currentUser }) =>
-      currentUser?.id === 'admin' ? true : undefined
+      isAdmin(currentUser?.id) ? true : undefined
   }}
 />
 ```
