@@ -1,7 +1,7 @@
 {
     "name": "inklayer-react",
     "version": "1.0.13",
-    "description": "Extensible React PDF viewer & annotation SDK built on PDF.js. PdfViewer + PdfAnnotator for display, review, comments, and markup.",
+    "description": "Browser-only React PDF viewer & annotation SDK for document review, comments, collaboration, and permission-controlled workflows.",
     "keywords": [
         "pdf",
         "pdf-viewer",
@@ -15,10 +15,10 @@
         "comment",
         "review",
         "document-review",
+        "collaboration",
+        "annotation-permissions",
         "react",
         "react-pdf",
-        "pdfjs",
-        "pdf.js",
         "konva",
         "sdk"
     ],

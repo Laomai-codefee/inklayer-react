@@ -9,7 +9,7 @@ const PdfViewerBasic: React.FC = () => {
             appearance="light"
             enableRange={false}
             locale="en-US"
-            layoutStyle={{ width: '100vw', height: '96vh' }}
+            layoutStyle={{ width: '100%', height: 'calc(100vh - 45px)' }}
         />
     );
 }

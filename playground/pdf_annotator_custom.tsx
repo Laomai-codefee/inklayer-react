@@ -162,7 +162,7 @@ const PdfAnnotatorCustom: React.FC = () => {
     }, [])
 
     return (
-        <div>
+        <div style={{ height: '100%' }}>
             <PdfAnnotator
                 theme="violet"
                 enableRange={false}
@@ -190,8 +190,8 @@ const PdfAnnotatorCustom: React.FC = () => {
                         <button onClick={() => props.exportToPdf('Export PDF')}>📄 PDF</button>
                     </>
                 )}
-                layoutStyle={{ height: '96vh' }}
                 locale="en-US"
+                layoutStyle={{ width: '100%', height: 'calc(100vh - 45px)' }}
                 onSave={onSave}
                 onLoad={() => console.log('🎉 PDF Loaded')}
                 onAnnotationAdded={(a) => console.log('➕', a.id, a.kind)}

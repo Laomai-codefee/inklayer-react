@@ -1,0 +1,101 @@
+.playground-theme {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.playground-header {
+    display: flex;
+    height: 44px;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--gray-a5);
+    background: var(--color-background);
+}
+
+.playground-brand,
+.playground-header-actions,
+.playground-github {
+    display: flex;
+    align-items: center;
+}
+
+.playground-brand {
+    gap: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.playground-brand img {
+    width: 20px;
+    height: 20px;
+}
+
+.playground-header-actions {
+    gap: 10px;
+}
+
+.playground-github img {
+    display: block;
+    height: 20px;
+}
+
+.playground-tabs {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
+}
+
+.playground-sidebar {
+    width: 224px;
+    min-width: 224px;
+    overflow-y: auto;
+    border-right: 1px solid var(--gray-a5);
+    background: var(--gray-a2);
+}
+
+.playground-nav.rt-BaseTabList {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
+    padding: 8px;
+    overflow: visible;
+    box-shadow: none;
+}
+
+.playground-nav .rt-TabsTrigger {
+    width: 100%;
+    min-height: 36px;
+    justify-content: flex-start;
+    border-radius: var(--radius-2);
+}
+
+.playground-nav .rt-BaseTabListTriggerInner,
+.playground-nav .rt-BaseTabListTriggerInnerHidden {
+    justify-content: flex-start;
+}
+
+.playground-nav .rt-TabsTrigger[data-state='active'] {
+    background: var(--accent-a4);
+}
+
+.playground-nav .rt-TabsTrigger[data-state='active']::before {
+    display: none;
+}
+
+.playground-main {
+    min-width: 0;
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
+}

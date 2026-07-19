@@ -434,6 +434,7 @@ const PdfAnnotatorBasic: React.FC = () => {
             user={{ id: 'u1', name: 'Alice' }}
             initialAnnotations={INITIAL_STORES}
             locale="en-US"
+            layoutStyle={{ width: '100%', height: 'calc(100vh - 45px)' }}
             onSave={onSave}
             onLoad={() => console.log('🎉 PDF Loaded')}
             onAnnotationAdded={(a) => console.log('➕', a)}

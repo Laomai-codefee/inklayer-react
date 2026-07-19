@@ -80,10 +80,11 @@ const PdfAnnotatorPermissions: React.FC = () => {
     const permissions = permissionPreset === 'read-only' ? READ_ONLY_PERMISSIONS : OWNER_ONLY_PERMISSIONS
 
     return (
-        <div>
+        <div style={{ display: 'grid', height: '100%', gridTemplateRows: 'auto minmax(0, 1fr)' }}>
             <div
                 style={{
                     display: 'flex',
+                    flexWrap: 'wrap',
                     alignItems: 'center',
                     gap: 8,
                     padding: '8px 12px',
@@ -129,7 +130,7 @@ const PdfAnnotatorPermissions: React.FC = () => {
                 initialAnnotations={INITIAL_ANNOTATIONS}
                 defaultShowAnnotationsSidebar
                 locale="en-US"
-                layoutStyle={{ height: '90vh' }}
+                layoutStyle={{ height: '100%' }}
                 onLoad={() => setLastEvent('PDF loaded')}
                 onAnnotationAdded={(annotation) => setLastEvent(`Added ${annotation.id}`)}
                 onAnnotationUpdated={(annotation) => setLastEvent(`Updated ${annotation.id}`)}

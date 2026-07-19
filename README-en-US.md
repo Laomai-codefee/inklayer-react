@@ -11,8 +11,8 @@
 </p>
 
 <p align="center">
-  🖊️ A React PDF viewer & annotation SDK built on PDF.js<br/>
-  For building document review, annotation, and commenting systems
+  🖊️ A JavaScript PDF viewer & annotation SDK for React<br/>
+  For building document review, collaborative annotation, and commenting workflows
 </p>
 
 <div align="center">
@@ -64,6 +64,7 @@ http://localhost:5173
 - 🚀 PDF Viewer (zoom / search / theming)
 - 🖍️ PDF Annotation System (highlight / ink / shapes / stamps / signatures)
 - 💬 Comment & review workflow
+- 🔐 Collaborative annotation permissions (ownership / admin overrides / read-only)
 - 💾 Annotation data model (persistable)
 - 📤 Export support (PDF / Excel)
 - 🎨 Customizable UI (toolbar / sidebar)

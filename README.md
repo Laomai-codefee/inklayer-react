@@ -11,8 +11,8 @@
 </p>
 
 <p align="center">
-  🖊️ 基于 PDF.js 构建的 React PDF 查看与批注 SDK<br/>
-  用于快速构建文档审阅、批注与评论系统
+  🖊️ 为 JavaScript 应用打造的 PDF 查看与批注 SDK（React）<br/>
+  用于快速构建文档审阅、协作批注与评论系统
 </p>
 
 <div align="center">
@@ -64,6 +64,7 @@ http://localhost:5173
 - 🚀 PDF 查看器（缩放 / 搜索 / 主题）
 - 🖍️ PDF 批注系统（高亮 / 笔迹 / 图形 / 印章 / 签名）
 - 💬 评论与审阅流程
+- 🔐 协作批注权限（拥有者规则 / 管理员覆盖 / 全局只读）
 - 💾 批注数据模型（可持久化）
 - 📤 导出能力（PDF / Excel）
 - 🎨 可自定义 UI（工具栏 / 侧边栏）
@@ -123,7 +124,7 @@ export default function App() {
 
 ## 📖 API 文档
 
-👉 https://inklayer.dev/docs/react
+👉 https://inklayer.dev/zh-cn/docs/react
 
 ---
 

@@ -54,7 +54,7 @@ const ShowCode = forwardRef<ShowCodeHandle, ShowCodeProps>(({ filename, code }, 
           <span style={styles.filename}>{filename}</span>
           <div style={styles.actions}>
             <button style={styles.btn} onClick={handleCopy}>
-              {copied ? '✓ 已复制' : '📋 复制'}
+              {copied ? '✓ Copy' : '📋 Copy'}
             </button>
             <button style={{ ...styles.btn, ...styles.btnClose }} onClick={close}>✕</button>
           </div>

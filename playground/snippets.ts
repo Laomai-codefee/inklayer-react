@@ -34,8 +34,8 @@ const Demo = () => {
     : OWNER_ONLY_PERMISSIONS
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8 }}>
+    <div style={{ display: 'grid', height: '100%', gridTemplateRows: 'auto minmax(0, 1fr)' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, padding: 8 }}>
         <strong>Current user: {user.name}</strong>
         {USERS.map(option => (
           <button
@@ -72,7 +72,7 @@ const Demo = () => {
         initialAnnotations={INITIAL_ANNOTATIONS}
         defaultShowAnnotationsSidebar
         locale="en-US"
-        layoutStyle={{ height: '90vh' }}
+        layoutStyle={{ height: '100%' }}
       />
     </div>
   )
@@ -90,7 +90,7 @@ const Demo = () => {
       url="https://inklayer.dev/inklayer-demo.pdf"
       appearance="light"
       locale="en-US"
-      layoutStyle={{ width: '100vw', height: '96vh' }}
+      layoutStyle={{ width: '100%', height: '100%' }}
     />
   )
 }
@@ -118,7 +118,7 @@ const Demo = () => {
       data={pdfData}
       appearance="light"
       locale="en-US"
-      layoutStyle={{ width: '100vw', height: '96vh' }}
+      layoutStyle={{ width: '100%', height: '100%' }}
     />
   )
 }
@@ -177,7 +177,7 @@ const Demo = () => {
 
       onDocumentLoaded={(pdf) => console.log('Document loaded:', pdf)}
 
-      layoutStyle={{ width: '100vw', height: '96vh' }}
+      layoutStyle={{ width: '100%', height: '100%' }}
     />
   )
 }
@@ -201,7 +201,7 @@ const Demo = () => {
       appearance="light"
       locale="en-US"
       user={{ id: 'u1', name: 'Alice' }}
-      layoutStyle={{ height: '96vh' }}
+      layoutStyle={{ height: '100%' }}
       onSave={onSave}
       onLoad={() => console.log('PDF Loaded')}
       onAnnotationAdded={(a) => console.log('Added:', a)}
@@ -399,7 +399,7 @@ const PdfAnnotatorCustom: React.FC = () => {
                         <button onClick={() => props.exportToPdf('Export PDF')}>📄 PDF</button>
                     </>
                 )}
-                layoutStyle={{ height: '96vh' }}
+                layoutStyle={{ height: '100%' }}
                 locale="en-US"
                 onSave={onSave}
                 onLoad={() => console.log('🎉 PDF Loaded')}
@@ -462,7 +462,7 @@ const PdfAnnotatorFull: React.FC = () => {
                         <button onClick={() => props.exportToPdf('Export PDF')}>📄 Export PDF</button>
                     </>
                 )}
-                layoutStyle={{ height: '96vh' }}
+                layoutStyle={{ height: '100%' }}
                 onSave={onSave}
                 onLoad={() => console.log('🎉 PDF Loaded...')}
                 onAnnotationAdded={(a) => console.log('➕', a.id, a.kind)}
