@@ -1,6 +1,6 @@
 {
     "name": "inklayer-react",
-    "version": "1.0.13",
+    "version": "1.1.0",
     "description": "PDF viewer and annotation SDK for React applications, with comments, collaborative permissions, and PDF/Excel export.",
     "keywords": [
         "pdf",

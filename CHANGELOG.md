@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.13...v1.1.0) (2026-07-20)
+
+
+### Features
+
+* add annotation author label overlay ([739da20](https://github.com/Laomai-codefee/inklayer-react/commit/739da20d0339b6bf49f14b598b10b226f3a0e2f8))
+* add annotation author visibility controls ([7c60e93](https://github.com/Laomai-codefee/inklayer-react/commit/7c60e939dd1022ee4a4038b1288a9f5319dae0af))
+* add annotation permission controller ([473ddb3](https://github.com/Laomai-codefee/inklayer-react/commit/473ddb3a68015b4742166c2467c588a9d8c9849c))
+* add collaboration permissions playground ([3e2768b](https://github.com/Laomai-codefee/inklayer-react/commit/3e2768b4c8b59d7988bce33e05de7731edb6c829))
+* apply permissions to annotation controls ([e58d71b](https://github.com/Laomai-codefee/inklayer-react/commit/e58d71ba9739c9d9921a00c5eee42b4db1129783))
+* clarify collaborative annotation selection ([94692d2](https://github.com/Laomai-codefee/inklayer-react/commit/94692d25ec95b6926f3862db6d11685779b4cac0))
+* define annotation permission models ([ff5f50c](https://github.com/Laomai-codefee/inklayer-react/commit/ff5f50c3150ad4d5c321469f92449a57dcd11047))
+* enforce annotation transform permissions ([f79caf4](https://github.com/Laomai-codefee/inklayer-react/commit/f79caf40634bc184beaeb277fc1e60176c7fb6f9))
+* refresh playground navigation and metadata ([566eb05](https://github.com/Laomai-codefee/inklayer-react/commit/566eb054070f6994ef7a16724f13fd3e2c40970a))
+
+
+### Bug Fixes
+
+* distinguish read-only selection opacity ([fb23ce8](https://github.com/Laomai-codefee/inklayer-react/commit/fb23ce86c8aff41313909da7074030d4acfcdf99))
+* guard annotation mutation paths ([614d65c](https://github.com/Laomai-codefee/inklayer-react/commit/614d65cc1c22351265aa9c8d0bae688b77068d30))
+* match author label to selection color ([e6b01e1](https://github.com/Laomai-codefee/inklayer-react/commit/e6b01e1051ef2c732e231e3a949444023caf026a))
+* **playground:** rebuild docs with updated heights ([30ef839](https://github.com/Laomai-codefee/inklayer-react/commit/30ef839ad412e4888de4943b099c8af462bc8814))
+* refine annotation permission interactions ([268feee](https://github.com/Laomai-codefee/inklayer-react/commit/268feee20fcafde8edde9d86af43dfbb07d3ed40))
+* **test:** use browser Konva in Jest ([0edd911](https://github.com/Laomai-codefee/inklayer-react/commit/0edd9117de755ed60926e8439b99944c16e6a688))
+
 ### [1.0.13](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.12...v1.0.13) (2026-07-17)
 
 
