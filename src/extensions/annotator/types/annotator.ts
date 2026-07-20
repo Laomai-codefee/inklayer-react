@@ -241,6 +241,12 @@ export interface PdfAnnotatorProps extends PdfBaseProps {
     annotationPermissions?: AnnotationPermissions
 
     /**
+     * 是否在当前选中的批注旁显示作者名称
+     * @default true
+     */
+    showAnnotationAuthor?: boolean
+
+    /**
      * 是否加载PDF自带的批注
      * @default false
      */

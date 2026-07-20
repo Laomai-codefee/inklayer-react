@@ -4,12 +4,18 @@ import { annotationDefinitions, IAnnotationStore } from '../../const/definitions
 import { SELECTOR_HOVER_STYLE, SHAPE_GROUP_NAME } from '../const'
 import { KonvaCanvas } from '../index'
 import { IRect } from 'konva/lib/types'
+import {
+    ANNOTATION_AUTHOR_LABEL_MAX_WIDTH,
+    getAnnotationAuthorLabelPosition,
+    getAnnotationAuthorName
+} from './annotation_author_label'
 import { getTransformerPermissionStyle } from './selector_permissions'
 /**
  * 定义选择器的选项接口
  */
 export interface ISelectorOptions {
     primaryColor: string
+    showAnnotationAuthor: boolean
     konvaCanvasStore: Map<number, KonvaCanvas> // 存储各个页面的 Konva 画布实例
     getAnnotationStore: (id: string) => IAnnotationStore | undefined // 获取注解存储的方法
     canTransform: (annotation: IAnnotationStore) => boolean
@@ -24,6 +30,7 @@ export interface ISelectorOptions {
  */
 export class Selector {
     private primaryColor: string
+    private showAnnotationAuthor: boolean
     public readonly onSelected: (id: string, isClick: boolean, clientRect: IRect) => void
     public readonly onChanged: (id: string, konvaGroupString: string, rawAnnotationStore: IAnnotationStore, konvaClientRect: IRect, transformerRect: IRect) => void
     public readonly onDelete: (id: string) => void
@@ -42,11 +49,14 @@ export class Selector {
     // 用于存储 Tween 动画实例，确保可以正确销毁
     private tweenStore: Map<string, { fadeOut: Konva.Tween | null; fadeIn: Konva.Tween | null }> = new Map()
 
-
+    private authorLabel: Konva.Group | null = null
+    private authorLabelGroup: Konva.Group | null = null
+    private authorLabelStage: Konva.Stage | null = null
 
     // 构造函数，初始化选择器类
-    constructor({ primaryColor, konvaCanvasStore, getAnnotationStore, canTransform, onDelete, onSelected, onCancel, onChanged }: ISelectorOptions) {
+    constructor({ primaryColor, showAnnotationAuthor, konvaCanvasStore, getAnnotationStore, canTransform, onDelete, onSelected, onCancel, onChanged }: ISelectorOptions) {
         this.primaryColor = primaryColor
+        this.showAnnotationAuthor = showAnnotationAuthor
         this.konvaCanvasStore = konvaCanvasStore
         this.getAnnotationStore = getAnnotationStore
         this.canTransform = canTransform
@@ -116,6 +126,100 @@ export class Selector {
 
     private getFirstShapeInGroup(group: Konva.Group): Konva.Shape | null {
         return (group.getChildren().find(node => node instanceof Konva.Shape) as Konva.Shape) || null
+    }
+
+    private clearAuthorLabel(): void {
+        this.authorLabelGroup?.off('.annotationAuthorLabel')
+        this.authorLabelStage?.off('.annotationAuthorLabel')
+        this.authorLabel?.destroy()
+        this.authorLabel = null
+        this.authorLabelGroup = null
+        this.authorLabelStage = null
+    }
+
+    private createAuthorLabel(
+        annotation: IAnnotationStore,
+        group: Konva.Group,
+        transformer: Konva.Transformer,
+        konvaStage: Konva.Stage
+    ): void {
+        this.clearAuthorLabel()
+        if (!this.showAnnotationAuthor) return
+
+        const authorName = getAnnotationAuthorName(annotation)
+        if (!authorName) return
+
+        const text = new Konva.Text({
+            text: authorName,
+            x: 6,
+            y: 4,
+            fontSize: 12,
+            fontFamily: 'system-ui, sans-serif',
+            fill: '#ffffff',
+            wrap: 'none',
+            ellipsis: true,
+            listening: false,
+            perfectDrawEnabled: false
+        })
+        text.width(Math.min(text.width(), ANNOTATION_AUTHOR_LABEL_MAX_WIDTH - 12))
+
+        const labelWidth = text.width() + 12
+        const labelHeight = text.height() + 8
+
+        const label = new Konva.Group({
+            name: 'InkLayer_annotation_author_label',
+            listening: false,
+            draggable: false
+        })
+        label.add(new Konva.Rect({
+            width: labelWidth,
+            height: labelHeight,
+            fill: 'rgba(17, 24, 39, 0.9)',
+            cornerRadius: 3,
+            listening: false,
+            perfectDrawEnabled: false
+        }))
+        label.add(text)
+
+        const layer = this.getBackgroundLayer(konvaStage)
+        layer.add(label)
+        transformer.moveToTop()
+
+        const updatePosition = () => {
+            if (!label.getLayer() || !transformer.getLayer()) return
+
+            const padding = transformer.padding()
+            const screenPosition = getAnnotationAuthorLabelPosition({
+                selectionRect: {
+                    x: transformer.x() - padding,
+                    y: transformer.y() - padding,
+                    width: transformer.width() + padding * 2,
+                    height: transformer.height() + padding * 2
+                },
+                labelWidth,
+                labelHeight,
+                stageWidth: konvaStage.width(),
+                stageHeight: konvaStage.height()
+            })
+            const layerScale = layer.getAbsoluteScale()
+            const layerPosition = layer.getAbsoluteTransform().copy().invert().point(screenPosition)
+
+            label.scale({
+                x: 1 / (layerScale.x || 1),
+                y: 1 / (layerScale.y || 1)
+            })
+            label.position(layerPosition)
+            layer.batchDraw()
+        }
+
+        group.on('dragmove.annotationAuthorLabel transform.annotationAuthorLabel', updatePosition)
+        transformer.on('transform.annotationAuthorLabel', () => queueMicrotask(updatePosition))
+        konvaStage.on('scaleXChange.annotationAuthorLabel scaleYChange.annotationAuthorLabel widthChange.annotationAuthorLabel heightChange.annotationAuthorLabel', updatePosition)
+        updatePosition()
+
+        this.authorLabel = label
+        this.authorLabelGroup = group
+        this.authorLabelStage = konvaStage
     }
 
     /**
@@ -228,6 +332,7 @@ export class Selector {
             rotateEnabled: false,
             borderStrokeWidth: permissionStyle.borderStrokeWidth,
             borderStroke: this.primaryColor,
+            borderDash: permissionStyle.borderDash,
             anchorFill: permissionStyle.anchorFill,
             anchorStroke: this.primaryColor,
             opacity: permissionStyle.opacity,
@@ -306,6 +411,7 @@ export class Selector {
         transformer.nodes([group])
         this.getBackgroundLayer(konvaStage).add(transformer)
         this.transformerStore.set(groupId, transformer)
+        this.createAuthorLabel(rawAnnotationStore, group, transformer, konvaStage)
         if (flash) {
             this.flashNodeWithTransformer(group, transformer, () => {
                 this.onSelected(group.id(), false, transformer.getClientRect())
@@ -473,6 +579,7 @@ export class Selector {
      */
     private clearTransformers(): void {
         this.toggleCursorStyle(false)
+        this.clearAuthorLabel()
         // 只有当有实际选中的变换器时才调用onCancel
         const hadCurrentTransformer = this._currentTransformerId !== null
 
@@ -589,6 +696,7 @@ export class Selector {
         const konvaStage = group?.getStage()
         if (!(group instanceof Konva.Group) || !konvaStage) return
 
+        this.clearAuthorLabel()
         transformer?.off('transformend transformstart dragstart dragend dragmove')
         transformer?.nodes([])
         transformer?.destroy()

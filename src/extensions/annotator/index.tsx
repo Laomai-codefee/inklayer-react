@@ -18,6 +18,7 @@ interface AnnotatorExtensionProps {
     enableNativeAnnotations: boolean
     annotations?: IAnnotationStore[]
     annotationPermissions?: AnnotationPermissions
+    showAnnotationAuthor?: boolean
 
     onLoad: () => void
 
@@ -31,6 +32,7 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
     enableNativeAnnotations,
     annotations,
     annotationPermissions,
+    showAnnotationAuthor = true,
     onLoad,
     onAnnotationAdd,
     onAnnotationDelete,
@@ -110,6 +112,7 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
             defaultOptions,
             currentUser: latestUserRef.current,
             annotationPermissions: latestPermissionsRef.current,
+            showAnnotationAuthor,
             PDFViewerApplication: pdfViewer,
 
             onTextSelected: (range) => {
@@ -220,7 +223,7 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
             setPainter(null)
         }
 
-    }, [clearAnnotations, defaultOptions, eventBus, handleViewAreaChanged, isReady, pdfViewer, primaryColor, setPainter])
+    }, [clearAnnotations, defaultOptions, eventBus, handleViewAreaChanged, isReady, pdfViewer, primaryColor, setPainter, showAnnotationAuthor])
 
     useLayoutEffect(() => {
         if (latestUserRef.current) {

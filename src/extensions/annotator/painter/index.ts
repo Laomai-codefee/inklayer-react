@@ -66,6 +66,7 @@ export class Painter {
         defaultOptions,
         currentUser,
         annotationPermissions,
+        showAnnotationAuthor,
         PDFViewerApplication,
         onTextSelected,
         onAnnotationAdd,
@@ -78,6 +79,7 @@ export class Painter {
         defaultOptions: PdfAnnotatorOptions
         currentUser: User
         annotationPermissions?: AnnotationPermissions
+        showAnnotationAuthor: boolean
         PDFViewerApplication: PDFViewer
         onTextSelected: (range: Range | null) => void
         onAnnotationAdd: (annotationStore: IAnnotationStore, isOriginal: boolean, currentAnnotation: IAnnotationType | undefined) => void
@@ -103,6 +105,7 @@ export class Painter {
         this.onAnnotationChanged = onAnnotationChanged // 批注已更改的回调函数
         this.selector = new Selector({
             primaryColor: this.primaryColor,
+            showAnnotationAuthor,
             // 初始化选择器实例
             konvaCanvasStore: this.konvaCanvasStore,
             getAnnotationStore: (id: string) => {

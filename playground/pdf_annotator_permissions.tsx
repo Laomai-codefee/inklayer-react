@@ -74,7 +74,7 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
 ]
 
 const PdfAnnotatorPermissions: React.FC = () => {
-    const [user, setUser] = useState(USERS[0])
+    const [user, setUser] = useState(USERS[1])
     const [permissionPreset, setPermissionPreset] = useState<'owner-only' | 'read-only'>('owner-only')
     const [lastEvent, setLastEvent] = useState('Waiting for PDF')
     const permissions = permissionPreset === 'read-only' ? READ_ONLY_PERMISSIONS : OWNER_ONLY_PERMISSIONS
