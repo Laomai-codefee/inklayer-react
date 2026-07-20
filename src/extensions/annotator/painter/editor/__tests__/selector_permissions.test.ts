@@ -5,7 +5,8 @@ describe('selector permission styles', () => {
         expect(getTransformerPermissionStyle(false)).toEqual({
             borderStrokeWidth: 2,
             borderDash: [6, 4],
-            opacity: 1,
+            opacity: 0.5,
+            authorLabelOpacity: 0.8,
             anchorFill: 'transparent',
             anchorStrokeWidth: 0,
             anchorSize: 0
@@ -17,6 +18,7 @@ describe('selector permission styles', () => {
             borderStrokeWidth: 2,
             borderDash: [],
             opacity: 1,
+            authorLabelOpacity: 1,
             anchorFill: '#fff',
             anchorStrokeWidth: 2,
             anchorSize: 10

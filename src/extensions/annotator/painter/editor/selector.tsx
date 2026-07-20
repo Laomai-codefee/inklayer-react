@@ -142,7 +142,8 @@ export class Selector {
         annotation: IAnnotationStore,
         group: Konva.Group,
         transformer: Konva.Transformer,
-        konvaStage: Konva.Stage
+        konvaStage: Konva.Stage,
+        opacity: number
     ): void {
         this.clearAuthorLabel()
         if (!this.showAnnotationAuthor) return
@@ -169,6 +170,7 @@ export class Selector {
 
         const label = new Konva.Group({
             name: 'InkLayer_annotation_author_label',
+            opacity,
             listening: false,
             draggable: false
         })
@@ -412,7 +414,7 @@ export class Selector {
         transformer.nodes([group])
         this.getBackgroundLayer(konvaStage).add(transformer)
         this.transformerStore.set(groupId, transformer)
-        this.createAuthorLabel(rawAnnotationStore, group, transformer, konvaStage)
+        this.createAuthorLabel(rawAnnotationStore, group, transformer, konvaStage, permissionStyle.authorLabelOpacity)
         if (flash) {
             this.flashNodeWithTransformer(group, transformer, () => {
                 this.onSelected(group.id(), false, transformer.getClientRect())
