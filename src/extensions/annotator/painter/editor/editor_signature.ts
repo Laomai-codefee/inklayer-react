@@ -3,7 +3,7 @@ import { KonvaEventObject } from 'konva/lib/Node'
 
 import { AnnotationType, IAnnotationType } from '../../const/definitions'
 import { resizeImage, setCssCustomProperty } from '../../utils/utils'
-import { CURSOR_CSS_PROPERTY } from '../const'
+import { ANNOTATION_AUTHOR_LABEL_BOUNDS_CHANGE_EVENT, CURSOR_CSS_PROPERTY } from '../const'
 import { Editor, IEditorOptions } from './editor'
 
 /**
@@ -171,18 +171,22 @@ export class EditorSignature extends Editor {
      */
     public addSerializedGroupToLayer(konvaStage: Konva.Stage, konvaString: string) {
         const ghostGroup = Konva.Node.create(konvaString)
-        const oldImage = this.getGroupNodesByClassName(ghostGroup, 'Image')[0] as Konva.Image
+        const { konvaGroup, added } = this.registerSerializedGroup(konvaStage, ghostGroup)
+        if (!added) return
+
+        const oldImage = this.getGroupNodesByClassName(konvaGroup, 'Image')[0] as Konva.Image | undefined
+        if (!oldImage) return
         const imageUrl = oldImage.getAttr('base64')
+        if (!imageUrl) return
 
         // 从 URL 加载签名图片并替换旧图片
-        Konva.Image.fromURL(imageUrl, async (image) => {
+        Konva.Image.fromURL(imageUrl, (image) => {
             image.setAttrs(oldImage.getAttrs())
             oldImage.destroy()
-            ghostGroup.add(image)
+            konvaGroup.add(image)
+            konvaGroup.getLayer()?.batchDraw()
+            konvaGroup.fire(ANNOTATION_AUTHOR_LABEL_BOUNDS_CHANGE_EVENT)
         })
-
-        // 将恢复后的组添加到背景图层
-        this.getBgLayer(konvaStage).add(ghostGroup)
     }
 
     // 下面是未实现的抽象方法的空实现

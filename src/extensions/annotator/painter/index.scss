@@ -11,6 +11,32 @@
     z-index: 1;
 }
 
+.InkLayer_Annotator_annotation_author_labels_layer {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
+}
+
+.InkLayer_Annotator_annotation_author_label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-sizing: border-box;
+    max-width: 160px;
+    overflow: hidden;
+    padding: 4px 6px;
+    border-radius: 3px;
+    font-family: system-ui, sans-serif;
+    font-size: 12px;
+    line-height: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
 .InkLayer_Annotator_selector_hover {
     .InkLayer_Annotator_painter_wrapper {
         cursor: pointer !important;

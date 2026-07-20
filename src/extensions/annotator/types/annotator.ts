@@ -241,7 +241,8 @@ export interface PdfAnnotatorProps extends PdfBaseProps {
     annotationPermissions?: AnnotationPermissions
 
     /**
-     * 是否在当前选中的批注旁显示作者名称
+     * 是否显示批注作者标签。启用后，选中批注时显示其作者；
+     * macOS 按住 Command、Windows/Linux 按住 Alt 时显示全部作者标签。
      * @default true
      */
     showAnnotationAuthor?: boolean

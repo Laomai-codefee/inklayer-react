@@ -45,6 +45,10 @@ function createPainter(can: boolean) {
     Object.assign(painter as unknown as Record<string, unknown>, {
         permissionController: { can: jest.fn(() => can) },
         selector: { delete: jest.fn(), clear: jest.fn(), refreshCurrentSelection: jest.fn() },
+        authorLabels: {
+            refreshAnnotation: jest.fn(),
+            remove: jest.fn()
+        },
         editorStore: new Map(),
         konvaCanvasStore: new Map(),
         onAnnotationChanged: jest.fn(),

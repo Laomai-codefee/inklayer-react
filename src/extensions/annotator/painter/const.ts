@@ -8,6 +8,12 @@ const STYLE_PREFIX = 'InkLayer_Annotator'
  */
 export const PAINTER_WRAPPER_PREFIX = `${STYLE_PREFIX}_painter_wrapper`
 
+export const ANNOTATION_AUTHOR_LABELS_LAYER_CLASS = `${STYLE_PREFIX}_annotation_author_labels_layer`
+
+export const ANNOTATION_AUTHOR_LABEL_CLASS = `${STYLE_PREFIX}_annotation_author_label`
+
+export const ANNOTATION_AUTHOR_LABEL_BOUNDS_CHANGE_EVENT = 'annotationAuthorLabelBoundsChange'
+
 /**
  * 常量：表示当前是否处于绘画模式的样式名称
  */
@@ -38,4 +44,3 @@ export const CURSOR_CSS_PROPERTY = `--${STYLE_PREFIX}-image-cursor`
  */
 
 export const FREE_TEXT_EDITOR = `${STYLE_PREFIX}_free_text_editor`
-

@@ -372,21 +372,45 @@ export abstract class Editor {
      * @param konvaString 序列化的 Konva.Group 字符串表示
      */
     public addSerializedGroupToLayer(konvaStage: Konva.Stage, konvaString: string) {
-        this.konvaStage = konvaStage // 更新 Konva Stage对象
         const ghostGroup = Konva.Node.create(konvaString) // 根据序列化字符串创建 Konva.Group 对象
+        this.registerSerializedGroup(konvaStage, ghostGroup)
+    }
+
+    /**
+     * 将反序列化的 Group 绑定到当前 Stage，并让 Store 始终指向当前页面上的节点。
+     */
+    protected registerSerializedGroup(
+        konvaStage: Konva.Stage,
+        ghostGroup: Konva.Group
+    ): { konvaGroup: Konva.Group; added: boolean } {
+        this.konvaStage = konvaStage
         const id = ghostGroup.id()
+        const existingGroup = konvaStage.findOne(
+            (node: Konva.Node) => node.getType() === 'Group' && node.id() === id
+        ) as Konva.Group | undefined
+
+        if (existingGroup) {
+            ghostGroup.destroy()
+            this.storeSerializedGroup(existingGroup)
+            return { konvaGroup: existingGroup, added: false }
+        }
+
         ghostGroup.draggable(false)
-        this.getBgLayer(konvaStage).add(ghostGroup) // 将 Konva.Group 对象添加到背景图层
-        if (this.shapeGroupStore.has(id)) return
-        const shapeGroup: IShapeGroup = {
-            // 创建形状组对象
+        this.getBgLayer(konvaStage).add(ghostGroup)
+        this.storeSerializedGroup(ghostGroup)
+        return { konvaGroup: ghostGroup, added: true }
+    }
+
+    private storeSerializedGroup(konvaGroup: Konva.Group): void {
+        const id = konvaGroup.id()
+        const previous = this.shapeGroupStore.get(id)
+        this.shapeGroupStore.set(id, {
+            ...previous,
             id,
-            konvaGroup: ghostGroup,
+            konvaGroup,
             pageNumber: this.pageNumber,
             isDone: true
-        }
-        
-        this.shapeGroupStore.set(id, shapeGroup)
+        })
     }
 
     /**
