@@ -68,7 +68,7 @@ export class Painter {
         defaultOptions,
         currentUser,
         annotationPermissions,
-        showAnnotationAuthor,
+        defaultShowAnnotationAuthorLabels,
         PDFViewerApplication,
         onTextSelected,
         onAnnotationAdd,
@@ -81,7 +81,7 @@ export class Painter {
         defaultOptions: PdfAnnotatorOptions
         currentUser: User
         annotationPermissions?: AnnotationPermissions
-        showAnnotationAuthor: boolean
+        defaultShowAnnotationAuthorLabels: boolean
         PDFViewerApplication: PDFViewer
         onTextSelected: (range: Range | null) => void
         onAnnotationAdd: (annotationStore: IAnnotationStore, isOriginal: boolean, currentAnnotation: IAnnotationType | undefined) => void
@@ -100,7 +100,7 @@ export class Painter {
         })
         this.authorLabels = new AnnotationAuthorLabels({
             primaryColor: this.primaryColor,
-            enabled: showAnnotationAuthor,
+            defaultVisible: defaultShowAnnotationAuthorLabels,
             getAnnotationsByPage: (pageNumber) => useAnnotationStore.getState().getByPage(pageNumber),
             getAnnotationGroup: (annotationStore, konvaStage) => {
                 return konvaStage.findOne((node: Konva.Node) => node.getType() === 'Group' && node.id() === annotationStore.id) as Konva.Group | null
@@ -208,6 +208,14 @@ export class Painter {
 
     public can(action: AnnotationPermissionAction, annotation?: IAnnotationStore, comment?: IAnnotationComment): boolean {
         return this.permissionController.can(action, annotation, comment)
+    }
+
+    public areAnnotationAuthorLabelsVisible(): boolean {
+        return this.authorLabels.areAllVisible()
+    }
+
+    public setAnnotationAuthorLabelsVisible(visible: boolean): void {
+        this.authorLabels.setAllVisible(visible)
     }
 
     private setDefaultMode = () => {

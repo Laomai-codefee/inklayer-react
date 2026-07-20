@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { ZoomTool } from '@/components/zoom_tool'
 import { ToolbarButton } from '@/components/toolbar_button'
 import {
@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { StampTool } from './stamp'
 import { SignatureTool } from './signature'
 import { usePainter } from '../../context/painter_context'
-import { PaletteIcon } from '../../const/icons'
+import { AuthorLabelsIcon, PaletteIcon } from '../../const/icons'
 import { useOptionsContext } from '../../context/options_context'
 import { useAnnotationStore } from '../../store'
 import { Flex, Separator } from '@radix-ui/themes'
@@ -67,6 +67,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({ defaultAnnotationName, stamps,
     const canCreate = painter?.can('annotation.create') ?? true
 
     const isColorDisabled = !currentAnnotationType?.styleEditable?.color
+    const [authorLabelsVisible, setAuthorLabelsVisible] = useState(false)
+    const authorLabelShortcut = useMemo(() => {
+        if (typeof navigator === 'undefined') return 'Alt'
+        const platform = navigator.platform || navigator.userAgent
+        return /mac/i.test(platform) ? '⌘' : 'Alt'
+    }, [])
 
     /**
      * 本地 annotations 列表
@@ -111,6 +117,17 @@ export const Toolbar: React.FC<ToolbarProps> = ({ defaultAnnotationName, stamps,
     useEffect(() => {
         safeActivate(currentAnnotationType, null)
     }, [currentAnnotationType, safeActivate])
+
+    useLayoutEffect(() => {
+        setAuthorLabelsVisible(painter?.areAnnotationAuthorLabelsVisible() ?? false)
+    }, [painter])
+
+    const handleAuthorLabelsToggle = useCallback(() => {
+        if (!painter) return
+        const visible = !painter.areAnnotationAuthorLabelsVisible()
+        painter.setAnnotationAuthorLabelsVisible(visible)
+        setAuthorLabelsVisible(visible)
+    }, [painter])
     /**
      * 颜色修改（不重复 activate）
      */
@@ -202,6 +219,18 @@ export const Toolbar: React.FC<ToolbarProps> = ({ defaultAnnotationName, stamps,
                         />
                     }
                 />}
+            />
+            <Separator orientation="vertical" />
+            <ToolbarButton
+                disabled={!painter}
+                selected={authorLabelsVisible}
+                title={
+                    authorLabelsVisible
+                        ? t('annotator:authorLabels.hide')
+                        : t('annotator:authorLabels.show', { shortcut: authorLabelShortcut })
+                }
+                icon={<AuthorLabelsIcon />}
+                onClick={handleAuthorLabelsToggle}
             />
         </Flex>
     )

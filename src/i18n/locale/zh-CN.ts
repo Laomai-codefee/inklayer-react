@@ -78,6 +78,10 @@ export default {
         sidebar: {
             toggle: '查看所有批注'
         },
+        authorLabels: {
+            show: '显示所有批注作者 · 按住 {{shortcut}} 临时查看',
+            hide: '隐藏批注作者'
+        },
         common: {
             createStamp: '创建印章',
             createSignature: '创建签名',

@@ -128,6 +128,7 @@ const PdfAnnotatorPermissions: React.FC = () => {
                 user={user}
                 annotationPermissions={permissions}
                 initialAnnotations={INITIAL_ANNOTATIONS}
+                defaultShowAnnotationAuthorLabels
                 defaultShowAnnotationsSidebar
                 locale="en-US"
                 layoutStyle={{ height: '100%' }}

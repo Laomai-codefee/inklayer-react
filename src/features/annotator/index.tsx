@@ -30,7 +30,7 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
     locale = 'zh-CN',
     user = { id: 'null', name: 'unknown' },
     annotationPermissions,
-    showAnnotationAuthor = true,
+    defaultShowAnnotationAuthorLabels = false,
     defaultOptions,
     initialScale,
     enableNativeAnnotations = false,
@@ -205,7 +205,7 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
                             enableNativeAnnotations={enableNativeAnnotations}
                             annotations={effectiveAnnotations}
                             annotationPermissions={annotationPermissions}
-                            showAnnotationAuthor={showAnnotationAuthor}
+                            defaultShowAnnotationAuthorLabels={defaultShowAnnotationAuthorLabels}
                         />
                     </PdfViewerProvider>
                 </OptionsContext.Provider>

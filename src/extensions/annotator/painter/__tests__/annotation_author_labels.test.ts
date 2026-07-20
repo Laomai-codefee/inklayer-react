@@ -36,6 +36,31 @@ describe('AnnotationAuthorLabels', () => {
         expect(isAnnotationAuthorRevealKey({ key: 'Meta' }, false)).toBe(false)
     })
 
+    it('can show every author label initially', () => {
+        const annotation = createAnnotation('annotation-1', 'Alice')
+        const group = createGroup({ x: 20, y: 40, width: 50, height: 30 })
+        const wrapper = document.createElement('div')
+        const stage = {
+            width: () => 500,
+            height: () => 700
+        } as unknown as Konva.Stage
+        const labels = new AnnotationAuthorLabels({
+            primaryColor: '#6e56cf',
+            defaultVisible: true,
+            getAnnotationsByPage: () => [annotation],
+            getAnnotationGroup: () => group as unknown as Konva.Group,
+            canTransform: () => true
+        })
+
+        labels.registerPage(1, wrapper, stage)
+        const label = wrapper.querySelector(`[data-annotation-id="${annotation.id}"]`) as HTMLDivElement
+
+        expect(labels.areAllVisible()).toBe(true)
+        expect(label.style.display).toBe('block')
+
+        labels.destroy()
+    })
+
     it('keeps the selected label visible and reveals every label while the platform key is held', () => {
         const alice = createAnnotation('annotation-alice', 'Alice')
         const bob = createAnnotation('annotation-bob', 'Bob')
@@ -54,7 +79,6 @@ describe('AnnotationAuthorLabels', () => {
         } as unknown as Konva.Stage
         const labels = new AnnotationAuthorLabels({
             primaryColor: '#6e56cf',
-            enabled: true,
             getAnnotationsByPage: () => annotations,
             getAnnotationGroup: (annotation) => groups.get(annotation.id) as unknown as Konva.Group,
             canTransform: (annotation) => annotation.id === alice.id
@@ -98,6 +122,18 @@ describe('AnnotationAuthorLabels', () => {
         expect(aliceLabel.style.display).toBe('block')
         expect(bobLabel.style.display).toBe('none')
 
+        labels.setAllVisible(true)
+        expect(labels.areAllVisible()).toBe(true)
+        expect(bobLabel.style.display).toBe('block')
+
+        window.dispatchEvent(new KeyboardEvent('keydown', { key, code }))
+        window.dispatchEvent(new KeyboardEvent('keyup', { key, code }))
+        expect(bobLabel.style.display).toBe('block')
+
+        labels.setAllVisible(false)
+        expect(labels.areAllVisible()).toBe(false)
+        expect(bobLabel.style.display).toBe('none')
+
         labels.destroy()
         expect(wrapper.querySelector(`.${ANNOTATION_AUTHOR_LABELS_LAYER_CLASS}`)).toBeNull()
         expect(aliceGroup.off).toHaveBeenCalledWith('.annotationAuthorLabels')
@@ -114,7 +150,6 @@ describe('AnnotationAuthorLabels', () => {
         } as unknown as Konva.Stage
         const labels = new AnnotationAuthorLabels({
             primaryColor: '#6e56cf',
-            enabled: true,
             getAnnotationsByPage: () => [annotation],
             getAnnotationGroup: () => group as unknown as Konva.Group,
             canTransform: () => true
@@ -153,7 +188,6 @@ describe('AnnotationAuthorLabels', () => {
         const liveWrapper = document.createElement('div')
         const labels = new AnnotationAuthorLabels({
             primaryColor: '#6e56cf',
-            enabled: true,
             getAnnotationsByPage: () => [annotation],
             getAnnotationGroup: (_annotation, stage) => (stage === liveStage ? liveGroup : oldGroup) as unknown as Konva.Group,
             canTransform: () => true

@@ -7,7 +7,7 @@ import { getTransformerPermissionStyle } from './editor/selector_permissions'
 
 interface AnnotationAuthorLabelsOptions {
     primaryColor: string
-    enabled: boolean
+    defaultVisible?: boolean
     getAnnotationsByPage: (pageNumber: number) => IAnnotationStore[]
     getAnnotationGroup: (annotation: IAnnotationStore, stage: Konva.Stage) => Konva.Group | null
     canTransform: (annotation: IAnnotationStore) => boolean
@@ -37,7 +37,6 @@ export function isAnnotationAuthorRevealKey(event: Pick<KeyboardEvent, 'key'>, i
 
 export class AnnotationAuthorLabels {
     private readonly primaryColor: string
-    private readonly enabled: boolean
     private readonly getAnnotationsByPage: (pageNumber: number) => IAnnotationStore[]
     private readonly getAnnotationGroup: (annotation: IAnnotationStore, stage: Konva.Stage) => Konva.Group | null
     private readonly canTransform: (annotation: IAnnotationStore) => boolean
@@ -46,25 +45,23 @@ export class AnnotationAuthorLabels {
     private readonly boundGroups = new Map<string, Konva.Group>()
     private readonly pressedRevealKeys = new Set<string>()
     private selectedId: string | null = null
-    private revealAll = false
+    private allVisible: boolean
 
-    constructor({ primaryColor, enabled, getAnnotationsByPage, getAnnotationGroup, canTransform }: AnnotationAuthorLabelsOptions) {
+    constructor({ primaryColor, defaultVisible = false, getAnnotationsByPage, getAnnotationGroup, canTransform }: AnnotationAuthorLabelsOptions) {
         this.primaryColor = primaryColor
-        this.enabled = enabled
+        this.allVisible = defaultVisible
         this.getAnnotationsByPage = getAnnotationsByPage
         this.getAnnotationGroup = getAnnotationGroup
         this.canTransform = canTransform
         this.isMac = /mac/i.test(getPlatform())
 
-        if (!this.enabled) return
         window.addEventListener('keydown', this.handleKeyDown)
         window.addEventListener('keyup', this.handleKeyUp)
-        window.addEventListener('blur', this.hideAll)
+        window.addEventListener('blur', this.clearShortcutReveal)
         document.addEventListener('visibilitychange', this.handleVisibilityChange)
     }
 
     public registerPage(pageNumber: number, wrapper: HTMLDivElement, stage: Konva.Stage): void {
-        if (!this.enabled) return
         this.unregisterPage(pageNumber)
 
         const layer = document.createElement('div')
@@ -86,7 +83,7 @@ export class AnnotationAuthorLabels {
     }
 
     public setSelected(id: string | null): void {
-        if (!this.enabled || this.selectedId === id) return
+        if (this.selectedId === id) return
         const previousId = this.selectedId
         this.selectedId = id
 
@@ -94,8 +91,18 @@ export class AnnotationAuthorLabels {
         if (id) this.refreshAnnotation(id)
     }
 
+    public areAllVisible(): boolean {
+        return this.allVisible
+    }
+
+    public setAllVisible(allVisible: boolean): void {
+        if (this.allVisible === allVisible) return
+        const wasVisible = this.shouldRevealAll()
+        this.allVisible = allVisible
+        if (wasVisible !== this.shouldRevealAll()) this.refreshAll()
+    }
+
     public refreshAnnotation(id: string): void {
-        if (!this.enabled) return
         const annotation = this.findAnnotation(id)
         if (!annotation) {
             this.remove(id)
@@ -106,7 +113,6 @@ export class AnnotationAuthorLabels {
     }
 
     public refreshPage(pageNumber: number): void {
-        if (!this.enabled) return
         const page = this.pages.get(pageNumber)
         if (!page) return
 
@@ -144,17 +150,15 @@ export class AnnotationAuthorLabels {
     }
 
     public destroy(): void {
-        if (this.enabled) {
-            window.removeEventListener('keydown', this.handleKeyDown)
-            window.removeEventListener('keyup', this.handleKeyUp)
-            window.removeEventListener('blur', this.hideAll)
-            document.removeEventListener('visibilitychange', this.handleVisibilityChange)
-        }
+        window.removeEventListener('keydown', this.handleKeyDown)
+        window.removeEventListener('keyup', this.handleKeyUp)
+        window.removeEventListener('blur', this.clearShortcutReveal)
+        document.removeEventListener('visibilitychange', this.handleVisibilityChange)
         Array.from(this.pages.keys()).forEach((pageNumber) => this.unregisterPage(pageNumber))
         this.pressedRevealKeys.clear()
         this.boundGroups.clear()
         this.selectedId = null
-        this.revealAll = false
+        this.allVisible = false
     }
 
     private findAnnotation(id: string): IAnnotationStore | undefined {
@@ -192,7 +196,7 @@ export class AnnotationAuthorLabels {
         label.style.color = getReadableAuthorLabelTextColor(this.primaryColor)
         label.style.opacity = String(getTransformerPermissionStyle(this.canTransform(annotation)).authorLabelOpacity)
 
-        const visible = this.revealAll || annotation.id === this.selectedId
+        const visible = this.shouldRevealAll() || annotation.id === this.selectedId
         label.style.display = visible ? 'block' : 'none'
         if (!visible) return null
 
@@ -236,30 +240,31 @@ export class AnnotationAuthorLabels {
         this.boundGroups.delete(id)
     }
 
-    private setRevealAll(revealAll: boolean): void {
-        if (this.revealAll === revealAll) return
-        this.revealAll = revealAll
-        this.refreshAll()
+    private shouldRevealAll(): boolean {
+        return this.allVisible || this.pressedRevealKeys.size > 0
     }
 
     private handleKeyDown = (event: KeyboardEvent): void => {
         if (!isAnnotationAuthorRevealKey(event, this.isMac)) return
+        const wasVisible = this.shouldRevealAll()
         this.pressedRevealKeys.add(event.code || event.key)
-        this.setRevealAll(true)
+        if (wasVisible !== this.shouldRevealAll()) this.refreshAll()
     }
 
     private handleKeyUp = (event: KeyboardEvent): void => {
         if (!isAnnotationAuthorRevealKey(event, this.isMac)) return
+        const wasVisible = this.shouldRevealAll()
         this.pressedRevealKeys.delete(event.code || event.key)
-        if (this.pressedRevealKeys.size === 0) this.setRevealAll(false)
+        if (wasVisible !== this.shouldRevealAll()) this.refreshAll()
     }
 
     private handleVisibilityChange = (): void => {
-        if (document.hidden) this.hideAll()
+        if (document.hidden) this.clearShortcutReveal()
     }
 
-    private hideAll = (): void => {
+    private clearShortcutReveal = (): void => {
+        const wasVisible = this.shouldRevealAll()
         this.pressedRevealKeys.clear()
-        this.setRevealAll(false)
+        if (wasVisible !== this.shouldRevealAll()) this.refreshAll()
     }
 }

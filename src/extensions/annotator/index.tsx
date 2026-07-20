@@ -18,7 +18,7 @@ interface AnnotatorExtensionProps {
     enableNativeAnnotations: boolean
     annotations?: IAnnotationStore[]
     annotationPermissions?: AnnotationPermissions
-    showAnnotationAuthor?: boolean
+    defaultShowAnnotationAuthorLabels?: boolean
 
     onLoad: () => void
 
@@ -32,7 +32,7 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
     enableNativeAnnotations,
     annotations,
     annotationPermissions,
-    showAnnotationAuthor = true,
+    defaultShowAnnotationAuthorLabels = false,
     onLoad,
     onAnnotationAdd,
     onAnnotationDelete,
@@ -71,6 +71,7 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
     const painterRef = useRef<Painter | null>(null)
     const latestUserRef = useRef(user)
     const latestPermissionsRef = useRef(annotationPermissions)
+    const defaultShowAnnotationAuthorLabelsRef = useRef(defaultShowAnnotationAuthorLabels)
     latestUserRef.current = user
     latestPermissionsRef.current = annotationPermissions
 
@@ -112,7 +113,7 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
             defaultOptions,
             currentUser: latestUserRef.current,
             annotationPermissions: latestPermissionsRef.current,
-            showAnnotationAuthor,
+            defaultShowAnnotationAuthorLabels: defaultShowAnnotationAuthorLabelsRef.current,
             PDFViewerApplication: pdfViewer,
 
             onTextSelected: (range) => {
@@ -223,7 +224,7 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
             setPainter(null)
         }
 
-    }, [clearAnnotations, defaultOptions, eventBus, handleViewAreaChanged, isReady, pdfViewer, primaryColor, setPainter, showAnnotationAuthor])
+    }, [clearAnnotations, defaultOptions, eventBus, handleViewAreaChanged, isReady, pdfViewer, primaryColor, setPainter])
 
     useLayoutEffect(() => {
         if (latestUserRef.current) {

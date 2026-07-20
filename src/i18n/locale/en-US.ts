@@ -78,6 +78,10 @@ export default {
         sidebar: {
             toggle: 'Show Annotations'
         },
+        authorLabels: {
+            show: 'Show annotation authors · Hold {{shortcut}} to peek',
+            hide: 'Hide annotation authors'
+        },
         common: {
             createStamp: 'Create Stamp',
             createSignature: 'Create signature',
