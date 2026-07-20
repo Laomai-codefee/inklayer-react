@@ -8,6 +8,6 @@ module.exports = {
     '\\.(css|scss)$': '<rootDir>/test/style-mock.cjs',
   },
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', { tsconfig: { esModuleInterop: true } }],
+    '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.test.json' }],
   },
 };

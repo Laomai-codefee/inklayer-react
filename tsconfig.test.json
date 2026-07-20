@@ -1,0 +1,8 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "esModuleInterop": true
+    },
+    "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.d.ts", "test/**/*.ts", "test/**/*.d.ts"],
+    "exclude": []
+}
