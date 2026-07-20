@@ -5,6 +5,9 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/test/setup.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    // Jest runs browser-facing annotator tests in jsdom. Avoid Konva's Node
+    // entry, which requires the optional native `canvas` package.
+    '^konva$': '<rootDir>/node_modules/konva/lib/index.js',
     '\\.(css|scss)$': '<rootDir>/test/style-mock.cjs',
   },
   transform: {
