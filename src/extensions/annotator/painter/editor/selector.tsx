@@ -7,7 +7,8 @@ import { IRect } from 'konva/lib/types'
 import {
     ANNOTATION_AUTHOR_LABEL_MAX_WIDTH,
     getAnnotationAuthorLabelPosition,
-    getAnnotationAuthorName
+    getAnnotationAuthorName,
+    getReadableAuthorLabelTextColor
 } from './annotation_author_label'
 import { getTransformerPermissionStyle } from './selector_permissions'
 /**
@@ -155,7 +156,7 @@ export class Selector {
             y: 4,
             fontSize: 12,
             fontFamily: 'system-ui, sans-serif',
-            fill: '#ffffff',
+            fill: getReadableAuthorLabelTextColor(this.primaryColor),
             wrap: 'none',
             ellipsis: true,
             listening: false,
@@ -174,7 +175,7 @@ export class Selector {
         label.add(new Konva.Rect({
             width: labelWidth,
             height: labelHeight,
-            fill: 'rgba(17, 24, 39, 0.9)',
+            fill: this.primaryColor,
             cornerRadius: 3,
             listening: false,
             perfectDrawEnabled: false

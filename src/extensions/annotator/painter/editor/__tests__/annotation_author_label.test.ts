@@ -1,6 +1,7 @@
 import {
     getAnnotationAuthorLabelPosition,
-    getAnnotationAuthorName
+    getAnnotationAuthorName,
+    getReadableAuthorLabelTextColor
 } from '../annotation_author_label'
 
 describe('annotation author label', () => {
@@ -24,6 +25,20 @@ describe('annotation author label', () => {
                 user: { id: 'unknown', name: '' },
                 title: '   '
             })).toBeNull()
+        })
+    })
+
+    describe('text contrast', () => {
+        it('uses white text for dark Transformer colors', () => {
+            expect(getReadableAuthorLabelTextColor('rgb(110, 86, 207)')).toBe('#ffffff')
+        })
+
+        it('uses dark text for light Transformer colors', () => {
+            expect(getReadableAuthorLabelTextColor('#fde047')).toBe('#111827')
+        })
+
+        it('falls back to white for unsupported colors', () => {
+            expect(getReadableAuthorLabelTextColor('var(--accent-9)')).toBe('#ffffff')
         })
     })
 

@@ -15,6 +15,51 @@ export function getAnnotationAuthorName(
     return title || null
 }
 
+function parseColor(color: string): [number, number, number] | null {
+    const normalized = color.trim().toLowerCase()
+    const shortHex = normalized.match(/^#([0-9a-f]{3})$/i)
+    if (shortHex) {
+        return shortHex[1].split('').map((channel) => parseInt(channel + channel, 16)) as [number, number, number]
+    }
+
+    const hex = normalized.match(/^#([0-9a-f]{6})$/i)
+    if (hex) {
+        return [
+            parseInt(hex[1].slice(0, 2), 16),
+            parseInt(hex[1].slice(2, 4), 16),
+            parseInt(hex[1].slice(4, 6), 16)
+        ]
+    }
+
+    const rgb = normalized.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*[\d.]+)?\s*\)$/)
+    if (!rgb) return null
+
+    return [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])].map((channel) =>
+        Math.max(0, Math.min(255, channel))
+    ) as [number, number, number]
+}
+
+function getRelativeLuminance([red, green, blue]: [number, number, number]): number {
+    const [linearRed, linearGreen, linearBlue] = [red, green, blue].map((channel) => {
+        const value = channel / 255
+        return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+    })
+
+    return 0.2126 * linearRed + 0.7152 * linearGreen + 0.0722 * linearBlue
+}
+
+export function getReadableAuthorLabelTextColor(backgroundColor: string): '#ffffff' | '#111827' {
+    const rgb = parseColor(backgroundColor)
+    if (!rgb) return '#ffffff'
+
+    const backgroundLuminance = getRelativeLuminance(rgb)
+    const darkTextLuminance = getRelativeLuminance([17, 24, 39])
+    const whiteContrast = 1.05 / (backgroundLuminance + 0.05)
+    const darkContrast = (backgroundLuminance + 0.05) / (darkTextLuminance + 0.05)
+
+    return darkContrast > whiteContrast ? '#111827' : '#ffffff'
+}
+
 interface AnnotationAuthorLabelPositionOptions {
     selectionRect: IRect
     labelWidth: number
