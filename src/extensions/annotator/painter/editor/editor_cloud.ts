@@ -2,13 +2,13 @@ import Konva from 'konva'
 import { KonvaEventObject } from 'konva/lib/Node'
 import { AnnotationType, IAnnotationStore, IAnnotationStyle } from '../../const/definitions'
 import { Editor, IEditorOptions } from './editor'
+import { generateCloudPathData } from '../cloud_path'
 
 export class EditorCloud extends Editor {
     private cloudPath: Konva.Path | null = null
     private points: { x: number; y: number }[] = []
     private startRect: Konva.Rect | null = null
     private readonly startRectSize = 12
-    private fixedAngle: number | null = null
 
     constructor(options: IEditorOptions) {
         super({ ...options, editorType: AnnotationType.CLOUD })
@@ -109,7 +109,7 @@ export class EditorCloud extends Editor {
         try {
             // 闭合路径点（添加起始点作为结束点）
             const closedPoints = [...this.points, this.points[0]]
-            const pathData = this.generateCloudPathData(closedPoints)
+            const pathData = generateCloudPathData(closedPoints)
             this.cloudPath.data(pathData)
 
             // 检查当前形状组是否存在
@@ -151,94 +151,8 @@ export class EditorCloud extends Editor {
         const pathPoints = [...this.points]
         if (cursorPos) pathPoints.push(cursorPos)
 
-        const pathData = this.generateCloudPathData(pathPoints)
+        const pathData = generateCloudPathData(pathPoints)
         this.cloudPath.data(pathData)
-    }
-
-    /**
-     * @description 生成云朵路径数据
-     * @param points
-     * @returns
-     */
-    private generateCloudPathData(points: { x: number; y: number }[]): string {
-        if (points.length < 2) return ''
-        const radius = 15 // 波浪的半径
-        const waveStep = radius * 1.3 // 波浪的步长，控制波浪的密度
-        const center = this.computeCentroid(points)
-
-        let path = ''
-        // 遍历每一段线段，生成波浪路径
-        for (let i = 0; i < points.length - 1; i++) {
-            const p1 = points[i]
-            const p2 = points[i + 1]
-            const dx = p2.x - p1.x
-            const dy = p2.y - p1.y
-            const length = Math.hypot(dx, dy)
-
-            let angle = Math.atan2(dy, dx)
-            // 修复角度计算问题：只在第一次计算角度时固定
-            if (i === 0 && this.fixedAngle === null) {
-                this.fixedAngle = angle
-            }
-            if (i === 0 && this.fixedAngle !== null) {
-                angle = this.fixedAngle
-            }
-
-            const normalX = Math.cos(angle + Math.PI / 2)
-            const normalY = Math.sin(angle + Math.PI / 2)
-
-            const segmentMidX = (p1.x + p2.x) / 2
-            const segmentMidY = (p1.y + p2.y) / 2
-            const toCenterX = center.x - segmentMidX
-            const toCenterY = center.y - segmentMidY
-            let normalSign = 1
-            if (normalX * toCenterX + normalY * toCenterY > 0) normalSign = -1
-
-            const steps = Math.max(2, Math.floor(length / waveStep))
-
-            for (let j = 0; j < steps; j++) {
-                const t1 = j / steps
-                const t2 = (j + 1) / steps
-
-                const x1 = p1.x + dx * t1
-                const y1 = p1.y + dy * t1
-                const x2 = p1.x + dx * t2
-                const y2 = p1.y + dy * t2
-
-                const midX = (x1 + x2) / 2
-                const midY = (y1 + y2) / 2
-                const controlX = midX + normalX * radius * normalSign
-                const controlY = midY + normalY * radius * normalSign
-
-                if (i === 0 && j === 0) {
-                    path += `M ${x1} ${y1} `
-                }
-
-                path += `Q ${controlX} ${controlY} ${x2} ${y2} `
-            }
-        }
-
-        return path
-    }
-
-    /**
-     * @description 计算一组点的质心
-     * @param points 点数组
-     * @returns 质心坐标
-     */
-    private computeCentroid(points: { x: number; y: number }[]): { x: number; y: number } {
-        const sum = points.reduce(
-            (acc, p) => {
-                acc.x += p.x
-                acc.y += p.y
-                return acc
-            },
-            { x: 0, y: 0 }
-        )
-        return {
-            x: sum.x / points.length,
-            y: sum.y / points.length
-        }
     }
 
     /**

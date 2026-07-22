@@ -70,6 +70,48 @@ describe('annotation store mapping', () => {
     });
   });
 
+  it('saves Cloud with cloud semantics and restores its sidebar type', () => {
+    const original = makeStore({
+      type: AnnotationType.CLOUD,
+      subtype: 'PolyLine',
+      pdfjsType: PdfjsAnnotationType.POLYLINE,
+      konvaString: '{"className":"Group","children":[{"className":"Path"}]}',
+    });
+
+    const saved = storeToAnnotation(original);
+    const restored = annotationToStore(saved);
+
+    expect(saved).toMatchObject({
+      kind: 'shape',
+      payload: { kind: 'shape', shape: 'cloud' },
+    });
+    expect(restored).toEqual(original);
+    expect(restored).toMatchObject({
+      type: AnnotationType.CLOUD,
+      pdfjsType: PdfjsAnnotationType.POLYLINE,
+      subtype: 'PolyLine',
+    });
+  });
+
+  it('restores Cloud from save data produced before the cloud mapping fix', () => {
+    const saved = storeToAnnotation(makeStore({
+      type: AnnotationType.CLOUD,
+      subtype: 'PolyLine',
+      pdfjsType: PdfjsAnnotationType.POLYLINE,
+    }));
+    saved.payload = { kind: 'shape', shape: 'polygon' };
+    const extensions = saved.extensions as {
+      legacy?: { annotationType?: AnnotationType }
+    };
+    delete extensions.legacy?.annotationType;
+
+    expect(annotationToStore(saved)).toMatchObject({
+      type: AnnotationType.CLOUD,
+      pdfjsType: PdfjsAnnotationType.POLYLINE,
+      subtype: 'PolyLine',
+    });
+  });
+
   it('preserves legacy rendering data during a round trip', () => {
     const original = makeStore({
       type: AnnotationType.NOTE,

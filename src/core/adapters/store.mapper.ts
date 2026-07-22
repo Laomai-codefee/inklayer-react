@@ -36,6 +36,7 @@ interface KnownExtensions {
     subtype?: string
   }
   legacy?: {
+    annotationType?: AnnotationType
     title?: string
     contentsObj?: { text: string; image?: string } | null
     comments?: IAnnotationComment[]
@@ -167,6 +168,7 @@ export function storeToAnnotation(store: IAnnotationStore): Annotation {
         subtype: store.subtype,
       },
       legacy: {
+        annotationType: store.type,
         title: store.title,
         contentsObj: store.contentsObj,
         comments: store.comments,
@@ -247,7 +249,9 @@ function extractPayload(store: IAnnotationStore, kind: AnnotationKind): Annotati
     }
 
     case 'shape': {
-      const shape = SUBTYPE_TO_SHAPE_VARIANT[subtype] || 'rect'
+      const shape = store.type === AnnotationType.CLOUD
+        ? 'cloud'
+        : SUBTYPE_TO_SHAPE_VARIANT[subtype] || 'rect'
       return {
         kind: 'shape',
         shape,
@@ -311,14 +315,20 @@ function adjustOpacity(color: string, opacity: number): string {
  */
 export function annotationToStore(annotation: Annotation): IAnnotationStore {
   const kind = annotation.kind
-  const subtype = getSubtypeFromKind(kind, annotation.payload)
-  const pdfjsType = getPdfjsTypeFromKind(kind)
 
   // 从 extensions 恢复旧系统字段（收窄类型，不改 Core 定义）
   const ext = annotation.extensions as KnownExtensions | undefined
   const legacy = ext?.legacy
   const konva = ext?.konva
   const geometry = annotation.target.geometry
+  const subtype = (ext?.pdfjs?.subtype as PdfjsAnnotationSubtype | undefined)
+    || getSubtypeFromKind(kind, annotation.payload)
+  const pdfjsType = getPdfjsTypeFromExtension(ext?.pdfjs?.type)
+    ?? getPdfjsTypeFromKind(kind, annotation.payload)
+  const type = legacy?.annotationType
+    ?? (kind === 'shape' && subtype === 'PolyLine'
+      ? AnnotationType.CLOUD
+      : getTypeFromKind(kind, annotation.payload))
 
   return {
     id: annotation.id,
@@ -326,7 +336,7 @@ export function annotationToStore(annotation: Annotation): IAnnotationStore {
     konvaString: konva?.serialized || '',
     konvaClientRect: konva?.clientRect || extractBoundingRect(geometry),
     title: legacy?.title || extractTitleFromPayload(annotation.payload),
-    type: getTypeFromKind(kind),
+    type,
     color: annotation.appearance?.strokeColor || null,
     subtype,
     pdfjsType,
@@ -341,7 +351,11 @@ export function annotationToStore(annotation: Annotation): IAnnotationStore {
 /**
  * 从 Kind 获取 AnnotationType
  */
-function getTypeFromKind(kind: AnnotationKind): AnnotationType {
+function getTypeFromKind(kind: AnnotationKind, payload?: AnnotationPayload): AnnotationType {
+  if (kind === 'shape' && payload?.kind === 'shape') {
+    if (payload.shape === 'cloud') return AnnotationType.CLOUD
+    if (payload.shape === 'ellipse') return AnnotationType.CIRCLE
+  }
   const KIND_TO_TYPE: Record<AnnotationKind, AnnotationType> = {
     'text-markup': AnnotationType.HIGHLIGHT,
     'note': AnnotationType.NOTE,
@@ -357,7 +371,12 @@ function getTypeFromKind(kind: AnnotationKind): AnnotationType {
 /**
  * 从 Kind 获取 PdfjsAnnotationType
  */
-function getPdfjsTypeFromKind(kind: AnnotationKind): PdfjsAnnotationType {
+function getPdfjsTypeFromKind(kind: AnnotationKind, payload?: AnnotationPayload): PdfjsAnnotationType {
+  if (kind === 'shape' && payload?.kind === 'shape') {
+    if (payload.shape === 'cloud') return PdfjsAnnotationType.POLYLINE
+    if (payload.shape === 'ellipse') return PdfjsAnnotationType.CIRCLE
+    if (payload.shape === 'polygon') return PdfjsAnnotationType.POLYGON
+  }
   const KIND_TO_PDFJS_TYPE: Record<AnnotationKind, PdfjsAnnotationType> = {
     'text-markup': PdfjsAnnotationType.HIGHLIGHT,
     'note': PdfjsAnnotationType.TEXT,
@@ -368,6 +387,12 @@ function getPdfjsTypeFromKind(kind: AnnotationKind): PdfjsAnnotationType {
     'file': PdfjsAnnotationType.FILEATTACHMENT,
   }
   return KIND_TO_PDFJS_TYPE[kind] || PdfjsAnnotationType.NONE
+}
+
+function getPdfjsTypeFromExtension(type?: string): PdfjsAnnotationType | undefined {
+  if (!type) return undefined
+  const value = (PdfjsAnnotationType as unknown as Record<string, unknown>)[type]
+  return typeof value === 'number' ? value as PdfjsAnnotationType : undefined
 }
 
 /**
@@ -383,7 +408,13 @@ function getSubtypeFromKind(kind: AnnotationKind, payload?: AnnotationPayload): 
     }
     case 'note': return 'Text'
     case 'ink': return 'Ink'
-    case 'shape': return 'Square'
+    case 'shape': {
+      if (payload.kind !== 'shape') return 'Square'
+      if (payload.shape === 'cloud') return 'PolyLine'
+      if (payload.shape === 'ellipse') return 'Circle'
+      if (payload.shape === 'polygon') return 'Polygon'
+      return 'Square'
+    }
     case 'line': return 'Line'
     case 'stamp': return 'Stamp'
     case 'file': return 'FileAttachment'

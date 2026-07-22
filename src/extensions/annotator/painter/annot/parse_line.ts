@@ -2,6 +2,7 @@ import { AnnotationParser } from './parse'
 import { PDFName, PDFString, PDFNumber } from 'pdf-lib'
 import { convertKonvaRectToPdfRect, rgbToPdfColor, stringToPDFHexString } from '../../utils/utils'
 import { t } from 'i18next'
+import { convertKonvaPointToPdf, transformPointByGroup } from './geometry'
 
 function buildArrowHeadPoints(x1: number, y1: number, x2: number, y2: number, pointerLength = 10, pointerWidth = 10): number[] {
     const dx = x2 - x1
@@ -27,49 +28,37 @@ export class LineParser extends AnnotationParser {
     async parse() {
         const { annotation, page, pdfDoc, pageView } = this
         const context = pdfDoc.context
-        // @ts-ignore
-        const pageHeight = page.getHeight()
-
         const konvaGroup = JSON.parse(annotation.konvaString)
-
-        const lines = konvaGroup.children.filter((item: any) => item.className === 'Arrow')
-
-        const { groupX, groupY, scaleX, scaleY } = this.extractGroupTransform(konvaGroup)
-
-        const viewport = pageView.viewport
+        const lines = konvaGroup.children.filter((item: { className?: string }) => item.className === 'Arrow')
+        if (lines.length === 0) throw new Error(`Arrow annotation ${annotation.id} has no arrow shape.`)
 
         const inkList = context.obj(
-            lines.map((line: any) => {
+            lines.map((line: { attrs: Record<string, unknown> }) => {
                 const points = line.attrs.points as number[]
+                if (!points || points.length < 4) {
+                    throw new Error(`Arrow annotation ${annotation.id} needs at least two points.`)
+                }
                 const transformedPoints: number[] = []
 
-                // ① 主线
                 for (let i = 0; i < points.length; i += 2) {
-                    const vx = groupX + points[i] * scaleX
-                    const vy = groupY + points[i + 1] * scaleY
-                    const viewportX = vx * viewport.scale
-                    const viewportY = vy * viewport.scale
-                    const [pdfX, pdfY] = viewport.convertToPdfPoint(viewportX, viewportY)
+                    const transformed = transformPointByGroup({ x: points[i], y: points[i + 1] }, konvaGroup)
+                    const [pdfX, pdfY] = convertKonvaPointToPdf(transformed, pageView)
                     transformedPoints.push(pdfX, pdfY)
                 }
 
-                // ② 箭头头部（新增）
-                if (points.length >= 4) {
-                    const len = points.length
-                    const x1 = (groupX + points[len - 4] * scaleX) * viewport.scale
-                    const y1 = (groupY + points[len - 3] * scaleY) * viewport.scale
-                    const x2 = (groupX + points[len - 2] * scaleX) * viewport.scale
-                    const y2 = (groupY + points[len - 1] * scaleY) * viewport.scale
-
-                    const pointerLength = line.attrs.pointerLength ?? 10
-                    const pointerWidth = line.attrs.pointerWidth ?? 10
-
-                    const [x1_1, y1_1] = viewport.convertToPdfPoint(x1, y1)
-                    const [x2_1, y2_1] = viewport.convertToPdfPoint(x2, y2)
-
-                    const head = buildArrowHeadPoints(x1_1, y1_1, x2_1, y2_1, pointerLength, pointerWidth)
-
-                    transformedPoints.push(...head)
+                const length = points.length
+                const head = buildArrowHeadPoints(
+                    points[length - 4],
+                    points[length - 3],
+                    points[length - 2],
+                    points[length - 1],
+                    typeof line.attrs.pointerLength === 'number' ? line.attrs.pointerLength : 10,
+                    typeof line.attrs.pointerWidth === 'number' ? line.attrs.pointerWidth : 10
+                )
+                for (let i = 0; i < head.length; i += 2) {
+                    const transformed = transformPointByGroup({ x: head[i], y: head[i + 1] }, konvaGroup)
+                    const [pdfX, pdfY] = convertKonvaPointToPdf(transformed, pageView)
+                    transformedPoints.push(pdfX, pdfY)
                 }
 
                 return context.obj(transformedPoints)
@@ -89,8 +78,9 @@ export class LineParser extends AnnotationParser {
 
         const mainAnn = context.obj({
             Type: PDFName.of('Annot'),
-            // 注意：PDF 的 Ink 注解不支持箭头样式，导出后将仅保留线条
+            // Ink is intentional: the sampled arrowhead renders consistently in PDF viewers.
             Subtype: PDFName.of('Ink'),
+            InkLayerType: PDFName.of('Arrow'),
             Rect: convertKonvaRectToPdfRect(annotation.konvaClientRect, pageView),
             InkList: inkList,
             C: context.obj([PDFNumber.of(r), PDFNumber.of(g), PDFNumber.of(b)]),
@@ -98,11 +88,10 @@ export class LineParser extends AnnotationParser {
             Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
             M: PDFString.of(annotation.date || ''),
             NM: PDFString.of(annotation.id),
-            LE: [PDFName.of('ClosedArrow'), PDFName.of('None')],
             BS: bs,
             F: PDFNumber.of(4),
             P: page.ref,
-            CA: PDFNumber.of(opacity) // Non-stroking opacity (used for drawing)
+            CA: PDFNumber.of(opacity) // Constant opacity for the Ink stroke.
         })
 
         const mainAnnRef = context.register(mainAnn)

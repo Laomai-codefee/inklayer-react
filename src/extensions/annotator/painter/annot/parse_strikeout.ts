@@ -2,6 +2,7 @@ import { AnnotationParser } from './parse'
 import { PDFName, PDFNumber, PDFString } from 'pdf-lib'
 import { convertKonvaRectToPdfRect, rgbToPdfColor, stringToPDFHexString } from '../../utils/utils'
 import { t } from 'i18next'
+import { transformRectByGroup } from './geometry'
 export class StrikeOutParser extends AnnotationParser {
     async parse() {
         const { annotation, page, pdfDoc, pageView } = this
@@ -13,7 +14,8 @@ export class StrikeOutParser extends AnnotationParser {
         const quadPoints: number[] = []
 
         for (const rect of rects) {
-            const [x1, y2, x2, y1] = convertKonvaRectToPdfRect(rect.attrs, pageView)
+            const transformedRect = transformRectByGroup(rect.attrs, konvaGroup)
+            const [x1, y2, x2, y1] = convertKonvaRectToPdfRect(transformedRect, pageView)
             // QuadPoints: 每个矩形有 4 个点（左上、右上、左下、右下）
             quadPoints.push(
                 x1, y1, // 左上
@@ -22,8 +24,6 @@ export class StrikeOutParser extends AnnotationParser {
                 x2, y2  // 右下
             )
         }
-
-        console.log('quadPoints', quadPoints)
 
         const mainAnn = context.obj({
             Type: PDFName.of('Annot'),

@@ -1,4 +1,4 @@
-import { PDFDocument, PDFName, PDFPage } from 'pdf-lib'
+import { PDFArray, PDFDict, PDFDocument, PDFName, PDFPage } from 'pdf-lib'
 import { TextParser } from './parse_text'
 import { saveAs } from 'file-saver'
 import { AnnotationParser } from './parse'
@@ -12,8 +12,9 @@ import { FreeTextParser } from './parse_freetext'
 import { StampParser } from './parse_stamp'
 import { LineParser } from './parse_line'
 import { PolylineParser } from './parse_polyline'
+import { CloudParser } from './parse_cloud'
 import { formatPDFDate, getPDFDateTimestamp, getTimestampString } from '../../utils/utils'
-import { annotationDefinitions, CommentStatus, IAnnotationStore, PdfjsAnnotationType } from '../../const/definitions'
+import { AnnotationType, annotationDefinitions, CommentStatus, IAnnotationStore, PdfjsAnnotationType } from '../../const/definitions'
 import { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
 import { PDFPageView } from 'pdfjs-dist/types/web/pdf_page_view'
 import i18n from 'i18next'
@@ -37,6 +38,28 @@ const parserMap: {
     // 你可以在这里扩展其他类型的解析器
 }
 
+const REPLACEABLE_PDF_ANNOTATION_SUBTYPES = new Set([
+    '/Text',
+    '/FreeText',
+    '/Line',
+    '/Square',
+    '/Circle',
+    '/Polygon',
+    '/PolyLine',
+    '/Highlight',
+    '/Underline',
+    '/StrikeOut',
+    '/Ink',
+    '/Stamp',
+    '/Popup'
+])
+
+function getParserClass(annotation: IAnnotationStore) {
+    return annotation.type === AnnotationType.CLOUD
+        ? CloudParser
+        : parserMap[annotation.pdfjsType]
+}
+
 /**
  * 将单个注解对象解析并添加到指定 PDF 页面中。
  *
@@ -45,7 +68,7 @@ const parserMap: {
  * @param pdfDoc - 当前正在编辑的 PDF 文档实例
  */
 async function parseAnnotationToPdf(annotation: IAnnotationStore, page: PDFPage, pdfDoc: PDFDocument, pageView: PDFPageView): Promise<void> {
-    const ParserClass = parserMap[annotation.pdfjsType]
+    const ParserClass = getParserClass(annotation)
     if (ParserClass) {
         const parser = new ParserClass(pdfDoc, page, annotation, pageView)
         await parser.parse()
@@ -80,13 +103,50 @@ function downloadExcel(data: any, filename: string) {
  *
  * @param pdfDoc - 要处理的 PDF 文档对象
  */
-function clearAllAnnotations(pdfDoc: PDFDocument) {
+function removeReplaceableAnnotations(pdfDoc: PDFDocument) {
     for (const page of pdfDoc.getPages()) {
         const annotsKey = PDFName.of('Annots')
-        if (page.node.has(annotsKey)) {
-            page.node.set(annotsKey, pdfDoc.context.obj([])) // 清空批注数组
-        }
+        const annots = page.node.lookupMaybe(annotsKey, PDFArray)
+        if (!annots) continue
+
+        const retained = annots.asArray().filter((annotationRef) => {
+            const annotation = pdfDoc.context.lookupMaybe(annotationRef, PDFDict)
+            const subtype = annotation?.get(PDFName.of('Subtype'))?.toString()
+            return !subtype || !REPLACEABLE_PDF_ANNOTATION_SUBTYPES.has(subtype)
+        })
+        page.node.set(annotsKey, pdfDoc.context.obj(retained))
     }
+}
+
+export async function buildAnnotatedPdf(
+    PDFViewerApplication: PDFViewer,
+    annotations: IAnnotationStore[]
+): Promise<Uint8Array> {
+    const pdfDocument = PDFViewerApplication.pdfDocument
+    if (!pdfDocument) throw new Error('Cannot export annotations before the PDF document is ready.')
+
+    const pdfData = await pdfDocument.getData()
+    const pdfDoc = await PDFDocument.load(pdfData)
+    const pages = pdfDoc.getPages()
+    const exportEntries = annotations.map((annotation) => {
+        if (!getParserClass(annotation)) {
+            throw new Error(`Unsupported annotation type: ${annotation.pdfjsType}`)
+        }
+        const page = pages[annotation.pageNumber - 1]
+        if (!page) throw new Error(`Annotation ${annotation.id} references missing page ${annotation.pageNumber}.`)
+        const pageView = PDFViewerApplication.getPageView(annotation.pageNumber - 1)
+        if (!pageView?.viewport) {
+            throw new Error(`Page view ${annotation.pageNumber} is not ready for annotation export.`)
+        }
+        return { annotation, page, pageView }
+    })
+
+    removeReplaceableAnnotations(pdfDoc)
+    for (const { annotation, page, pageView } of exportEntries) {
+        await parseAnnotationToPdf(annotation, page, pdfDoc, pageView)
+    }
+
+    return pdfDoc.save()
 }
 
 
@@ -97,20 +157,7 @@ function clearAllAnnotations(pdfDoc: PDFDocument) {
  * @param annotations - 解析后的批注数据数组
  */
 async function exportAnnotationsToPdf(PDFViewerApplication: PDFViewer, annotations: IAnnotationStore[], baseName?: string) {
-    // 加载 PDF 文件为 pdf-lib 可识别的文档对象
-    const pdfData = await PDFViewerApplication!.pdfDocument!.getData();
-    const pdfDoc = await PDFDocument.load(pdfData);
-
-    // ✅ 清除原有的所有批注
-    clearAllAnnotations(pdfDoc)
-    // 遍历每一个注解并解析应用到对应页面
-    for (const ann of annotations) {
-        const page = pdfDoc.getPages()[ann.pageNumber - 1]
-        const pageView = PDFViewerApplication.getPageView(ann.pageNumber - 1);
-        await parseAnnotationToPdf(ann, page, pdfDoc, pageView)
-    }
-
-    const modifiedPdf = await pdfDoc.save()
+    const modifiedPdf = await buildAnnotatedPdf(PDFViewerApplication, annotations)
     const fileName = baseName || `annotated_${getTimestampString()}`
 
     downloadPdf(modifiedPdf, fileName)
