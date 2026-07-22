@@ -93,12 +93,9 @@ export interface RenderOptions {
  */
 export class KonvaAnnotationRenderer {
     private context: KonvaRenderContext
-    // @ts-ignore
-    private options: RenderOptions
 
-    constructor(context: KonvaRenderContext, options: RenderOptions = {}) {
+    constructor(context: KonvaRenderContext, _options: RenderOptions = {}) {
         this.context = context
-        this.options = options
     }
 
     /**

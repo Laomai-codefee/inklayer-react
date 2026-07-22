@@ -207,12 +207,11 @@ export const PageIndicator: React.FC = () => {
                             textAlign: 'right',
                             color: '#fff',
                             paddingRight: 5,
-                            // @ts-expect-error
                             '--text-field-border-width': 0,
                             backgroundColor: 'transparent',
                             border: 'none',
                             borderColor: isInputValid ? undefined : 'red'
-                        }}
+                        } as React.CSSProperties & { '--text-field-border-width': number }}
                     />
                     <Text
                         style={{

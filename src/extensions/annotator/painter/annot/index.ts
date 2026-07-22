@@ -84,10 +84,10 @@ async function parseAnnotationToPdf(annotation: IAnnotationStore, page: PDFPage,
  * @param filename - 下载时使用的文件名
  */
 function downloadPdf(data: Uint8Array, filename: string) {
-    // 提取安全的 ArrayBuffer
-    const arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)
+    // Copy into a standard ArrayBuffer so Blob never receives a SharedArrayBuffer.
+    const arrayBuffer = new ArrayBuffer(data.byteLength)
+    new Uint8Array(arrayBuffer).set(data)
     // 创建 Blob
-    // @ts-ignore
     const blob = new Blob([arrayBuffer], { type: 'application/pdf' })
     // 使用 saveAs 下载
     saveAs(blob, `${filename}.pdf`)

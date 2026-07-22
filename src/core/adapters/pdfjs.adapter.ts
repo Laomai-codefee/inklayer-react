@@ -144,8 +144,7 @@ export function pdfJsToAnnotation(
     defaultAuthorId?: string
   }
 ): Annotation {
-  // @ts-ignore
-  const { documentId, pageSize, defaultAuthorId = 'unknown' } = options || {}
+  const { documentId, defaultAuthorId = 'unknown' } = options || {}
 
   // 1. 确定 Kind
   const kind = PDFJS_SUBTYPE_TO_KIND[pdfAnnotation.subtype] || 'note'
@@ -377,14 +376,11 @@ function extractAppearanceFromPdfJs(pdf: PdfJsAnnotation): AnnotationAppearance 
  */
 export function annotationToPdfJs(
   annotation: Annotation,
-  options?: {
+  _options?: {
     /** 页面索引 */
     pageIndex?: number
   }
 ): PdfJsAnnotation {
-  // @ts-ignore
-  const { pageIndex = 0 } = options || {}
-
   // 1. 基本信息
   const pdfAnnotation: PdfJsAnnotation = {
     subtype: KIND_TO_PDFJS_SUBTYPE[annotation.kind],

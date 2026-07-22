@@ -17,6 +17,12 @@ interface FindControllerState {
     _pageMatches?: number[][]
 }
 
+interface FindControllerNavigationState {
+    _selected: { pageIdx: number; matchIdx: number }
+    _offset: { pageIdx: number; matchIdx: number; wrapped: boolean }
+    _highlightMatches: boolean
+}
+
 interface FindControlStateEvent {
     rawQuery?: string | string[] | null
     source?: FindControllerState
@@ -69,10 +75,12 @@ export function usePdfSearch({ pdfViewer }: UsePdfSearchProps) {
 
         pdfViewer.scrollPageIntoView({ pageNumber })
 
-        findController._selected = { pageIdx: pageNumber - 1, matchIdx: matchIndex }
-        // @ts-expect-error
-        findController._offset = { pageIdx: pageNumber - 1, matchIdx: matchIndex - 1, wrapped: false }
-        findController._highlightMatches = true
+        // PDF.js navigation still relies on internal mutable state whose published
+        // _offset declaration only describes its initial null value.
+        const navigationState = findController as unknown as FindControllerNavigationState
+        navigationState._selected = { pageIdx: pageNumber - 1, matchIdx: matchIndex }
+        navigationState._offset = { pageIdx: pageNumber - 1, matchIdx: matchIndex - 1, wrapped: false }
+        navigationState._highlightMatches = true
 
         pdfViewer.eventBus.dispatch('find', {
             type: 'again',
