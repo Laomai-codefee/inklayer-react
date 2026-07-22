@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
+import type { TextItem, TextMarkedContent } from 'pdfjs-dist/types/src/display/api'
 import { KeywordResult, MatchSnippet, PageMatch } from '@/types'
 
 interface UsePdfSearchProps {
@@ -33,7 +34,9 @@ async function getPageText(pdfViewer: PDFViewer, pageIndex: number, cache: Map<n
     const pageView = pdfViewer.getPageView(pageIndex)
     if (!pageView?.pdfPage) return ''
     const textContent = await pageView.pdfPage.getTextContent()
-    const fullText = textContent.items.map((i: any) => i.str).join('')
+    const fullText = textContent.items
+        .map((item: TextItem | TextMarkedContent) => 'str' in item ? item.str : '')
+        .join('')
     cache.set(pageIndex, fullText)
     return fullText
 }

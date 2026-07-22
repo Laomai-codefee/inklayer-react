@@ -14,7 +14,7 @@
 
 import type { Annotation } from './annotation.core'
 import { storesToAnnotations, annotationsToStores } from './adapters/store.mapper'
-import { pdfJsToAnnotation, annotationToPdfJs } from './adapters/pdfjs.adapter'
+import { pdfJsToAnnotation, annotationToPdfJs, type PdfJsAnnotation } from './adapters/pdfjs.adapter'
 import { IAnnotationStore } from '../extensions/annotator/const/definitions'
 
 /* ============================================================================
@@ -170,7 +170,7 @@ export function loadAnnotations(
  * @returns InkLayer Annotation 数组
  */
 export function importFromPdfJs(
-  pdfAnnotations: any[],
+  pdfAnnotations: PdfJsAnnotation[],
   options?: IntegrationOptions
 ): Annotation[] {
   return pdfAnnotations.map(pdfAnn => 
@@ -192,7 +192,7 @@ export function importFromPdfJs(
 export function exportToPdfJs(
   annotations: Annotation[],
   options?: { pageIndex?: number }
-): any[] {
+): PdfJsAnnotation[] {
   return annotations.map(ann => annotationToPdfJs(ann, options))
 }
 
@@ -201,9 +201,9 @@ export function exportToPdfJs(
  * ========================================================================= */
 
 /** 检查是否为旧格式存储 */
-function isLegacyStore(obj: any): obj is IAnnotationStore {
-  return obj && 
-    typeof obj === 'object' && 
+function isLegacyStore(obj: unknown): obj is IAnnotationStore {
+  return obj !== null &&
+    typeof obj === 'object' &&
     'konvaString' in obj && 
     'type' in obj
 }
@@ -294,7 +294,7 @@ export function useAnnotationIntegration(options?: IntegrationOptions) {
     commit: (stores: IAnnotationStore[]) => commitAnnotations(stores, options),
     parse: (storage: AnnotationStorage) => parseAnnotationStorage(storage, options),
     createStorage: (stores: IAnnotationStore[]) => createAnnotationStorage(stores, options),
-    importPdfJs: (pdfAnnotations: any[]) => importFromPdfJs(pdfAnnotations, options),
+    importPdfJs: (pdfAnnotations: PdfJsAnnotation[]) => importFromPdfJs(pdfAnnotations, options),
     exportPdfJs: (annotations: Annotation[]) => exportToPdfJs(annotations),
   }
 }

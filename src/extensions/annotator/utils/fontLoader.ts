@@ -36,7 +36,7 @@ export async function loadFontWithFontFace(font: FontItem): Promise<void> {
     try {
         const fontFace = new FontFace(font.value, `url(${font.url})`)
         await fontFace.load()
-        ;(document.fonts as any).add(fontFace)
+        document.fonts.add(fontFace)
         loadedFonts.add(font.value)
     } catch (err) {
         loadFontIfNeeded(font)

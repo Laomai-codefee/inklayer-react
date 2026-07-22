@@ -25,8 +25,14 @@ async function generatePdf(pdfDocument: PDFDocumentProxy, cleanup: boolean = fal
     return pdfDoc.save()
 }
 
-function downloadPdf(data: any, filename: string) {
-    const blob = new Blob([data], { type: 'application/pdf' })
+function toArrayBuffer(data: Uint8Array): ArrayBuffer {
+    const buffer = new ArrayBuffer(data.byteLength)
+    new Uint8Array(buffer).set(data)
+    return buffer
+}
+
+function downloadPdf(data: Uint8Array, filename: string) {
+    const blob = new Blob([toArrayBuffer(data)], { type: 'application/pdf' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
     link.download = filename
@@ -34,8 +40,8 @@ function downloadPdf(data: any, filename: string) {
     URL.revokeObjectURL(link.href)
 }
 
-export function printPdf(data: any) {
-    const blob = new Blob([data], { type: 'application/pdf' })
+export function printPdf(data: Uint8Array) {
+    const blob = new Blob([toArrayBuffer(data)], { type: 'application/pdf' })
     const url = URL.createObjectURL(blob)
     const iframe = document.createElement('iframe')
     iframe.style.position = 'fixed'

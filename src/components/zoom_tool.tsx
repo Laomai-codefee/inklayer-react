@@ -100,7 +100,7 @@ export const ZoomTool: React.FC = () => {
             if ('labelKey' in matchedOption && matchedOption.labelKey) {
                 return t(matchedOption.labelKey)
             }
-            return (matchedOption as any).label
+            return 'label' in matchedOption ? matchedOption.label : currentScale
         }
         const num = parseFloat(currentScale)
         if (!isNaN(num)) {

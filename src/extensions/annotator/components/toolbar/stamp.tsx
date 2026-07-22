@@ -239,7 +239,7 @@ const StampTool: React.FC<SignatureToolProps> = ({ annotation, disabled = false,
     }
 
     // 处理表单字段变化
-    const handleFieldChange = (field: keyof FieldType, value: any) => {
+    const handleFieldChange = <Field extends keyof FieldType>(field: Field, value: FieldType[Field]) => {
         const newFormValues = {
             ...formValues,
             [field]: value
@@ -615,7 +615,7 @@ const StampTool: React.FC<SignatureToolProps> = ({ annotation, disabled = false,
                                     <div className={styles.formItem}>
                                         <Select.Root
                                             value={formValues.borderStyle}
-                                            onValueChange={(value) => handleFieldChange('borderStyle', value)}
+                                            onValueChange={(value) => handleFieldChange('borderStyle', value as FieldType['borderStyle'])}
                                         >
                                             <Select.Trigger />
                                             <Select.Content>

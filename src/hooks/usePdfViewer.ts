@@ -80,7 +80,7 @@ export function usePdfViewer(containerRef: React.RefObject<HTMLDivElement>, opti
     const [loading, setLoading] = useState(true)
     const [progress, setProgress] = useState(0)
     const [pdfDocument, setPdfDocument] = useState<PDFDocumentProxy | null>(null)
-    const [metadata, setMetadata] = useState<any>(null)
+    const [metadata, setMetadata] = useState<Awaited<ReturnType<PDFDocumentProxy['getMetadata']>> | null>(null)
     const [loadError, setLoadError] = useState<Error | null>(null)
 
     /** 创建 PDFViewer */

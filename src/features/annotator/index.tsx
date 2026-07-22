@@ -107,7 +107,12 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
         }
         if (actions) {
             if (typeof actions === 'function') {
-                const ExtraComponent = actions as React.ComponentType<any>
+                const ExtraComponent = actions as React.ComponentType<{
+                    save: () => void
+                    getAnnotations: () => ReturnType<typeof storesToAnnotations>
+                    exportToExcel: (fileName?: string) => void
+                    exportToPdf: (fileName?: string) => void
+                }>
                 return (
                     <ExtraComponent
                         save={handleSave}
