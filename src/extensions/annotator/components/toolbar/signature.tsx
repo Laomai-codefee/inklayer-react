@@ -94,7 +94,7 @@ const SignatureTool: React.FC<SignatureToolProps> = ({ annotation, disabled = fa
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.font = `${BASE_FONT_SIZE}px "${fontFamily}", cursive, sans-serif`
 
-        let textWidth = ctx.measureText(typedSignature).width
+        const textWidth = ctx.measureText(typedSignature).width
         const scale = textWidth + padding * 2 > canvas.width ? (canvas.width - padding * 2) / textWidth : 1
         ctx.font = `${BASE_FONT_SIZE * scale}px "${fontFamily}", cursive, sans-serif`
 

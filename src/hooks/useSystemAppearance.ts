@@ -15,14 +15,14 @@ const useSystemAppearance = () => {
         if (mediaQuery.addEventListener) {
             mediaQuery.addEventListener('change', handleChange)
         } else {
-            ;(mediaQuery as any).addListener(handleChange)
+            (mediaQuery as any).addListener(handleChange)
         }
 
         return () => {
             if (mediaQuery.removeEventListener) {
                 mediaQuery.removeEventListener('change', handleChange)
             } else {
-                ;(mediaQuery as any).removeListener(handleChange)
+                (mediaQuery as any).removeListener(handleChange)
             }
         }
     }, [])

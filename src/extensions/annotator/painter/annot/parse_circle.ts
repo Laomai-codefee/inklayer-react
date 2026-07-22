@@ -18,7 +18,7 @@ export class CircleParser extends AnnotationParser {
 
         const opacity = konvaRect.attrs.opacity ?? 1
 
-        let bsDict: any = {
+        const bsDict: any = {
             W: PDFNumber.of(strokeWidth),
             S: PDFName.of('S') // Solid
         }

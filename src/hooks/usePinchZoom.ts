@@ -215,7 +215,7 @@ export function usePinchZoom({
             // 保证 touch0.identifier < touch1.identifier
             let [t0, t1] = [e.touches[0], e.touches[1]]
             if (t0.identifier > t1.identifier) {
-                ;[t0, t1] = [t1, t0]
+                [t0, t1] = [t1, t0]
             }
             touchInfoRef.current = {
                 touch0X: t0.pageX,
@@ -231,7 +231,7 @@ export function usePinchZoom({
 
             let [t0, t1] = [e.touches[0], e.touches[1]]
             if (t0.identifier > t1.identifier) {
-                ;[t0, t1] = [t1, t0]
+                [t0, t1] = [t1, t0]
             }
 
             const { pageX: p0x, pageY: p0y } = t0

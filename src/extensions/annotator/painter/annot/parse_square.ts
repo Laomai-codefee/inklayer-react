@@ -15,7 +15,7 @@ export class SquareParser extends AnnotationParser {
         const strokeWidth = shapeAttrs.strokeWidth ?? 2
         const dashArray = shapeAttrs.dash ?? []
         const opacity = shapeAttrs.opacity ?? 1
-        let bsDict: any = {
+        const bsDict: any = {
             W: PDFNumber.of(strokeWidth),
             S: PDFName.of('S') // Solid
         }
