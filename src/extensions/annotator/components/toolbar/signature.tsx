@@ -2,7 +2,6 @@ import styles from './signature.module.scss';
 import Konva from 'konva'
 import React, {
     useEffect,
-    useMemo,
     useRef,
     useState,
 } from 'react'
@@ -55,12 +54,7 @@ const SignatureTool: React.FC<SignatureToolProps> = ({ annotation, disabled = fa
 
     const { appearance } = useThemeContext()
 
-    const defaultSignatures = useMemo(() => {
-        if (default_signatures) {
-            return default_signatures
-        }
-        return defaultOptions.signature!.defaultSignature!
-    }, [default_signatures])
+    const defaultSignatures = default_signatures ?? defaultOptions.signature!.defaultSignature!
 
     const maxSize: number = signatureMaxSize
 
@@ -79,6 +73,9 @@ const SignatureTool: React.FC<SignatureToolProps> = ({ annotation, disabled = fa
         }
         setFontFamily(fontValue)
     }
+
+    const modalInitializationRef = useRef({ fontFamily, signatureTypeDefault, loadFont })
+    modalInitializationRef.current = { fontFamily, signatureTypeDefault, loadFont }
 
     const generateTypedSignatureImage = (): string | null => {
         if (!typedSignature.trim()) return null
@@ -297,10 +294,11 @@ const SignatureTool: React.FC<SignatureToolProps> = ({ annotation, disabled = fa
 
     useEffect(() => {
         if (isModalOpen) {
-            loadFont(fontFamily)
+            const initialization = modalInitializationRef.current
+            void initialization.loadFont(initialization.fontFamily)
             setTypedSignature('')
             setUploadedImageUrl(null)
-            setSignatureType(signatureTypeDefault)
+            setSignatureType(initialization.signatureTypeDefault)
         }
     }, [isModalOpen])
 

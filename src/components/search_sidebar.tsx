@@ -20,6 +20,24 @@ interface SearchSidebarProps {
     pdfViewer: PDFViewer | null
 }
 
+const HighlightedText: React.FC<{
+    text: string
+    query: string
+    caseSensitive: boolean
+}> = ({ text, query, caseSensitive }) => (
+    <>
+        {splitSearchText(text, query, caseSensitive).map((part, index) =>
+            part.highlighted ? (
+                <mark key={`${index}-${part.text}`} style={{ backgroundColor: 'rgba(255, 255, 0, 0.2)', padding: '0 2px' }}>
+                    {part.text}
+                </mark>
+            ) : (
+                part.text
+            )
+        )}
+    </>
+)
+
 export const SearchSidebar: React.FC<SearchSidebarProps> = ({ pdfViewer }) => {
     const { query, setQuery, results, searching, search, clearSearch, jumpToMatch } = usePdfSearch({ pdfViewer })
     const { t } = useTranslation('viewer', { useSuspense: false })
@@ -33,24 +51,9 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ pdfViewer }) => {
 
     const matchRefs = useRef<Record<string, HTMLButtonElement | null>>({})
 
-    const prevResultsRef = useRef(results);
-
-    const HighlightedText: React.FC<{
-        text: string
-        query: string
-    }> = ({ text, query }) => {
-        const highlightMatchText = (text: string, query: string, caseSensitive: boolean) =>
-            splitSearchText(text, query, caseSensitive).map((part, index) =>
-                part.highlighted ? (
-                    <mark key={`${index}-${part.text}`} style={{ backgroundColor: 'rgba(255, 255, 0, 0.2)', padding: '0 2px' }}>
-                        {part.text}
-                    </mark>
-                ) : (
-                    part.text
-                )
-            )
-        return <>{highlightMatchText(text, query, searchOptions.caseSensitive)}</>
-    }
+    const prevResultsRef = useRef(results)
+    const queryRef = useRef(query)
+    queryRef.current = query
 
     const performSearch = useCallback(
         (searchQuery: string) => {
@@ -200,12 +203,13 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ pdfViewer }) => {
     }, [results, currentMatch, getAllMatches, findCurrentMatchIndex, jumpToMatch, scrollToMatch])
 
     useEffect(() => {
-        prevResultsRef.current = results;
-    }, [results]);
+        prevResultsRef.current = results
+    }, [results])
 
     useEffect(() => {
-        if (query.trim()) {
-            performSearch(query.trim())
+        const currentQuery = queryRef.current.trim()
+        if (currentQuery) {
+            performSearch(currentQuery)
         }
     }, [searchOptions, performSearch])
 
@@ -220,7 +224,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ pdfViewer }) => {
     }, [clearSearch, setQuery])
 
     // 渲染搜索结果
-    const renderSearchResults = useCallback(() => {
+    const renderSearchResults = () => {
         if (!results.length || searching) return null
 
         return results.map((res) => (
@@ -274,7 +278,11 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ pdfViewer }) => {
                                         }}
                                     >
                                         <Text truncate>
-                                            <HighlightedText text={m.snippet} query={res.query} />
+                                            <HighlightedText
+                                                text={m.snippet}
+                                                query={res.query}
+                                                caseSensitive={searchOptions.caseSensitive}
+                                            />
                                         </Text>
                                     </Button>
                                 </Box>
@@ -284,7 +292,7 @@ export const SearchSidebar: React.FC<SearchSidebarProps> = ({ pdfViewer }) => {
                 ))}
             </Box>
         ))
-    }, [results, searching, currentMatch, t, handleJumpToMatch])
+    }
 
     // 渲染加载状态
     const renderLoading = useMemo(() => {

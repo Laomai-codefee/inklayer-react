@@ -1,5 +1,5 @@
 import styles from './styles.module.scss';
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { CommentStatus, IAnnotationComment, IAnnotationStore, PdfjsAnnotationSubtype } from '../../const/definitions'
 import { useTranslation } from 'react-i18next'
 import { formatPDFDate, formatTimestamp, generateUUID } from '../../utils/utils'
@@ -117,6 +117,8 @@ const Sidebar: React.FC = () => {
     const [editAnnotation, setEditAnnotation] = useState<IAnnotationStore | null>(null)
     const [selectedUsers, setSelectedUsers] = useState<string[]>([])
     const [selectedTypes, setSelectedTypes] = useState<PdfjsAnnotationSubtype[]>([])
+    const clearSelectedAnnotationRef = useRef(clearSelectedAnnotation)
+    clearSelectedAnnotationRef.current = clearSelectedAnnotation
 
     const { t } = useTranslation(['common', 'annotator'], { useSuspense: false })
 
@@ -164,10 +166,10 @@ const Sidebar: React.FC = () => {
 
     useEffect(() => {
         return () => {
-            setReplyAnnotation(null);
-            setCurrentReply(null);
-            setEditAnnotation(null);
-            clearSelectedAnnotation()
+            setReplyAnnotation(null)
+            setCurrentReply(null)
+            setEditAnnotation(null)
+            clearSelectedAnnotationRef.current()
         }
     }, [])
 
@@ -333,155 +335,146 @@ const Sidebar: React.FC = () => {
     }
 
     // Comment 编辑框
-    const commentInput = useCallback(
-        (annotation: IAnnotationStore) => {
-            let comment = ''
-            if (editAnnotation && currentAnnotation?.store?.id === annotation.id) {
-                const handleSubmit = () => {
-                    updateComment(annotation, comment)
-                    setEditAnnotation(null)
+    const commentInput = (annotation: IAnnotationStore) => {
+        let comment = ''
+        if (editAnnotation && currentAnnotation?.store?.id === annotation.id) {
+            const handleSubmit = () => {
+                updateComment(annotation, comment)
+                setEditAnnotation(null)
+            }
+            const handleTextAreaRef = (element: HTMLTextAreaElement) => {
+                if (element) {
+                    // 延迟执行focus确保DOM已更新
+                    setTimeout(() => {
+                        element.focus()
+                    }, 0)
                 }
-                const handleTextAreaRef = (element: HTMLTextAreaElement) => {
-                    if (element) {
-                        // 延迟执行focus确保DOM已更新
-                        setTimeout(() => {
-                            element.focus();
-                        }, 0);
-                    }
-                };
-                return (
-                    <>
-                        <TextArea
-                            ref={handleTextAreaRef}
-                            defaultValue={annotation?.contentsObj?.text}
-                            autoFocus
-                            rows={4}
-                            style={{ marginBottom: '8px', marginTop: '8px' }}
-                            onBlur={() => setEditAnnotation(null)}
-                            onChange={(e) => (comment = e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault()
-                                    handleSubmit()
-                                }
-                            }}
-                        />
-                        <Button style={{ width: '100%' }} onMouseDown={handleSubmit}>
-                            {t('confirm')}
-                        </Button>
-                    </>
-                )
             }
             return (
-                <Flex gap="3" pl="4">
-                    <Text as="p" size="2" truncate>
-                        {annotation?.contentsObj?.text}
-                    </Text>
-                </Flex>
+                <>
+                    <TextArea
+                        ref={handleTextAreaRef}
+                        defaultValue={annotation?.contentsObj?.text}
+                        autoFocus
+                        rows={4}
+                        style={{ marginBottom: '8px', marginTop: '8px' }}
+                        onBlur={() => setEditAnnotation(null)}
+                        onChange={(e) => (comment = e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault()
+                                handleSubmit()
+                            }
+                        }}
+                    />
+                    <Button style={{ width: '100%' }} onMouseDown={handleSubmit}>
+                        {t('confirm')}
+                    </Button>
+                </>
             )
-        },
-        [editAnnotation, currentAnnotation]
-    )
+        }
+        return (
+            <Flex gap="3" pl="4">
+                <Text as="p" size="2" truncate>
+                    {annotation?.contentsObj?.text}
+                </Text>
+            </Flex>
+        )
+    }
 
     // 回复框
-    const replyInput = useCallback(
-        (annotation: IAnnotationStore) => {
-            let comment = ''
-            if (replyAnnotation && currentAnnotation?.store?.id === annotation.id) {
-                const handleSubmit = () => {
-                    addReply(annotation, comment)
-                    setReplyAnnotation(null)
-                }
-
-                const handleTextAreaRef = (element: HTMLTextAreaElement) => {
-                    if (element) {
-                        // 延迟执行focus确保DOM已更新
-                        setTimeout(() => {
-                            element.focus();
-                        }, 0);
-                    }
-                };
-
-                return (
-                    <>
-                        <TextArea
-                            ref={handleTextAreaRef}
-                            autoFocus
-                            rows={4}
-                            style={{ marginBottom: '8px', marginTop: '8px' }}
-                            onBlur={() => setReplyAnnotation(null)}
-                            onChange={(e) => (comment = e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault()
-                                    handleSubmit()
-                                }
-                            }}
-                        />
-                        <Button style={{ width: '100%' }} onMouseDown={handleSubmit}>
-                            {t('confirm')}
-                        </Button>
-                    </>
-                )
+    const replyInput = (annotation: IAnnotationStore) => {
+        let comment = ''
+        if (replyAnnotation && currentAnnotation?.store?.id === annotation.id) {
+            const handleSubmit = () => {
+                addReply(annotation, comment)
+                setReplyAnnotation(null)
             }
-            return null
-        },
-        [replyAnnotation, currentAnnotation]
-    )
 
-    // 编辑回复框
-    const editReplyInput = useCallback(
-        (annotation: IAnnotationStore, reply: IAnnotationComment) => {
-            let comment = ''
-            if (currentReply && currentReply.id === reply.id) {
-                const handleSubmit = () => {
-                    updateReply(annotation, reply, comment)
-                    setCurrentReply(null)
+            const handleTextAreaRef = (element: HTMLTextAreaElement) => {
+                if (element) {
+                    // 延迟执行focus确保DOM已更新
+                    setTimeout(() => {
+                        element.focus()
+                    }, 0)
                 }
-
-                const handleTextAreaRef = (element: HTMLTextAreaElement) => {
-                    if (element) {
-                        // 延迟执行focus确保DOM已更新
-                        setTimeout(() => {
-                            element.focus();
-                        }, 0);
-                    }
-                };
-
-                return (
-                    <>
-                        <TextArea
-                            ref={handleTextAreaRef}
-                            defaultValue={currentReply.content}
-                            autoFocus
-                            rows={4}
-                            style={{ marginBottom: '8px' }}
-                            onBlur={() => setCurrentReply(null)}
-                            onChange={(e) => (comment = e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault()
-                                    handleSubmit()
-                                }
-                            }}
-                        />
-                        <Button style={{ width: '100%' }} onMouseDown={handleSubmit}>
-                            {t('confirm')}
-                        </Button>
-                    </>
-                )
             }
 
             return (
-                <Flex gap="3">
-                    <Text as="p" size="2" truncate>
-                        {reply.content}
-                    </Text>
-                </Flex>
+                <>
+                    <TextArea
+                        ref={handleTextAreaRef}
+                        autoFocus
+                        rows={4}
+                        style={{ marginBottom: '8px', marginTop: '8px' }}
+                        onBlur={() => setReplyAnnotation(null)}
+                        onChange={(e) => (comment = e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault()
+                                handleSubmit()
+                            }
+                        }}
+                    />
+                    <Button style={{ width: '100%' }} onMouseDown={handleSubmit}>
+                        {t('confirm')}
+                    </Button>
+                </>
             )
-        },
-        [replyAnnotation, currentReply]
-    )
+        }
+        return null
+    }
+
+    // 编辑回复框
+    const editReplyInput = (annotation: IAnnotationStore, reply: IAnnotationComment) => {
+        let comment = ''
+        if (currentReply && currentReply.id === reply.id) {
+            const handleSubmit = () => {
+                updateReply(annotation, reply, comment)
+                setCurrentReply(null)
+            }
+
+            const handleTextAreaRef = (element: HTMLTextAreaElement) => {
+                if (element) {
+                    // 延迟执行focus确保DOM已更新
+                    setTimeout(() => {
+                        element.focus()
+                    }, 0)
+                }
+            }
+
+            return (
+                <>
+                    <TextArea
+                        ref={handleTextAreaRef}
+                        defaultValue={currentReply.content}
+                        autoFocus
+                        rows={4}
+                        style={{ marginBottom: '8px' }}
+                        onBlur={() => setCurrentReply(null)}
+                        onChange={(e) => (comment = e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault()
+                                handleSubmit()
+                            }
+                        }}
+                    />
+                    <Button style={{ width: '100%' }} onMouseDown={handleSubmit}>
+                        {t('confirm')}
+                    </Button>
+                </>
+            )
+        }
+
+        return (
+            <Flex gap="3">
+                <Text as="p" size="2" truncate>
+                    {reply.content}
+                </Text>
+            </Flex>
+        )
+    }
 
     const comments = Object.entries(groupedAnnotations).map(([pageNumber, annotationsForPage]) => {
         // 根据 konvaClientRect.y 对 annotationsForPage 进行排序

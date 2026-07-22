@@ -1,6 +1,6 @@
 import styles from './stamp.module.scss'
 import Konva from 'konva'
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import React, { useLayoutEffect, useRef, useState } from 'react'
 import { IAnnotationType } from '../../const/definitions'
 import { useTranslation } from 'react-i18next'
 import { formatFileSize } from '../../utils/utils'
@@ -114,12 +114,7 @@ const StampTool: React.FC<SignatureToolProps> = ({ annotation, disabled = false,
 
     const { appearance } = useThemeContext()
 
-    const defaultStamps = useMemo(() => {
-        if (default_stamps) {
-            return default_stamps
-        }
-        return defaultOptions.stamp!.defaultStamp!
-    }, [default_stamps])
+    const defaultStamps = default_stamps ?? defaultOptions.stamp!.defaultStamp!
 
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [stampType, setStampType] = useState<string>(defaultStamps.length === 0 ? "custom" : "default")
@@ -386,25 +381,25 @@ const StampTool: React.FC<SignatureToolProps> = ({ annotation, disabled = false,
         konvaStageRef.current = stage
     }
 
-    const destroyKonvaStage = () => {
-        const stage = konvaStageRef.current
-        if (stage) {
-            stage.destroy()
-            konvaStageRef.current = null
-        }
-    }
+    const previewValuesRef = useRef(formValues)
+    previewValuesRef.current = lastFormValues ?? formValues
+    const initializeKonvaStageRef = useRef(initializeKonvaStage)
+    initializeKonvaStageRef.current = initializeKonvaStage
 
     useLayoutEffect(() => {
         if (isModalOpen) {
             const rafId = requestAnimationFrame(() => {
                 if (containerRef.current) {
-                    const initialValues = lastFormValues || formValues
-                    initializeKonvaStage(initialValues)
+                    initializeKonvaStageRef.current(previewValuesRef.current)
                 }
             })
             return () => cancelAnimationFrame(rafId)
-        } else {
-            destroyKonvaStage()
+        }
+
+        const stage = konvaStageRef.current
+        if (stage) {
+            stage.destroy()
+            konvaStageRef.current = null
         }
     }, [isModalOpen])
 

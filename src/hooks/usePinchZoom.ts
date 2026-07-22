@@ -13,7 +13,7 @@
  *   3. 不依赖第三方 pinch zoom 库
  */
 
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import type { PDFViewer } from 'pdfjs-dist/legacy/web/pdf_viewer.mjs'
 
 // ── 类型定义 ──
@@ -36,6 +36,42 @@ interface TouchInfo {
     touch1Y: number
 }
 
+// ═══════════════════════════════════════════════════════════
+//  核心算法 1: _accumulateFactor
+//  来源: pdf.js-4.2.67/web/app.js L2086-2101
+// ═══════════════════════════════════════════════════════════
+/**
+ * 累加缩放因子，避免每帧都触发缩放。
+ *
+ * 原理：
+ *  - 将不足 0.01 精度的缩放量暂存到 ref 中
+ *  - 当累积量足以触发 scale * 100 整数位变化时，返回有效 factor
+ *  - 方向反转（放大→缩小 / 缩小→放大）时重置暂存
+ *
+ * @param previousScale  缩放前的 currentScale
+ * @param factor         本次事件的原始缩放比率
+ * @param accumulationRef 暂存器 ref（wheelFactorRef 或 touchFactorRef）
+ * @returns 经累积处理后的缩放因子；返回 1 表示无需缩放
+ */
+const accumulateFactor = (
+    previousScale: number,
+    factor: number,
+    accumulationRef: React.MutableRefObject<number>,
+): number => {
+    if (factor === 1) return 1
+
+    const stored = accumulationRef.current
+    if ((stored > 1 && factor < 1) || (stored < 1 && factor > 1)) {
+        accumulationRef.current = 1
+    }
+
+    const newFactor =
+        Math.floor(previousScale * factor * accumulationRef.current * 100) /
+        (100 * previousScale)
+    accumulationRef.current = factor / newFactor
+    return newFactor
+}
+
 // ── Hook 主体 ──
 export function usePinchZoom({
     pdfViewer,
@@ -48,43 +84,6 @@ export function usePinchZoom({
     const touchFactorRef = useRef(1)       // _touchUnusedFactor
     const isCtrlKeyDownRef = useRef(false) // 物理 Ctrl/Meta 键是否按下
     const touchInfoRef = useRef<TouchInfo | null>(null)
-
-    // ═══════════════════════════════════════════════════════════
-    //  核心算法 1: _accumulateFactor
-    //  来源: pdf.js-4.2.67/web/app.js L2086-2101
-    // ═══════════════════════════════════════════════════════════
-    /**
-     * 累加缩放因子，避免每帧都触发缩放。
-     *
-     * 原理：
-     *  - 将不足 0.01 精度的缩放量暂存到 ref 中
-     *  - 当累积量足以触发 scale * 100 整数位变化时，返回有效 factor
-     *  - 方向反转（放大→缩小 / 缩小→放大）时重置暂存
-     *
-     * @param previousScale  缩放前的 currentScale
-     * @param factor         本次事件的原始缩放比率
-     * @param accumulationRef 暂存器 ref（wheelFactorRef 或 touchFactorRef）
-     * @returns 经累积处理后的缩放因子；返回 1 表示无需缩放
-     */
-    const accumulateFactor = (
-        previousScale: number,
-        factor: number,
-        accumulationRef: React.MutableRefObject<number>,
-    ): number => {
-        if (factor === 1) return 1
-
-        const stored = accumulationRef.current
-        // 方向变化 → 重置累积
-        if ((stored > 1 && factor < 1) || (stored < 1 && factor > 1)) {
-            accumulationRef.current = 1
-        }
-
-        const newFactor =
-            Math.floor(previousScale * factor * accumulationRef.current * 100) /
-            (100 * previousScale)
-        accumulationRef.current = factor / newFactor
-        return newFactor
-    }
 
     // ═══════════════════════════════════════════════════════════
     //  核心算法 2: _centerAtPos
@@ -108,7 +107,7 @@ export function usePinchZoom({
      * @param clientX        锚点的 viewport x 坐标
      * @param clientY        锚点的 viewport y 坐标
      */
-    const centerAtPos = (
+    const centerAtPos = useCallback((
         previousScale: number,
         clientX: number,
         clientY: number,
@@ -123,10 +122,10 @@ export function usePinchZoom({
         const { left, top } = container.getBoundingClientRect()
         container.scrollLeft += (clientX - left) * scaleDiff
         container.scrollTop += (clientY - top) * scaleDiff
-    }
+    }, [containerRef, pdfViewer])
 
     // ── 辅助：缩放并补偿 ──
-    const applyZoom = (
+    const applyZoom = useCallback((
         previousScale: number,
         newFactor: number,
         clientX: number,
@@ -142,7 +141,7 @@ export function usePinchZoom({
         if (!pdfViewer || !pdfViewer.pdfDocument) return
         pdfViewer.currentScale = newScale
         centerAtPos(previousScale, clientX, clientY)
-    }
+    }, [centerAtPos, maxScale, minScale, pdfViewer])
 
     // ═══════════════════════════════════════════════════════════
     //  Wheel / Trackpad Pinch Zoom
@@ -192,7 +191,7 @@ export function usePinchZoom({
             window.removeEventListener('keydown', handleKeyDown)
             window.removeEventListener('keyup', handleKeyUp)
         }
-    }, [pdfViewer, containerRef, minScale, maxScale])
+    }, [pdfViewer, containerRef, applyZoom])
 
     // ═══════════════════════════════════════════════════════════
     //  Touch Pinch Zoom (iOS / Android)
@@ -342,5 +341,5 @@ export function usePinchZoom({
             container.removeEventListener('touchend', handleTouchEnd)
             container.removeEventListener('touchcancel', handleTouchEnd)
         }
-    }, [pdfViewer, containerRef, minScale, maxScale])
+    }, [pdfViewer, containerRef, applyZoom])
 }
