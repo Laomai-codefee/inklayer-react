@@ -208,4 +208,74 @@ describe('AnnotationAuthorLabels', () => {
 
         labels.destroy()
     })
+
+    it('repositions labels after the page is scaled', () => {
+        const annotation = createAnnotation('annotation-1', 'Alice')
+        const rect = { x: 20, y: 40, width: 50, height: 30 }
+        const group = createGroup(rect)
+        const wrapper = document.createElement('div')
+        let stageWidth = 500
+        const stage = {
+            width: () => stageWidth,
+            height: () => 700
+        } as unknown as Konva.Stage
+        const labels = new AnnotationAuthorLabels({
+            primaryColor: '#6e56cf',
+            defaultVisible: true,
+            getAnnotationsByPage: () => [annotation],
+            getAnnotationGroup: () => group as unknown as Konva.Group,
+            canTransform: () => true
+        })
+
+        labels.registerPage(1, wrapper, stage)
+        const label = wrapper.querySelector(`[data-annotation-id="${annotation.id}"]`) as HTMLDivElement
+        Object.defineProperties(label, {
+            offsetWidth: { configurable: true, value: 70 },
+            offsetHeight: { configurable: true, value: 24 }
+        })
+        labels.refreshPage(1)
+        expect(label.style.transform).toBe('translate3d(2px, 10px, 0)')
+
+        rect.x = 460
+        rect.y = 200
+        stageWidth = 600
+        labels.refreshPage(1)
+
+        expect(label.style.transform).toBe('translate3d(442px, 170px, 0)')
+        labels.destroy()
+    })
+
+    it('unregisters only the requested page and removes global listeners on destroy', () => {
+        const removeWindowListener = jest.spyOn(window, 'removeEventListener')
+        const removeDocumentListener = jest.spyOn(document, 'removeEventListener')
+        const first = createAnnotation('annotation-1', 'Alice')
+        const second = { ...createAnnotation('annotation-2', 'Bob'), pageNumber: 2 }
+        const group = createGroup({ x: 20, y: 40, width: 50, height: 30 })
+        const firstWrapper = document.createElement('div')
+        const secondWrapper = document.createElement('div')
+        const stage = { width: () => 500, height: () => 700 } as unknown as Konva.Stage
+        const labels = new AnnotationAuthorLabels({
+            primaryColor: '#6e56cf',
+            getAnnotationsByPage: (pageNumber) => pageNumber === 1 ? [first] : [second],
+            getAnnotationGroup: () => group as unknown as Konva.Group,
+            canTransform: () => true
+        })
+
+        labels.registerPage(1, firstWrapper, stage)
+        labels.registerPage(2, secondWrapper, stage)
+        labels.unregisterPage(1)
+
+        expect(firstWrapper.querySelector(`.${ANNOTATION_AUTHOR_LABELS_LAYER_CLASS}`)).toBeNull()
+        expect(secondWrapper.querySelector(`[data-annotation-id="${second.id}"]`)).not.toBeNull()
+
+        labels.destroy()
+        expect(secondWrapper.querySelector(`.${ANNOTATION_AUTHOR_LABELS_LAYER_CLASS}`)).toBeNull()
+        expect(removeWindowListener).toHaveBeenCalledWith('keydown', expect.any(Function))
+        expect(removeWindowListener).toHaveBeenCalledWith('keyup', expect.any(Function))
+        expect(removeWindowListener).toHaveBeenCalledWith('blur', expect.any(Function))
+        expect(removeDocumentListener).toHaveBeenCalledWith('visibilitychange', expect.any(Function))
+
+        removeWindowListener.mockRestore()
+        removeDocumentListener.mockRestore()
+    })
 })

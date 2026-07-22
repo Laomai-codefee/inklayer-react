@@ -89,6 +89,15 @@ describe('AnnotationPermissionController', () => {
         expect(controller.can('comment.delete', annotation, comment)).toBe(false)
     })
 
+    it('uses the reply author instead of the annotation owner for reply mutations', () => {
+        const controller = createController(bob, { mode: 'owner-only' })
+        const annotation = makeAnnotation(alice)
+        const bobsReply = makeComment(bob)
+
+        expect(controller.can('comment.edit', annotation, bobsReply)).toBe(true)
+        expect(controller.can('comment.delete', annotation, bobsReply)).toBe(true)
+    })
+
     it('keeps legacy comments without a stable author read-only', () => {
         const controller = createController(alice, { mode: 'owner-only' })
         const comment = makeComment()
@@ -118,6 +127,17 @@ describe('AnnotationPermissionController', () => {
             defaultAllowed: false,
             annotation: expect.objectContaining({ id: annotation.id })
         }))
+    })
+
+    it('supports a custom resolver that makes unrestricted mode read-only', () => {
+        const controller = createController(alice, {
+            can: () => false
+        })
+        const annotation = makeAnnotation(alice)
+
+        actions.forEach(action => {
+            expect(controller.can(action, annotation, makeComment(alice))).toBe(false)
+        })
     })
 
     it('denies and reports a failing resolver only once', () => {

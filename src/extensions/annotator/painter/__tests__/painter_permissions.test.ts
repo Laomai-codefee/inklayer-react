@@ -44,9 +44,10 @@ function createPainter(can: boolean) {
     const painter = Object.create(Painter.prototype) as Painter
     Object.assign(painter as unknown as Record<string, unknown>, {
         permissionController: { can: jest.fn(() => can) },
-        selector: { delete: jest.fn(), clear: jest.fn(), refreshCurrentSelection: jest.fn() },
+        selector: { delete: jest.fn(), clear: jest.fn(), select: jest.fn(), refreshCurrentSelection: jest.fn() },
         authorLabels: {
             refreshAnnotation: jest.fn(),
+            refreshAll: jest.fn(),
             remove: jest.fn()
         },
         editorStore: new Map(),
@@ -62,9 +63,13 @@ function createPainter(can: boolean) {
 
 function createCollaborativePainter(currentUser: User, permissions: AnnotationPermissions) {
     const painter = createPainter(false)
+    Object.assign(painter as unknown as Record<string, unknown>, {
+        currentUser,
+        annotationPermissions: permissions
+    })
     const permissionController = new AnnotationPermissionController({
-        getCurrentUser: () => currentUser,
-        getPermissions: () => permissions
+        getCurrentUser: () => (painter as unknown as { currentUser: User }).currentUser,
+        getPermissions: () => (painter as unknown as { annotationPermissions?: AnnotationPermissions }).annotationPermissions
     })
     Object.assign(painter as unknown as Record<string, unknown>, { permissionController })
     return painter
@@ -134,5 +139,41 @@ describe('Painter permission guards', () => {
         expect(bob.delete(annotation.id, true)).toBe(false)
         expect(admin.update(annotation.id, { title: 'Admin edited' })).toBeDefined()
         expect(admin.delete(annotation.id, true)).toBe(true)
+    })
+
+    it('updates the active permission context without recreating the painter', () => {
+        const painter = createCollaborativePainter(
+            { id: 'alice', name: 'Alice' },
+            { mode: 'owner-only' }
+        )
+        const editor = { setCurrentUser: jest.fn() }
+        ;(painter as unknown as { editorStore: Map<string, typeof editor> }).editorStore.set('editor', editor)
+
+        painter.setPermissionContext({ id: 'bob', name: 'Bob' }, { can: () => false })
+
+        expect(painter.can('annotation.edit', annotation)).toBe(false)
+        expect(editor.setCurrentUser).toHaveBeenCalledWith({ id: 'bob', name: 'Bob' })
+        expect((painter as unknown as { selector: { refreshCurrentSelection: jest.Mock } }).selector.refreshCurrentSelection).toHaveBeenCalledTimes(1)
+        expect((painter as unknown as { authorLabels: { refreshAll: jest.Mock } }).authorLabels.refreshAll).toHaveBeenCalledTimes(1)
+    })
+
+    it('keeps selection available when every mutation is read-only', () => {
+        const painter = createCollaborativePainter(
+            { id: 'bob', name: 'Bob' },
+            { can: () => false }
+        )
+        const rectangle = { type: 3 } as Parameters<Painter['activate']>[0]
+
+        painter.selectAnnotation(annotation.id, true)
+        expect(painter.update(annotation.id, { title: 'Blocked' })).toBeUndefined()
+        expect(painter.delete(annotation.id, true)).toBe(false)
+        painter.activate(rectangle, null)
+        painter.highlightRange(null, rectangle!)
+
+        expect((painter as unknown as { selector: { select: jest.Mock } }).selector.select)
+            .toHaveBeenCalledWith(annotation.id, true)
+        expect(mockState.updateAnnotation).not.toHaveBeenCalled()
+        expect(mockState.removeAnnotation).not.toHaveBeenCalled()
+        expect((painter as unknown as { webSelection: { highlight: jest.Mock } }).webSelection.highlight).not.toHaveBeenCalled()
     })
 })
