@@ -11,11 +11,13 @@ export function deepMerge<T>(target: T, source?: DeepPartial<T>): T {
         return source !== undefined ? (source as T) : target
     }
 
-    const result: any = { ...target }
+    const result: Record<string, unknown> = { ...target }
+    const sourceRecord = source as Record<string, unknown>
+    const targetRecord = target as Record<string, unknown>
 
-    Object.keys(source).forEach((key) => {
-        const sourceValue = (source as any)[key]
-        const targetValue = (target as any)[key]
+    Object.keys(sourceRecord).forEach((key) => {
+        const sourceValue = sourceRecord[key]
+        const targetValue = targetRecord[key]
 
         // 数组：直接覆盖（非常重要）
         if (Array.isArray(sourceValue)) {
@@ -35,10 +37,10 @@ export function deepMerge<T>(target: T, source?: DeepPartial<T>): T {
         }
     })
 
-    return result
+    return result as T
 }
 
-function isPlainObject(value: any): value is Record<string, any> {
+function isPlainObject(value: unknown): value is Record<string, unknown> {
     return value !== null && typeof value === 'object' && Object.prototype.toString.call(value) === '[object Object]'
 }
 
@@ -112,9 +114,13 @@ export function isSameColor(color1: string, color2: string): boolean {
     }
 }
 
-export function debounce<T extends (...args: any[]) => any>(func: T, wait: number, immediate: boolean = false): (...args: Parameters<T>) => void {
+export function debounce<Args extends unknown[], Result, This = unknown>(
+    func: (this: This, ...args: Args) => Result,
+    wait: number,
+    immediate: boolean = false
+): (this: This, ...args: Args) => void {
     let timeoutId: NodeJS.Timeout | null = null
-    return function (this: any, ...args: Parameters<T>) {
+    return function (this: This, ...args: Args) {
         const callNow = immediate && !timeoutId
         
         if (timeoutId) {
@@ -129,10 +135,12 @@ export function debounce<T extends (...args: any[]) => any>(func: T, wait: numbe
         if (callNow) func.apply(this, args)
     }
 }
-export function once<T extends (...args: any[]) => any>(fn: T): (...args: Parameters<T>) => ReturnType<T> {
+export function once<Args extends unknown[], Result, This = unknown>(
+    fn: (this: This, ...args: Args) => Result
+): (this: This, ...args: Args) => Result {
     let called = false
-    let result: ReturnType<T>
-    return function (this: any, ...args: Parameters<T>): ReturnType<T> {
+    let result: Result
+    return function (this: This, ...args: Args): Result {
         if (!called) {
             called = true
             result = fn.apply(this, args)

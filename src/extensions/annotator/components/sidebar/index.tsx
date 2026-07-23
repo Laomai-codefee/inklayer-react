@@ -33,7 +33,7 @@ import {
 } from '../../const/icons'
 import { SelectionSource, useAnnotationStore } from '../../store'
 import { UserContext } from '@/context/user_context'
-import { usePainter } from '../../context/painter_context'
+import { usePainter } from '../../context/use_painter'
 import { usePdfViewerContext } from '@/context/pdf_viewer_context'
 
 interface StatusOption {

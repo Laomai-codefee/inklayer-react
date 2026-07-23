@@ -441,13 +441,13 @@ function getTimestampString(date: Date = new Date()): string {
     return `${year}${month}${day}_${hour}${minute}${second}`
 }
 
-function hashArrayOfObjects<T extends Record<string, any>>(arr: T[]): number {
+function hashArrayOfObjects<T extends Record<string, unknown>>(arr: T[]): number {
     const jsonString = JSON.stringify(arr, (_key, value) => {
         if (value && typeof value === 'object' && !Array.isArray(value)) {
             return Object.keys(value)
                 .sort()
-                .reduce((sortedObject: Record<string, any>, k) => {
-                    sortedObject[k] = value[k]
+                .reduce((sortedObject: Record<string, unknown>, k) => {
+                    sortedObject[k] = (value as Record<string, unknown>)[k]
                     return sortedObject
                 }, {})
         }

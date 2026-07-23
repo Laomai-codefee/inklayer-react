@@ -42,7 +42,7 @@ jest.mock('@/context/user_context', () => ({
     useUserContext: () => ({ user: mockUser })
 }))
 
-jest.mock('../context/painter_context', () => ({
+jest.mock('../context/use_painter', () => ({
     usePainter: () => ({ setPainter: mockSetPainter, refreshPainter: mockRefreshPainter })
 }))
 

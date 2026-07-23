@@ -70,7 +70,7 @@ export class StampParser extends AnnotationParser {
             })
         }
 
-        const stampAnnDict: any = {
+        const stampAnnDict = {
             Type: PDFName.of('Annot'),
             Subtype: PDFName.of('Stamp'),
             Rect: rect,
@@ -80,10 +80,9 @@ export class StampParser extends AnnotationParser {
             M: PDFString.of(annotation.date || ''),
             Open: false,
             P: page.ref,
-            F: PDFNumber.of(4 | 128)
+            F: PDFNumber.of(4 | 128),
+            ...(apDict ? { AP: apDict } : {})
         }
-
-        if (apDict) stampAnnDict.AP = apDict
 
         const stampAnn = context.obj(stampAnnDict)
         const stampAnnRef = context.register(stampAnn)

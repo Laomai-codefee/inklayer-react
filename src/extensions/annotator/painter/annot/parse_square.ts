@@ -1,4 +1,4 @@
-import { AnnotationParser } from './parse'
+import { AnnotationParser, parseSerializedKonvaNode } from './parse'
 import { PDFName, PDFNumber, PDFString } from 'pdf-lib'
 import { convertKonvaRectToPdfRect, rgbToPdfColor, stringToPDFHexString } from '../../utils/utils'
 import { t } from 'i18next'
@@ -8,21 +8,17 @@ export class SquareParser extends AnnotationParser {
         const { annotation, page, pdfDoc, pageView } = this
         const context = pdfDoc.context
 
-        const konvaGroup = JSON.parse(annotation.konvaString)
+        const konvaGroup = parseSerializedKonvaNode(annotation.konvaString)
 
         const konvaShape = konvaGroup.children?.[0] ?? konvaGroup
         const shapeAttrs = konvaShape.attrs ?? konvaGroup.attrs ?? {}
         const strokeWidth = shapeAttrs.strokeWidth ?? 2
         const dashArray = shapeAttrs.dash ?? []
         const opacity = shapeAttrs.opacity ?? 1
-        const bsDict: any = {
+        const bsDict = {
             W: PDFNumber.of(strokeWidth),
-            S: PDFName.of('S') // Solid
-        }
-
-        if (dashArray && dashArray.length > 0) {
-            bsDict.D = context.obj(dashArray)
-            bsDict.S = PDFName.of('D')
+            S: PDFName.of(dashArray.length > 0 ? 'D' : 'S'),
+            ...(dashArray.length > 0 ? { D: context.obj(dashArray) } : {})
         }
 
         // 1️⃣ 主批注（方框）

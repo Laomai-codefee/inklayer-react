@@ -93,9 +93,21 @@ function downloadPdf(data: Uint8Array, filename: string) {
     saveAs(blob, `${filename}.pdf`)
 }
 
-function downloadExcel(data: any, filename: string) {
+function downloadExcel(data: ArrayBuffer, filename: string) {
     const buffer = new Blob([data], { type: 'application/octet-stream' })
     saveAs(buffer, `${filename}.xlsx`)
+}
+
+interface ExcelExportRow {
+    index: string
+    id: string
+    page: number | ''
+    annotationType: string
+    recordType: string
+    author: string
+    content: string
+    date: string
+    status: string
 }
 
 /**
@@ -164,7 +176,7 @@ async function exportAnnotationsToPdf(PDFViewerApplication: PDFViewer, annotatio
 }
 
 async function exportAnnotationsToExcel(_PDFViewerApplication: PDFViewer, annotations: IAnnotationStore[], baseName?: string) {
-    const rows: any[] = []
+    const rows: ExcelExportRow[] = []
     // 先按页码升序，再按批注时间降序
     annotations.sort((a, b) => {
         if (a.pageNumber !== b.pageNumber) {

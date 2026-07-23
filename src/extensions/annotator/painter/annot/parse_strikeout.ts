@@ -1,4 +1,4 @@
-import { AnnotationParser } from './parse'
+import { AnnotationParser, parseSerializedKonvaNode } from './parse'
 import { PDFName, PDFNumber, PDFString } from 'pdf-lib'
 import { convertKonvaRectToPdfRect, rgbToPdfColor, stringToPDFHexString } from '../../utils/utils'
 import { t } from 'i18next'
@@ -8,13 +8,13 @@ export class StrikeOutParser extends AnnotationParser {
         const { annotation, page, pdfDoc, pageView } = this
         const context = pdfDoc.context
 
-        const konvaGroup = JSON.parse(annotation.konvaString)
-        const rects = konvaGroup.children.filter((item: any) => item.className === 'Rect')
+        const konvaGroup = parseSerializedKonvaNode(annotation.konvaString)
+        const rects = (konvaGroup.children ?? []).filter((item) => item.className === 'Rect')
 
         const quadPoints: number[] = []
 
         for (const rect of rects) {
-            const transformedRect = transformRectByGroup(rect.attrs, konvaGroup)
+            const transformedRect = transformRectByGroup(rect.attrs ?? {}, konvaGroup)
             const [x1, y2, x2, y1] = convertKonvaRectToPdfRect(transformedRect, pageView)
             // QuadPoints: 每个矩形有 4 个点（左上、右上、左下、右下）
             quadPoints.push(

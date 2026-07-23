@@ -9,7 +9,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { StampTool } from './stamp'
 import { SignatureTool } from './signature'
-import { usePainter } from '../../context/painter_context'
+import { usePainter } from '../../context/use_painter'
 import { AuthorLabelsIcon, PaletteIcon } from '../../const/icons'
 import { useOptionsContext } from '../../context/options_context'
 import { useAnnotationStore } from '../../store'

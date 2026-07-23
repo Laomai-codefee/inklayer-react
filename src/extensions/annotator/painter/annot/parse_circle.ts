@@ -1,4 +1,4 @@
-import { AnnotationParser } from './parse'
+import { AnnotationParser, parseSerializedKonvaNode } from './parse'
 import { PDFName, PDFNumber, PDFString } from 'pdf-lib'
 import { t } from 'i18next'
 import { convertKonvaRectToPdfRect, rgbToPdfColor, stringToPDFHexString } from '../../utils/utils'
@@ -8,24 +8,22 @@ export class CircleParser extends AnnotationParser {
         const { annotation, page, pdfDoc, pageView } = this
         const context = pdfDoc.context
 
-        const konvaGroup = JSON.parse(annotation.konvaString)
+        const konvaGroup = parseSerializedKonvaNode(annotation.konvaString)
 
-        const konvaRect = konvaGroup.children.find((child: any) => child.className === 'Ellipse')
+        const konvaRect = konvaGroup.children?.find((child) => child.className === 'Ellipse')
+        if (!konvaRect) throw new Error(`Annotation ${annotation.id} is missing its ellipse geometry.`)
+        const attrs = konvaRect.attrs ?? {}
 
-        const strokeWidth = konvaRect.attrs.strokeWidth ?? 2
+        const strokeWidth = attrs.strokeWidth ?? 2
 
-        const dashArray = konvaRect.attrs.dash ?? []
+        const dashArray = attrs.dash ?? []
 
-        const opacity = konvaRect.attrs.opacity ?? 1
+        const opacity = attrs.opacity ?? 1
 
-        const bsDict: any = {
+        const bsDict = {
             W: PDFNumber.of(strokeWidth),
-            S: PDFName.of('S') // Solid
-        }
-
-        if (dashArray && dashArray.length > 0) {
-            bsDict.D = context.obj(dashArray)
-            bsDict.S = PDFName.of('D')
+            S: PDFName.of(dashArray.length > 0 ? 'D' : 'S'),
+            ...(dashArray.length > 0 ? { D: context.obj(dashArray) } : {})
         }
 
         const rect = convertKonvaRectToPdfRect(annotation.konvaClientRect, pageView)

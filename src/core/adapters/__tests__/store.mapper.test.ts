@@ -124,6 +124,20 @@ describe('annotation store mapping', () => {
     expect(restored).toEqual(original);
   });
 
+  it('restores the canonical StrikeOut subtype from core payload data', () => {
+    const saved = storeToAnnotation(makeStore({
+      type: AnnotationType.STRIKEOUT,
+      subtype: 'StrikeOut',
+      pdfjsType: PdfjsAnnotationType.STRIKEOUT,
+    }));
+    const extensions = saved.extensions as {
+      pdfjs?: { subtype?: string }
+    };
+    delete extensions.pdfjs?.subtype;
+
+    expect(annotationToStore(saved).subtype).toBe('StrikeOut');
+  });
+
   it('preserves stable comment authors during a round trip', () => {
     const original = makeStore({
       comments: [{

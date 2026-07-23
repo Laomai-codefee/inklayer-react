@@ -1,4 +1,4 @@
-import { AnnotationParser } from './parse'
+import { AnnotationParser, parseSerializedKonvaNode } from './parse'
 import { PDFName, PDFString, PDFNumber } from 'pdf-lib'
 import { convertKonvaRectToPdfRect, rgbToPdfColor, stringToPDFHexString } from '../../utils/utils'
 import { t } from 'i18next'
@@ -8,16 +8,16 @@ export class InkParser extends AnnotationParser {
         const { annotation, page, pdfDoc, pageView } = this
         const context = pdfDoc.context
 
-        const konvaGroup = JSON.parse(annotation.konvaString)
-        const lines = konvaGroup.children.filter((item: any) => item.className === 'Line')
+        const konvaGroup = parseSerializedKonvaNode(annotation.konvaString)
+        const lines = (konvaGroup.children ?? []).filter((item) => item.className === 'Line')
 
         const { groupX, groupY, scaleX, scaleY } = this.extractGroupTransform(konvaGroup)
 
         const viewport = pageView.viewport
 
         const inkList = context.obj(
-            lines.map((line: any) => {
-                const points = line.attrs.points as number[]
+            lines.map((line) => {
+                const points = line.attrs?.points ?? []
                 const transformedPoints: number[] = []
                 for (let i = 0; i < points.length; i += 2) {
                     const vx = groupX + points[i] * scaleX
@@ -32,7 +32,7 @@ export class InkParser extends AnnotationParser {
             })
         )
 
-        const firstLine = lines[0]?.attrs || {}
+        const firstLine = lines[0]?.attrs ?? {}
         const strokeWidth = firstLine.strokeWidth ?? 1
         const opacity = firstLine.opacity ?? 1
         const color = firstLine.stroke ?? annotation.color ?? 'rgb(255, 0, 0)'

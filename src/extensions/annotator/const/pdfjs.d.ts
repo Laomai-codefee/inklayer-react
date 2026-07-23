@@ -7,29 +7,29 @@ declare module 'pdfjs' {
         pagesCount: number
         _title: string
         _downloadUrl: string
-        [key: string]: any // 其他未知属性的类型定义
+        [key: string]: unknown // 其他未知属性的类型定义
     }
     interface Sidebar {
         outerContainer: HTMLDivElement
         sidebarContainer: HTMLDivElement
-        [key: string]: any // 其他未知属性的类型定义
+        [key: string]: unknown // 其他未知属性的类型定义
     }
     interface Toolbar {
         container: HTMLDivElement
-        [key: string]: any // 其他未知属性的类型定义
+        [key: string]: unknown // 其他未知属性的类型定义
     }
     interface AppConfig {
         sidebar: Sidebar
         toolbar: Toolbar
         viewerContainer: HTMLDivElement
         mainContainer: HTMLDivElement
-        [key: string]: any // 其他未知属性的类型定义
+        [key: string]: unknown // 其他未知属性的类型定义
     }
     interface PDFPageView {
         id: number
         div: HTMLDivElement
         viewport: PageViewport
-        [key: string]: any // 其他未知属性的类型定义
+        [key: string]: unknown // 其他未知属性的类型定义
     }
     interface PageViewport {
         viewBox: [number, number, number, number]
@@ -48,7 +48,7 @@ declare module 'pdfjs' {
         }
     }
     interface EventBus {
-        [key: string]: any // 其他未知属性的类型定义
+        [key: string]: unknown // 其他未知属性的类型定义
     }
     type Subtype =
         | 'Link'
@@ -247,7 +247,7 @@ declare module 'pdfjs' {
         annotationType: 1
         inReplyTo?: string
         replyType?: string
-        [key: string]: any
+        [key: string]: unknown
     }
 
     // Underline annotation with quad points

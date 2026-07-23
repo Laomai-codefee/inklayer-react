@@ -27,7 +27,7 @@ jest.mock('@/components/popover_bar', () => {
     }
 })
 
-jest.mock('../../../context/painter_context', () => ({
+jest.mock('../../../context/use_painter', () => ({
     usePainter: () => ({ painter: { can: mockCan } })
 }))
 

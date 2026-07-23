@@ -93,6 +93,13 @@ const SUBTYPE_TO_TEXT_MARKUP_VARIANT: Record<string, 'highlight' | 'underline' |
   'StrikeOut': 'strikeout',
 }
 
+const TEXT_MARKUP_VARIANT_TO_SUBTYPE = {
+  highlight: 'Highlight',
+  underline: 'Underline',
+  squiggly: 'Squiggly',
+  strikeout: 'StrikeOut',
+} as const satisfies Record<'highlight' | 'underline' | 'squiggly' | 'strikeout', PdfjsAnnotationSubtype>
+
 /** PdfjsAnnotationSubtype → shape variant 映射 */
 const SUBTYPE_TO_SHAPE_VARIANT: Record<string, 'rect' | 'ellipse' | 'cloud' | 'polygon'> = {
   'Square': 'rect',
@@ -403,8 +410,8 @@ function getSubtypeFromKind(kind: AnnotationKind, payload?: AnnotationPayload): 
 
   switch (kind) {
     case 'text-markup': {
-      const variant = (payload as any)?.variant || 'Highlight'
-      return variant.charAt(0).toUpperCase() + variant.slice(1) as PdfjsAnnotationSubtype
+      if (payload.kind !== 'text-markup') return 'Highlight'
+      return TEXT_MARKUP_VARIANT_TO_SUBTYPE[payload.variant]
     }
     case 'note': return 'Text'
     case 'ink': return 'Ink'

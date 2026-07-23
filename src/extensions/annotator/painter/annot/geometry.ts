@@ -1,8 +1,5 @@
 import type { PDFPageView } from 'pdfjs-dist/types/web/pdf_page_view'
-
-interface SerializedKonvaNode {
-    attrs?: Record<string, number | undefined>
-}
+import type { SerializedKonvaAttributes, SerializedKonvaNode } from './parse'
 
 export interface Point {
     x: number
@@ -28,7 +25,7 @@ export function transformPointByGroup(point: Point, group: SerializedKonvaNode):
 }
 
 export function transformRectByGroup(
-    rect: { x?: number; y?: number; width?: number; height?: number },
+    rect: Pick<SerializedKonvaAttributes, 'x' | 'y' | 'width' | 'height'>,
     group: SerializedKonvaNode
 ): { x: number; y: number; width: number; height: number } {
     const x = rect.x ?? 0

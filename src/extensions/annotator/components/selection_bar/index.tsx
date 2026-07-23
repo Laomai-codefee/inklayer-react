@@ -1,7 +1,7 @@
 import React, { forwardRef, useImperativeHandle } from 'react';
 import { PopoverBar, PopoverBarProps, PopoverBarRef } from '@/components/popover_bar';
 import { HighlightIcon, StrikeoutIcon, UnderlineIcon } from '../../const/icons';
-import { usePainter } from '../../context/painter_context';
+import { usePainter } from '../../context/use_painter';
 import { annotationDefinitions, IAnnotationType } from '../../const/definitions';
 import { useTranslation } from 'react-i18next';
 
