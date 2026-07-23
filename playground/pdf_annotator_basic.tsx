@@ -77,6 +77,7 @@ const PdfAnnotatorBasic: React.FC = () => {
                 "subtype": "Highlight"
             },
             "legacy": {
+                "annotationType": 1,
                 "title": "InkLayer",
                 "contentsObj": {
                     "text": "inklayer"
@@ -133,9 +134,10 @@ const PdfAnnotatorBasic: React.FC = () => {
             },
             "pdfjs": {
                 "type": "STAMP",
-                "subtype": "Caret"
+                "subtype": "Stamp"
             },
             "legacy": {
+                "annotationType": 10,
                 "title": "InkLayer",
                 "contentsObj": {
                     "text": "",
@@ -149,78 +151,6 @@ const PdfAnnotatorBasic: React.FC = () => {
                         "content": "Yes"
                     }
                 ]
-            }
-        }
-    },
-    {
-        "id": "ZEB5X4J-eiaT5Jt9ErG3s",
-        "kind": "shape",
-        "target": {
-            "pageIndex": 0,
-            "geometry": {
-                "type": "path",
-                "points": [
-                    {
-                        "x": 55.02161416235326,
-                        "y": 284.5681998630313
-                    },
-                    {
-                        "x": 210.56183525131758,
-                        "y": 284.5681998630313
-                    },
-                    {
-                        "x": 210.56183525131758,
-                        "y": 389.57870022656465
-                    },
-                    {
-                        "x": 55.02161416235326,
-                        "y": 389.57870022656465
-                    }
-                ],
-                "closed": true
-            },
-            "coordinateSystem": "pdf-user-space"
-        },
-        "payload": {
-            "kind": "shape",
-            "shape": "cloud"
-        },
-        "appearance": {
-            "strokeColor": "#9c36b5",
-            "fillColor": "rgba(156, 54, 181, 0.3)",
-            "opacity": 1
-        },
-        "relations": {},
-        "meta": {
-            "createdAt": "D:20260629000833+08'00'",
-            "updatedAt": "D:20260629000833+08'00'",
-            "authorId": {
-                "id": "9527",
-                "name": "InkLayer"
-            },
-            "isNative": false,
-            "source": "inklayer"
-        },
-        "extensions": {
-            "konva": {
-                "serialized": "{\"attrs\":{\"draggable\":true,\"name\":\"InkLayer_Annotator_shape_group\",\"id\":\"ZEB5X4J-eiaT5Jt9ErG3s\"},\"className\":\"Group\",\"children\":[{\"attrs\":{\"data\":\"M 76.1897994377643 300.5681998630313 Q 86.18846078130292 285.5681998630313 96.18712212484154 300.5681998630313 Q 106.18578346838015 285.5681998630313 116.18444481191878 300.5681998630313 Q 126.1831061554574 285.5681998630313 136.181767498996 300.5681998630313 Q 146.18042884253464 285.5681998630313 156.17909018607327 300.5681998630313 Q 166.1777515296119 285.5681998630313 176.17641287315053 300.5681998630313 Q 186.17507421668915 285.5681998630313 196.17373556022775 300.5681998630313 Q 209.56183525131758 314.5973372113725 193.17413715716617 324.96561861438846 Q 206.562236848256 338.99475596272964 190.17453875410456 349.3630373657456 Q 203.5626384451944 363.39217471408676 187.17494035104298 373.76045611710276 Q 175.24575817563328 388.57870022656465 163.7780728071626 373.40049420109915 Q 151.8488906317529 388.21873831056104 140.38120526328223 373.0405322850955 Q 128.45202308787253 387.85877639455737 116.98433771940186 372.68057036909187 Q 105.05515554399217 387.4988144785537 93.58747017552149 372.3206084530882 Q 81.65828800011181 387.1388525625501 70.19060263164113 371.9606465370846 Q 56.02161416235326 358.59625115437495 71.79038844660731 347.16327010127895 Q 57.62139997731943 333.7988747185693 73.39017426157348 322.3658936654733 Q 59.221185792285596 309.0014982827637 74.98996007653966 297.5685172296677 Q 61.36271561322035 303.8891631805604 75.58987975715198 299.0683585463495 Q 61.96263529383267 305.3890044972422 76.1897994377643 300.5681998630313 \",\"stroke\":\"#9c36b5\",\"fillEnabled\":false,\"lineJoin\":\"round\",\"lineCap\":\"round\",\"hitStrokeWidth\":20,\"strokeScaleEnabled\":false},\"className\":\"Path\"}]}",
-                "clientRect": {
-                    "x": 55.02161416235326,
-                    "y": 284.5681998630313,
-                    "width": 155.5402210889643,
-                    "height": 105.01050036353337
-                }
-            },
-            "pdfjs": {
-                "type": "POLYLINE",
-                "subtype": "PolyLine"
-            },
-            "legacy": {
-                "title": "InkLayer",
-                "contentsObj": {
-                    "text": ""
-                },
-                "comments": []
             }
         }
     },
@@ -286,9 +216,10 @@ const PdfAnnotatorBasic: React.FC = () => {
             },
             "pdfjs": {
                 "type": "INK",
-                "subtype": "Highlight"
+                "subtype": "Ink"
             },
             "legacy": {
+                "annotationType": 7,
                 "title": "InkLayer",
                 "contentsObj": {
                     "text": ""
@@ -318,7 +249,7 @@ const PdfAnnotatorBasic: React.FC = () => {
         "payload": {
             "kind": "line",
             "arrowStart": false,
-            "arrowEnd": true
+            "arrowEnd": false
         },
         "appearance": {
             "strokeColor": "#ff6b6b",
@@ -348,9 +279,10 @@ const PdfAnnotatorBasic: React.FC = () => {
             },
             "pdfjs": {
                 "type": "LINE",
-                "subtype": "Arrow"
+                "subtype": "Line"
             },
             "legacy": {
+                "annotationType": 12,
                 "title": "InkLayer",
                 "contentsObj": {
                     "text": ""
@@ -410,10 +342,84 @@ const PdfAnnotatorBasic: React.FC = () => {
                 "subtype": "Stamp"
             },
             "legacy": {
+                "annotationType": 10,
                 "title": "InkLayer",
                 "contentsObj": {
                     "text": "",
                     "image": "data:image/png;base64,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"
+                },
+                "comments": []
+            }
+        }
+    },
+    {
+        "id": "DELkHHvnLfXN8Vm-hhtpC",
+        "kind": "shape",
+        "target": {
+            "pageIndex": 0,
+            "geometry": {
+                "type": "path",
+                "points": [
+                    {
+                        "x": 34.20006951902934,
+                        "y": 258.44989938626827
+                    },
+                    {
+                        "x": 228.6988827372185,
+                        "y": 258.44989938626827
+                    },
+                    {
+                        "x": 228.6988827372185,
+                        "y": 462.7925636765248
+                    },
+                    {
+                        "x": 34.20006951902934,
+                        "y": 462.7925636765248
+                    }
+                ],
+                "closed": true
+            },
+            "coordinateSystem": "pdf-user-space"
+        },
+        "payload": {
+            "kind": "shape",
+            "shape": "cloud"
+        },
+        "appearance": {
+            "strokeColor": "#e64980",
+            "fillColor": "rgba(230, 73, 128, 0.3)",
+            "opacity": 1
+        },
+        "relations": {},
+        "meta": {
+            "createdAt": "D:20260723174434+08'00'",
+            "updatedAt": "D:20260723174434+08'00'",
+            "authorId": {
+                "id": "9528",
+                "name": "Alice"
+            },
+            "isNative": false,
+            "source": "inklayer"
+        },
+        "extensions": {
+            "konva": {
+                "serialized": "{\"attrs\":{\"draggable\":true,\"name\":\"InkLayer_Annotator_shape_group\",\"id\":\"DELkHHvnLfXN8Vm-hhtpC\"},\"className\":\"Group\",\"children\":[{\"attrs\":{\"data\":\"M 58.43555398423501 274.37298304622516 Q 69.56814143233589 259.44989938626827 80.49248654971296 274.52609296980006 Q 91.62507399781384 259.6030093098432 102.54941911519091 274.67920289337496 Q 113.6820065632918 259.7561192334181 124.60635168066887 274.83231281694987 Q 135.73893912876974 259.909229156993 146.66328424614684 274.9854227405248 Q 157.79587169424772 260.06233908056794 168.7202168116248 275.1385326640997 Q 179.85280425972567 260.21544900414284 190.77714937710275 275.29164258767463 Q 201.90973682520365 260.36855892771774 212.83408194258072 275.44475251124953 Q 227.6988827372185 286.3500099155605 212.56602894265305 296.8801418117359 Q 227.43082973729085 307.7853992160468 212.29797594272537 318.3155311122222 Q 227.16277673736315 329.22078851653316 212.02992294279767 339.7509204127085 Q 226.89472373743544 350.6561778170195 211.76186994287 361.1863097131949 Q 226.6266707375078 372.09156711750586 211.49381694294232 382.6216990136812 Q 226.3586177375801 393.5269564179922 211.2257639430146 404.0570883141676 Q 226.0905647376524 414.96234571847856 210.95771094308694 425.49247761465386 Q 225.82251173772474 436.39773501896485 210.68965794315926 446.9278669151402 Q 200.43777074539764 461.7925636765248 190.58568294858298 446.65992454888413 Q 180.3337957508214 461.52462131026874 170.48170795400674 446.39198218262806 Q 160.22982075624512 461.25667894401266 150.37773295943046 446.124039816372 Q 140.12584576166884 460.9887365777566 130.2737579648542 445.8560974501159 Q 120.02187076709261 460.7207942115005 110.16978297027794 445.5881550838598 Q 99.91789577251633 460.4528518452444 90.06580797570166 445.32021271760374 Q 79.81392077794007 460.18490947898835 69.96183298112541 445.05227035134766 Q 59.70994578336381 459.91696711273227 49.857857986549135 444.7843279850916 Q 35.20006951902934 433.4697286553571 50.527990486368346 423.08099631834915 Q 35.87020201884856 411.76639698861464 51.198122986187556 401.3776646516067 Q 36.54033451866776 390.0630653218722 51.86825548600677 379.67433298486435 Q 37.21046701848698 368.35973365512984 52.53838798582598 357.9710013181219 Q 37.880599518306184 346.6564019883874 53.20852048564518 336.2676696513795 Q 38.55073201812539 324.953070321645 53.87865298546439 314.56433798463706 Q 39.220864517944605 303.24973865490256 54.5487854852836 292.86100631789463 Q 39.89099701776381 281.54640698816013 55.21891798510281 271.1576746511522 Q 66.6274891905265 261.35271097185057 56.82723598466891 272.7653288486887 Q 68.2358071900926 262.96036516938705 58.43555398423501 274.37298304622516 \",\"stroke\":\"#e64980\",\"fillEnabled\":false,\"lineJoin\":\"round\",\"lineCap\":\"round\",\"hitStrokeWidth\":20,\"strokeScaleEnabled\":false},\"className\":\"Path\"}]}",
+                "clientRect": {
+                    "x": 34.20006951902934,
+                    "y": 258.44989938626827,
+                    "width": 194.49881321818916,
+                    "height": 204.34266429025655
+                }
+            },
+            "pdfjs": {
+                "type": "POLYLINE",
+                "subtype": "PolyLine"
+            },
+            "legacy": {
+                "annotationType": 13,
+                "title": "Alice",
+                "contentsObj": {
+                    "text": ""
                 },
                 "comments": []
             }
