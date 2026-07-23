@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.1](https://github.com/Laomai-codefee/inklayer-react/compare/v1.1.0...v1.1.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* generate complete release notes ([3aed86c](https://github.com/Laomai-codefee/inklayer-react/commit/3aed86c765887bb847bd23da3091f2936771367e))
+* preserve annotation fidelity across exports ([ade9085](https://github.com/Laomai-codefee/inklayer-react/commit/ade908520d32db9abd43f954225610ed100263fc))
+* stabilize React hook dependencies ([28390b5](https://github.com/Laomai-codefee/inklayer-react/commit/28390b53885f264d1176657cf0b07ed65b3e2855))
+
 ## [1.1.0](https://github.com/Laomai-codefee/inklayer-react/compare/v1.0.13...v1.1.0) (2026-07-20)
 
 
