@@ -53,7 +53,13 @@ export default {
             thumbnails: '缩略图',
             outline: '目录',
             page: '第 {{value}} 页',
-            thumbnailError: '此页面无法生成缩略图'
+            thumbnailError: '此页面无法生成缩略图',
+            outlineLoading: '正在加载目录…',
+            outlineEmpty: '此文档没有目录',
+            outlineError: '无法加载文档目录',
+            untitledOutlineItem: '未命名章节',
+            expandOutlineItem: '展开{{title}}',
+            collapseOutlineItem: '收起{{title}}'
         },
         search: {
             search: '搜索',

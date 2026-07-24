@@ -158,6 +158,7 @@ export const PdfThumbnailList: React.FC<PdfThumbnailListProps> = ({ pageMarkerCo
     const { pdfDocument, pdfViewer, eventBus } = usePdfViewerContext()
     const [currentPage, setCurrentPage] = useState(() => pdfViewer?.currentPageNumber || 1)
     const thumbnailElementsRef = useRef(new Map<number, HTMLButtonElement>())
+    const thumbnailListRef = useRef<HTMLDivElement | null>(null)
 
     const registerElement = useCallback((pageNumber: number, element: HTMLButtonElement | null) => {
         if (element) {
@@ -186,15 +187,48 @@ export const PdfThumbnailList: React.FC<PdfThumbnailListProps> = ({ pageMarkerCo
     }, [eventBus, pdfViewer])
 
     useEffect(() => {
-        thumbnailElementsRef.current.get(currentPage)?.scrollIntoView({
-            block: 'nearest',
-        })
+        const list = thumbnailListRef.current
+        let animationFrame: number | null = null
+
+        const keepCurrentThumbnailVisible = () => {
+            if (animationFrame !== null) {
+                window.cancelAnimationFrame(animationFrame)
+            }
+            animationFrame = window.requestAnimationFrame(() => {
+                animationFrame = null
+                thumbnailElementsRef.current.get(currentPage)?.scrollIntoView({
+                    block: 'nearest',
+                })
+            })
+        }
+
+        keepCurrentThumbnailVisible()
+
+        if (!list || typeof ResizeObserver === 'undefined') {
+            return () => {
+                if (animationFrame !== null) {
+                    window.cancelAnimationFrame(animationFrame)
+                }
+            }
+        }
+
+        const resizeObserver = new ResizeObserver(keepCurrentThumbnailVisible)
+        resizeObserver.observe(list)
+        const settleTimer = window.setTimeout(() => resizeObserver.disconnect(), 2000)
+
+        return () => {
+            resizeObserver.disconnect()
+            window.clearTimeout(settleTimer)
+            if (animationFrame !== null) {
+                window.cancelAnimationFrame(animationFrame)
+            }
+        }
     }, [currentPage])
 
     if (!pdfDocument) return null
 
     return (
-        <div className={styles.thumbnailList}>
+        <div ref={thumbnailListRef} className={styles.thumbnailList}>
             {Array.from({ length: pdfDocument.numPages }, (_, index) => {
                 const pageNumber = index + 1
                 return (

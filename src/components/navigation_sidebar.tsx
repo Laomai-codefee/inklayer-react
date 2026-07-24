@@ -3,6 +3,7 @@ import { Tabs } from '@radix-ui/themes'
 import { useTranslation } from 'react-i18next'
 import { usePdfViewerContext } from '@/context/pdf_viewer_context'
 import { PdfThumbnailList } from './pdf_thumbnail_list'
+import { PdfOutline } from './pdf_outline'
 import {
     NAVIGATION_PAGE_MARKERS_CHANGED_EVENT,
     type NavigationPageMarkersChangedEvent,
@@ -64,6 +65,12 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ open, onCl
         return counts
     }, [markerSources])
 
+    const handleOutlineNavigate = useCallback(() => {
+        if (window.matchMedia('(max-width: 840px)').matches) {
+            onClose()
+        }
+    }, [onClose])
+
     return (
         <>
             <aside
@@ -104,7 +111,9 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ open, onCl
                         <Tabs.Content
                             value="outline"
                             className={styles.navigationTabsContent}
-                        />
+                        >
+                            <PdfOutline onNavigate={handleOutlineNavigate} />
+                        </Tabs.Content>
                     </Tabs.Root>
                 </div>
             </aside>

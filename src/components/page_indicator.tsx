@@ -3,7 +3,7 @@ import { usePdfViewerContext } from '../context/pdf_viewer_context'
 import { Flex, TextField, Text, Box, IconButton } from '@radix-ui/themes'
 import { AiOutlineRight, AiOutlineLeft } from 'react-icons/ai'
 
-const AUTO_HIDE_DELAY = 1500
+const AUTO_HIDE_DELAY = 3000
 
 export const PageIndicator: React.FC = () => {
     const { pdfViewer, isReady } = usePdfViewerContext()
@@ -17,18 +17,53 @@ export const PageIndicator: React.FC = () => {
     /** 自动显隐 */
     const [visible, setVisible] = useState<boolean>(true)
     const hideTimerRef = useRef<number | null>(null)
+    const interactionRef = useRef({
+        hovered: false,
+        inputFocused: false
+    })
+
+    const clearHideTimer = useCallback(() => {
+        if (hideTimerRef.current) {
+            window.clearTimeout(hideTimerRef.current)
+            hideTimerRef.current = null
+        }
+    }, [])
+
+    const scheduleHide = useCallback(() => {
+        clearHideTimer()
+        if (interactionRef.current.hovered || interactionRef.current.inputFocused) return
+        hideTimerRef.current = window.setTimeout(() => {
+            hideTimerRef.current = null
+            setVisible(false)
+        }, AUTO_HIDE_DELAY)
+    }, [clearHideTimer])
 
     const showTemporarily = useCallback(() => {
         setVisible(true)
+        scheduleHide()
+    }, [scheduleHide])
 
-        if (hideTimerRef.current) {
-            window.clearTimeout(hideTimerRef.current)
-        }
+    const handleMouseEnter = useCallback(() => {
+        interactionRef.current.hovered = true
+        clearHideTimer()
+        setVisible(true)
+    }, [clearHideTimer])
 
-        hideTimerRef.current = window.setTimeout(() => {
-            setVisible(false)
-        }, AUTO_HIDE_DELAY)
-    }, [])
+    const handleMouseLeave = useCallback(() => {
+        interactionRef.current.hovered = false
+        scheduleHide()
+    }, [scheduleHide])
+
+    const handleInputFocus = useCallback(() => {
+        interactionRef.current.inputFocused = true
+        clearHideTimer()
+        setVisible(true)
+    }, [clearHideTimer])
+
+    const handleInputDoubleClick = useCallback((event: React.MouseEvent<HTMLInputElement>) => {
+        event.currentTarget.select()
+        showTemporarily()
+    }, [showTemporarily])
 
     const updatePageInfo = useCallback((pageNumber: number) => {
         setCurrentPage(pageNumber)
@@ -140,6 +175,8 @@ export const PageIndicator: React.FC = () => {
         }
     }, [pdfViewer, showTemporarily])
 
+    useEffect(() => clearHideTimer, [clearHideTimer])
+
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
             handleGoToPage()
@@ -149,7 +186,9 @@ export const PageIndicator: React.FC = () => {
     }
 
     const handleBlur = () => {
+        interactionRef.current.inputFocused = false
         handleGoToPage()
+        scheduleHide()
     }
 
     const isInputValid = inputPage === '' || isValidPage(parseInt(inputPage, 10))
@@ -169,7 +208,8 @@ export const PageIndicator: React.FC = () => {
                 pointerEvents: enabled && visible ? 'auto' : 'none',
                 transition: 'opacity 0.3s ease'
             }}
-            onMouseOver={showTemporarily}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
         >
             <Flex gap="2" align="center" pt="1" pl="1" pr="2" pb="1">
                 <IconButton
@@ -198,7 +238,9 @@ export const PageIndicator: React.FC = () => {
                         size="1"
                         value={inputPage}
                         onChange={handleInputPageChange}
+                        onFocus={handleInputFocus}
                         onBlur={handleBlur}
+                        onDoubleClick={handleInputDoubleClick}
                         onKeyDown={handleKeyDown}
                         disabled={isPageChanging}
                         style={{
@@ -215,7 +257,7 @@ export const PageIndicator: React.FC = () => {
                     />
                     <Text
                         style={{
-                            width: 30
+                            minWidth: 30
                         }}
                         size="1"
                         weight="medium"

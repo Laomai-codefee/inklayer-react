@@ -53,7 +53,13 @@ export default {
             thumbnails: 'Thumbnails',
             outline: 'Outline',
             page: 'Page {{value}}',
-            thumbnailError: 'Unable to render this page'
+            thumbnailError: 'Unable to render this page',
+            outlineLoading: 'Loading outline…',
+            outlineEmpty: 'This document has no outline',
+            outlineError: 'Unable to load the document outline',
+            untitledOutlineItem: 'Untitled section',
+            expandOutlineItem: 'Expand {{title}}',
+            collapseOutlineItem: 'Collapse {{title}}'
         },
         search: {
             search: 'Search',

@@ -1,0 +1,114 @@
+.outline {
+    padding: 8px 6px 20px;
+}
+
+.outlineTree {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.outlineItem {
+    margin: 0;
+    padding: 0;
+}
+
+.outlineRow {
+    align-items: flex-start;
+    border-radius: var(--radius-2);
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    min-height: 32px;
+    padding-bottom: 2px;
+    padding-right: 6px;
+    padding-top: 2px;
+    &--selected {
+        
+        .outlineTitle {
+            background-color: var(--accent-a4);
+            &:hover {
+                background-color: var(--accent-a4);
+        }
+        }
+    }
+}
+
+.outlineToggle,
+.outlineTitle {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--gray-12);
+}
+
+.outlineToggle {
+    align-items: center;
+    align-self: stretch;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    min-height: 28px;
+    padding: 0;
+
+    border-radius: var(--radius-1);
+    &:hover {
+        background-color: var(--bg-hover-subtle);
+    }
+    &:focus-visible {
+        border-radius: var(--radius-1);
+        outline: 2px solid var(--focus-ring);
+        outline-offset: -2px;
+    }
+}
+
+.outlineToggleSpacer {
+    width: 24px;
+}
+
+.outlineChevron {
+    border-bottom: 1.5px solid currentColor;
+    border-right: 1.5px solid currentColor;
+    color: var(--gray-10);
+    height: 6px;
+    transform: rotate(-45deg);
+    transition: transform 120ms ease;
+    width: 6px;
+
+    &--expanded {
+        transform: rotate(45deg) translate(-1px, -1px);
+    }
+}
+
+.outlineTitle {
+    border-radius: var(--radius-1);
+    cursor: pointer;
+    line-height: 1.35;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    padding: 6px 4px;
+    text-align: left;
+    text-decoration: none;
+    width: 100%;
+
+    &:hover {
+        background-color: var(--bg-hover-subtle);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--focus-ring);
+        outline-offset: -2px;
+    }
+
+    &:disabled {
+        color: var(--gray-10);
+        cursor: default;
+    }
+}
+
+.outlineState {
+    color: var(--gray-11);
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 28px 16px;
+    text-align: center;
+}

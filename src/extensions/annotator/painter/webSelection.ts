@@ -18,6 +18,7 @@ export class WebSelection {
     private readonly handleSelectionChange = () => {
         const selection = window.getSelection()
         if (selection?.type === 'Caret' || selection?.anchorNode === null) {
+            this.isSelecting = false
             this.onSelect(null)
             return
         }
@@ -26,8 +27,12 @@ export class WebSelection {
             const selectedElement = range.commonAncestorContainer
             if (this.root?.contains(selectedElement)) {
                 this.isSelecting = true
+                return
             }
         }
+
+        this.isSelecting = false
+        this.onSelect(null)
     }
 
     private readonly handleSelectionEnd = () => {
@@ -36,7 +41,11 @@ export class WebSelection {
         this.isSelecting = false
         const selection = window.getSelection()
         const range = selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null
-        this.onSelect(range)
+        if (range && this.root?.contains(range.commonAncestorContainer)) {
+            this.onSelect(range)
+        } else {
+            this.onSelect(null)
+        }
     }
 
     private readonly handleHighlightCreated = (data: HighlightCreatedEvent) => {

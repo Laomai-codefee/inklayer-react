@@ -87,4 +87,49 @@ describe('WebSelection', () => {
 
         getSelection.mockRestore()
     })
+
+    it('ignores selections outside the PDF viewer root', () => {
+        const onSelect = jest.fn()
+        const root = document.createElement('div')
+        const pdfText = document.createTextNode('PDF text')
+        const input = document.createElement('input')
+        root.appendChild(pdfText)
+        document.body.append(root, input)
+
+        const pdfRange = document.createRange()
+        pdfRange.selectNodeContents(pdfText)
+        const inputRange = document.createRange()
+        inputRange.selectNode(input)
+
+        let selection = {
+            type: 'Range',
+            anchorNode: pdfText,
+            rangeCount: 1,
+            toString: () => 'PDF text',
+            getRangeAt: () => pdfRange
+        } as unknown as Selection
+        const getSelection = jest.spyOn(window, 'getSelection').mockImplementation(() => selection)
+        const webSelection = new WebSelection({ onSelect, onHighlight: jest.fn() })
+        webSelection.create(root)
+
+        document.dispatchEvent(new Event('selectionchange'))
+
+        selection = {
+            type: 'Range',
+            anchorNode: input,
+            rangeCount: 1,
+            toString: () => '446',
+            getRangeAt: () => inputRange
+        } as unknown as Selection
+        document.dispatchEvent(new Event('selectionchange'))
+        input.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
+
+        expect(onSelect).toHaveBeenLastCalledWith(null)
+        expect(onSelect).not.toHaveBeenCalledWith(pdfRange)
+
+        webSelection.destroy()
+        root.remove()
+        input.remove()
+        getSelection.mockRestore()
+    })
 })
