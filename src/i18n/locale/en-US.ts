@@ -47,6 +47,10 @@ export default {
         sidebar: {
             toggle: 'Toggle Sidebar'
         },
+        navigation: {
+            toggle: 'Toggle document navigation',
+            label: 'Document navigation'
+        },
         search: {
             search: 'Search',
             placeholder: 'Search the docs…',

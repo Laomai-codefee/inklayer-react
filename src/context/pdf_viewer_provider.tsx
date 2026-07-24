@@ -11,6 +11,8 @@ import { ErrorDisplay } from '@/components/error_display'
 import { PageIndicator } from '@/components/page_indicator'
 import { usePdfTool } from '@/hooks/usePdfTool'
 import { usePinchZoom } from '@/hooks/usePinchZoom'
+import { useTranslation } from 'react-i18next'
+import { GoSidebarCollapse, GoSidebarExpand } from 'react-icons/go'
 
 export type SidebarPanelKey = string
 
@@ -45,8 +47,10 @@ export const PdfViewerProvider: React.FC<PdfViewerProviderProps> = ({
     user,
     ...viewerOptions
 }) => {
+    const { t } = useTranslation(['viewer'], { useSuspense: false })
     const viewerContainerRef = useRef<HTMLDivElement>(null)
     const { loading, progress, pdfDocument, pdfViewer, eventBus, loadError } = usePdfViewer(viewerContainerRef, viewerOptions)
+    const [isNavigationSidebarOpen, setIsNavigationSidebarOpen] = useState(false)
 
     const [activeSidebarPanel, setActiveSidebarPanel] = useState<SidebarPanelKey | null>(() => {
         if (defaultActiveSidebarKey) return defaultActiveSidebarKey
@@ -195,8 +199,27 @@ export const PdfViewerProvider: React.FC<PdfViewerProviderProps> = ({
                     {loadError && <ErrorDisplay error={loadError} />}
                     <Flex pl="2" pr="2" className={styles.viewerHeader}>
                         <div className={styles['viewerHeader-title']}>
-                            <div className={styles['viewerHeader-title-name']}>{title || 'PDF Viewer'}</div>
-                            <div>
+                            <Flex align="center" gap="2" className={styles['viewerHeader-title-left']}>
+                                <Tooltip content={t('viewer:navigation.toggle')}>
+                                    <Button
+                                        variant="outline"
+                                        size="2"
+                                        color="gray"
+                                        highContrast
+                                        style={{ boxShadow: 'none' }}
+                                        aria-controls="InkLayer-navigation-sidebar"
+                                        aria-expanded={isNavigationSidebarOpen}
+                                        aria-label={t('viewer:navigation.toggle')}
+                                        onClick={() => setIsNavigationSidebarOpen((open) => !open)}
+                                    >
+                                        {isNavigationSidebarOpen
+                                            ? <GoSidebarExpand className={styles.navigationSidebarTriggerIcon} />
+                                            : <GoSidebarCollapse className={styles.navigationSidebarTriggerIcon} />}
+                                    </Button>
+                                </Tooltip>
+                                <div className={styles['viewerHeader-title-name']}>{title || 'PDF Viewer'}</div>
+                            </Flex>
+                            <div className={styles['viewerHeader-title-actions']}>
                                 <Flex direction="row" gap="3" justify="between" align="center">
                                     {sidebarTriggerElement}
                                     {actions}
@@ -204,38 +227,57 @@ export const PdfViewerProvider: React.FC<PdfViewerProviderProps> = ({
                             </div>
                         </div>
                     </Flex>
-                    <Flex flexGrow="1" minHeight="0" className={styles.viewerWrapper}>
-                        <Flex className={styles.viewerContainer} direction="column" flexGrow="1">
-                            {toolbar && (
-                                <Flex align="center" justify="center" className={styles['viewerContainer-header']}>
-                                    {toolbar}
-                                </Flex>
-                            )}
-                            <Box position="relative" flexGrow="1" className={styles['viewerContainer-content']}>
-                                <PageIndicator />
-                                <div ref={viewerContainerRef} className={styles.pdfjsViewerContainer}>
-                                    <div className="pdfViewer"></div>
-                                </div>
-                            </Box>
-                        </Flex>
-                        <Box
+                    <Flex flexGrow="1" minHeight="0" className={styles.viewerBody}>
+                        <aside
+                            id="InkLayer-navigation-sidebar"
                             className={[
-                                styles.viewerSidebar,
-                                !activePanel ? styles['viewerSidebar--hidden'] : '',
+                                styles.navigationSidebar,
+                                !isNavigationSidebarOpen ? styles['navigationSidebar--hidden'] : '',
                             ].join(' ')}
-                            pl="1"
-                            pr="1"
+                            aria-label={t('viewer:navigation.label')}
+                            aria-hidden={!isNavigationSidebarOpen}
                         >
-                            {activePanel && (
-                                <div className={styles['viewerSidebar-container']}>{activePanel.render(contextValue)}</div>
-                            )}
-                        </Box>
-                        {activePanel && (
+                            <div className={styles['navigationSidebar-container']} />
+                        </aside>
+                        {isNavigationSidebarOpen && (
                             <div
-                                className={styles.sidebarOverlay}
-                                onClick={() => setActiveSidebarPanel(null)}
+                                className={styles.navigationSidebarOverlay}
+                                onClick={() => setIsNavigationSidebarOpen(false)}
                             />
                         )}
+                        <Flex flexGrow="1" minHeight="0" className={styles.viewerWrapper}>
+                            <Flex className={styles.viewerContainer} direction="column" flexGrow="1">
+                                {toolbar && (
+                                    <Flex align="center" justify="center" className={styles['viewerContainer-header']}>
+                                        {toolbar}
+                                    </Flex>
+                                )}
+                                <Box position="relative" flexGrow="1" className={styles['viewerContainer-content']}>
+                                    <PageIndicator />
+                                    <div ref={viewerContainerRef} className={styles.pdfjsViewerContainer}>
+                                        <div className="pdfViewer"></div>
+                                    </div>
+                                </Box>
+                            </Flex>
+                            <Box
+                                className={[
+                                    styles.viewerSidebar,
+                                    !activePanel ? styles['viewerSidebar--hidden'] : '',
+                                ].join(' ')}
+                                pl="1"
+                                pr="1"
+                            >
+                                {activePanel && (
+                                    <div className={styles['viewerSidebar-container']}>{activePanel.render(contextValue)}</div>
+                                )}
+                            </Box>
+                            {activePanel && (
+                                <div
+                                    className={styles.sidebarOverlay}
+                                    onClick={() => setActiveSidebarPanel(null)}
+                                />
+                            )}
+                        </Flex>
                     </Flex>
                     {children}
                 </Flex>

@@ -47,6 +47,10 @@ export default {
         sidebar: {
             toggle: '切换侧边栏'
         },
+        navigation: {
+            toggle: '切换文档导航',
+            label: '文档导航'
+        },
         search: {
             search: '搜索',
             placeholder: '搜索文档...',
