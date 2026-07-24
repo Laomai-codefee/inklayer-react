@@ -19,6 +19,8 @@
     --shadow-light: 0 1px 2px rgba(0, 0, 0, 0.03);
     --shadow-medium: 0 2px 6px rgba(0, 0, 0, 0.06);
     --shadow-heavy: 0 6px 16px rgba(0, 0, 0, 0.1);
+    --scrollbar-thumb: rgba(0, 0, 0, 0.18);
+    --scrollbar-thumb-hover: rgba(0, 0, 0, 0.38);
 
     --dark-bg-color: #1e1e26;
     --dark-bg-color-secondary: #242430;
@@ -39,6 +41,40 @@
 
     background-color: var(--bg-color);
     height: 100%;
+
+    &,
+    * {
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+        scrollbar-width: thin;
+    }
+
+    &::-webkit-scrollbar,
+    *::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-track,
+    *::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb,
+    *::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+        border-radius: 8px;
+        transition: background 0.2s ease;
+    }
+
+    &::-webkit-scrollbar-thumb:hover,
+    *::-webkit-scrollbar-thumb:hover {
+        background: var(--scrollbar-thumb-hover);
+    }
+
+    &::-webkit-scrollbar-corner,
+    *::-webkit-scrollbar-corner {
+        background: transparent;
+    }
 
     :global(.dark) &,
     &.dark,
@@ -68,6 +104,8 @@
         --shadow-light: 0 1px 2px rgba(0, 0, 0, 0.2);
         --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.25);
         --shadow-heavy: 0 12px 32px rgba(0, 0, 0, 0.3);
+        --scrollbar-thumb: rgba(255, 255, 255, 0.18);
+        --scrollbar-thumb-hover: rgba(255, 255, 255, 0.38);
     }
 }
 
@@ -198,28 +236,6 @@
         background: var(--accent-9) !important;
     }
 
-    // SCROLLBAR
-    &::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    &::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.18);
-        border-radius: 8px;
-        transition: background 0.2s ease;
-
-        &:hover {
-            background: rgba(0, 0, 0, 0.38);
-        }
-    }
-
-    &::-webkit-scrollbar-corner {
-        background: transparent;
-    }
 }
 
 // SIDEBAR
@@ -248,29 +264,6 @@
         flex-direction: column;
         overflow: auto;
         min-width: 320px;
-
-        // SCROLLBAR
-        &::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        &::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.18);
-            border-radius: 8px;
-            transition: background 0.2s ease;
-
-            &:hover {
-                background: rgba(0, 0, 0, 0.38);
-            }
-        }
-
-        &::-webkit-scrollbar-corner {
-            background: transparent;
-        }
     }
 }
 

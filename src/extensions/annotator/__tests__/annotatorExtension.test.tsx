@@ -9,7 +9,8 @@ const mockClearAnnotations = jest.fn()
 const mockEventBus = {
     on: jest.fn(),
     _on: jest.fn(),
-    off: jest.fn()
+    off: jest.fn(),
+    dispatch: jest.fn()
 }
 const mockPdfViewer = {
     pdfDocument: {},
@@ -51,8 +52,14 @@ jest.mock('../context/options_context', () => ({
 }))
 
 jest.mock('../store', () => ({
-    useAnnotationStore: (selector: (state: { clearAnnotations: typeof mockClearAnnotations }) => unknown) =>
-        selector({ clearAnnotations: mockClearAnnotations })
+    useAnnotationStore: Object.assign(
+        (selector: (state: { clearAnnotations: typeof mockClearAnnotations }) => unknown) =>
+            selector({ clearAnnotations: mockClearAnnotations }),
+        {
+            getState: () => ({ annotations: new Map() }),
+            subscribe: () => jest.fn()
+        }
+    )
 }))
 
 jest.mock('../painter', () => ({

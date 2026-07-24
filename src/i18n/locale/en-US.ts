@@ -51,7 +51,9 @@ export default {
             toggle: 'Toggle document navigation',
             label: 'Document navigation',
             thumbnails: 'Thumbnails',
-            outline: 'Outline'
+            outline: 'Outline',
+            page: 'Page {{value}}',
+            thumbnailError: 'Unable to render this page'
         },
         search: {
             search: 'Search',

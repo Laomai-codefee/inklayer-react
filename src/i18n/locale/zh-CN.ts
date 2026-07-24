@@ -51,7 +51,9 @@ export default {
             toggle: '切换文档导航',
             label: '文档导航',
             thumbnails: '缩略图',
-            outline: '目录'
+            outline: '目录',
+            page: '第 {{value}} 页',
+            thumbnailError: '此页面无法生成缩略图'
         },
         search: {
             search: '搜索',

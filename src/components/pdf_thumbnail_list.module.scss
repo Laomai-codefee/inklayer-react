@@ -1,0 +1,127 @@
+.thumbnailList {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 8px 24px;
+}
+
+.thumbnail {
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    color: inherit;
+    cursor: pointer;
+    display: block;
+    border-radius: var(--radius-2);
+    padding: 3px;
+
+    &:hover .thumbnailCanvasWrapper {
+        border-color: var(--border-color-strong, rgba(0, 0, 0, 0.18));
+        box-shadow: var(--shadow-medium);
+    }
+
+    &:focus-visible .thumbnailCanvasWrapper {
+        outline: 2px solid var(--focus-ring);
+        outline-offset: 2px;
+    }
+
+    &--selected .thumbnailCanvasWrapper,
+    &--selected:hover .thumbnailCanvasWrapper {
+        border-color: var(--accent-9);
+    }
+}
+
+.thumbnailCanvasWrapper {
+    align-items: center;
+    border: 2px solid var(--border-color);
+    box-sizing: content-box;
+    box-shadow: var(--shadow-light);
+    border-radius: var(--radius-2);
+    display: flex;
+    justify-content: center;
+    min-height: 88px;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+    width: 132px;
+}
+
+.thumbnailCanvas {
+    display: block;
+    max-width: 100%;
+}
+
+.thumbnailPlaceholder {
+    animation: thumbnailPulse 1.4s ease-in-out infinite;
+    background-color: var(--bg-color-tertiary);
+    inset: 0;
+    position: absolute;
+}
+
+.thumbnailError {
+    align-items: center;
+    background-color: var(--bg-color-tertiary);
+    color: inherit;
+    display: flex;
+    font-size: 12px;
+    inset: 0;
+    justify-content: center;
+    padding: 12px;
+    position: absolute;
+    text-align: center;
+}
+
+.thumbnailPageNumber {
+    align-items: center;
+    background: var(--bg-color-tertiary);
+    bottom: 5px;
+    border-radius: var(--radius-2);
+    box-sizing: border-box;
+    color: var(--gray-12);
+    display: flex;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    height: 18px;
+    justify-content: center;
+    left: 50%;
+    line-height: 1;
+    min-width: 28px;
+    padding: 0 6px;
+    pointer-events: none;
+    position: absolute;
+    transform: translateX(-50%);
+}
+
+.thumbnailMarker {
+    align-items: center;
+    background-color: var(--accent-9);
+    border: 2px solid #fff;
+    border-radius: 999px;
+    box-sizing: border-box;
+    color: #fff;
+    display: flex;
+    font-size: 10px;
+    font-weight: 600;
+    height: 20px;
+    justify-content: center;
+    line-height: 1;
+    min-width: 20px;
+    padding: 0 4px;
+    pointer-events: none;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+}
+
+@keyframes thumbnailPulse {
+    0%,
+    100% {
+        opacity: 0.55;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}

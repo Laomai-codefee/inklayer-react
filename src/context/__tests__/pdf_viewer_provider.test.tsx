@@ -1,6 +1,8 @@
 /** @jest-environment jsdom */
 
+import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { Theme } from '@radix-ui/themes'
 import { PdfViewerProvider } from '../pdf_viewer_provider'
 
 jest.mock('@/hooks/usePdfViewer', () => ({
@@ -50,9 +52,11 @@ jest.mock('react-i18next', () => ({
 describe('PdfViewerProvider navigation sidebar layout', () => {
     it('places the navigation sidebar beside the viewer and toggles it from the header', () => {
         render(
-            <PdfViewerProvider title="Test Viewer">
-                <div>Child content</div>
-            </PdfViewerProvider>
+            <Theme>
+                <PdfViewerProvider title="Test Viewer">
+                    <div>Child content</div>
+                </PdfViewerProvider>
+            </Theme>
         )
 
         const trigger = screen.getByRole('button', { name: 'Toggle document navigation' })

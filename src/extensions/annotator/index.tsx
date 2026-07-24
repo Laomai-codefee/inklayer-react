@@ -13,6 +13,12 @@ import { FREE_TEXT_EDITOR } from './painter/const'
 import { useAnnotationStore } from './store'
 import { debounce } from '@/utils'
 import type { AnnotationPermissions } from './types/annotator'
+import {
+    NAVIGATION_PAGE_MARKERS_CHANGED_EVENT,
+    type NavigationPageMarkersChangedEvent,
+} from '@/components/navigation_page_markers'
+
+const ANNOTATOR_PAGE_MARKER_SOURCE = 'inklayer-annotator'
 
 interface AnnotatorExtensionProps {
     enableNativeAnnotations: boolean
@@ -232,6 +238,37 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
             if (painterRef.current) refreshPainter()
         }
     }, [annotationPermissions, refreshPainter, user])
+
+    useEffect(() => {
+        if (!eventBus) return
+
+        const publishPageMarkers = (annotationMap: Map<string, IAnnotationStore>) => {
+            const markers = new Map<number, number>()
+            annotationMap.forEach((annotation) => {
+                markers.set(annotation.pageNumber, (markers.get(annotation.pageNumber) ?? 0) + 1)
+            })
+
+            eventBus.dispatch(NAVIGATION_PAGE_MARKERS_CHANGED_EVENT, {
+                source: ANNOTATOR_PAGE_MARKER_SOURCE,
+                markers,
+            } satisfies NavigationPageMarkersChangedEvent)
+        }
+
+        publishPageMarkers(useAnnotationStore.getState().annotations)
+        const unsubscribe = useAnnotationStore.subscribe((state, previousState) => {
+            if (state.annotations !== previousState.annotations) {
+                publishPageMarkers(state.annotations)
+            }
+        })
+
+        return () => {
+            unsubscribe()
+            eventBus.dispatch(NAVIGATION_PAGE_MARKERS_CHANGED_EVENT, {
+                source: ANNOTATOR_PAGE_MARKER_SOURCE,
+                markers: new Map(),
+            } satisfies NavigationPageMarkersChangedEvent)
+        }
+    }, [eventBus])
 
 
     useEffect(() => {
