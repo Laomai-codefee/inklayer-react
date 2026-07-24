@@ -49,7 +49,9 @@ export default {
         },
         navigation: {
             toggle: '切换文档导航',
-            label: '文档导航'
+            label: '文档导航',
+            thumbnails: '缩略图',
+            outline: '目录'
         },
         search: {
             search: '搜索',

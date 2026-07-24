@@ -13,6 +13,7 @@ import { usePdfTool } from '@/hooks/usePdfTool'
 import { usePinchZoom } from '@/hooks/usePinchZoom'
 import { useTranslation } from 'react-i18next'
 import { GoSidebarCollapse, GoSidebarExpand } from 'react-icons/go'
+import { NavigationSidebar } from '@/components/navigation_sidebar'
 
 export type SidebarPanelKey = string
 
@@ -228,23 +229,10 @@ export const PdfViewerProvider: React.FC<PdfViewerProviderProps> = ({
                         </div>
                     </Flex>
                     <Flex flexGrow="1" minHeight="0" className={styles.viewerBody}>
-                        <aside
-                            id="InkLayer-navigation-sidebar"
-                            className={[
-                                styles.navigationSidebar,
-                                !isNavigationSidebarOpen ? styles['navigationSidebar--hidden'] : '',
-                            ].join(' ')}
-                            aria-label={t('viewer:navigation.label')}
-                            aria-hidden={!isNavigationSidebarOpen}
-                        >
-                            <div className={styles['navigationSidebar-container']} />
-                        </aside>
-                        {isNavigationSidebarOpen && (
-                            <div
-                                className={styles.navigationSidebarOverlay}
-                                onClick={() => setIsNavigationSidebarOpen(false)}
-                            />
-                        )}
+                        <NavigationSidebar
+                            open={isNavigationSidebarOpen}
+                            onClose={() => setIsNavigationSidebarOpen(false)}
+                        />
                         <Flex flexGrow="1" minHeight="0" className={styles.viewerWrapper}>
                             <Flex className={styles.viewerContainer} direction="column" flexGrow="1">
                                 {toolbar && (

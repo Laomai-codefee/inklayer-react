@@ -49,7 +49,9 @@ export default {
         },
         navigation: {
             toggle: 'Toggle document navigation',
-            label: 'Document navigation'
+            label: 'Document navigation',
+            thumbnails: 'Thumbnails',
+            outline: 'Outline'
         },
         search: {
             search: 'Search',

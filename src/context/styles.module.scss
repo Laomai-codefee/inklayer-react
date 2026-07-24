@@ -130,8 +130,10 @@
 
 .viewerWrapper {
     position: relative;
+    flex: 1 1 0;
     overflow: hidden;
     min-width: 0;
+    width: 0;
 }
 
 .viewerContainer {
@@ -220,38 +222,6 @@
     }
 }
 
-// DOCUMENT NAVIGATION SIDEBAR
-.navigationSidebar {
-    background-color: var(--bg-color-tertiary);
-    border-right: 1px solid var(--border-color);
-    box-shadow: var(--shadow-light);
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    height: 100%;
-    overflow: hidden;
-    width: 240px;
-    z-index: 2;
-    transition: width 200ms ease;
-
-    &--hidden {
-        border-right: 0;
-        width: 0;
-    }
-
-    &-container {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        min-width: 240px;
-        overflow: auto;
-    }
-}
-
-.navigationSidebarOverlay {
-    display: none;
-}
-
 // SIDEBAR
 .viewerSidebar {
     background-color: var(--bg-color-tertiary);
@@ -325,33 +295,6 @@
         }
     }
 
-    .navigationSidebarOverlay {
-        display: block;
-        position: absolute;
-        inset: 0;
-        z-index: 999;
-        background-color: rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(2px);
-    }
-
-    .navigationSidebar {
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        z-index: 1000;
-        width: 240px;
-        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
-        transition: transform 200ms ease, visibility 0ms ease 0ms;
-
-        &--hidden {
-            transform: translateX(-100%);
-            visibility: hidden;
-            transition: transform 200ms ease, visibility 0ms ease 200ms;
-            width: 240px;
-        }
-    }
-
     .sidebarOverlay {
         display: block;
         position: absolute;
@@ -384,10 +327,5 @@
     [data-theme='dark'] .viewerSidebar,
     .dark .viewerSidebar {
         box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
-    }
-
-    [data-theme='dark'] .navigationSidebar,
-    .dark .navigationSidebar {
-        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
     }
 }
