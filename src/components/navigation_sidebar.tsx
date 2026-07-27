@@ -15,9 +15,14 @@ type NavigationPanelKey = 'thumbnails' | 'outline'
 interface NavigationSidebarProps {
     open: boolean
     onClose: () => void
+    onTransitionEnd?: React.TransitionEventHandler<HTMLElement>
 }
 
-export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ open, onClose }) => {
+export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
+    open,
+    onClose,
+    onTransitionEnd,
+}) => {
     const { t } = useTranslation(['viewer'], { useSuspense: false })
     const { eventBus } = usePdfViewerContext()
     const [activePanel, setActivePanel] = useState<NavigationPanelKey>('thumbnails')
@@ -81,6 +86,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ open, onCl
                 ].join(' ')}
                 aria-label={t('viewer:navigation.label')}
                 aria-hidden={!open}
+                onTransitionEnd={onTransitionEnd}
             >
                 <div className={styles.navigationSidebarContainer} hidden={!open}>
                     <Tabs.Root

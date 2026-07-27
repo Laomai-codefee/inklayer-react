@@ -107,7 +107,6 @@ export function usePdfViewer(containerRef: React.RefObject<HTMLDivElement>, opti
             annotationEditorMode: AnnotationEditorType.DISABLE,
             linkService,
             downloadManager,
-            removePageBorders: true,
             findController: fc
         })
 

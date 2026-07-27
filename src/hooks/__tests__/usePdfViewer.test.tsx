@@ -5,6 +5,8 @@ import type { PDFDocumentProxy } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { usePdfViewer } from '../usePdfViewer'
 
+const mockPdfViewerConstructor = jest.fn()
+
 jest.mock('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url', () => 'pdf.worker.mjs', { virtual: true })
 
 jest.mock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
@@ -26,6 +28,10 @@ jest.mock('pdfjs-dist/legacy/web/pdf_viewer.mjs', () => ({
     PDFViewer: class {
         cleanup = jest.fn()
         setDocument = jest.fn()
+
+        constructor(options: unknown) {
+            mockPdfViewerConstructor(options)
+        }
     }
 }))
 
@@ -63,6 +69,28 @@ function createDocument(name: string) {
 }
 
 describe('usePdfViewer', () => {
+    beforeEach(() => {
+        jest.clearAllMocks()
+    })
+
+    it('keeps the native PDF.js page spacing used by adaptive zoom', () => {
+        const loadingTask = createDeferredTask()
+        jest.mocked(getDocument).mockReturnValue(loadingTask as never)
+        const containerRef = { current: document.createElement('div') }
+
+        const { unmount } = renderHook(() =>
+            usePdfViewer(containerRef, {
+                url: 'test.pdf',
+                enableRange: false
+            })
+        )
+
+        expect(mockPdfViewerConstructor).toHaveBeenCalledTimes(1)
+        expect(mockPdfViewerConstructor.mock.calls[0][0]).not.toHaveProperty('removePageBorders')
+
+        unmount()
+    })
+
     it('ignores a stale loading task after the URL changes', async () => {
         const firstTask = createDeferredTask()
         const secondTask = createDeferredTask()

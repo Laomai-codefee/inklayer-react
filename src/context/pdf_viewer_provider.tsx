@@ -17,6 +17,8 @@ import { NavigationSidebar } from '@/components/navigation_sidebar'
 
 export type SidebarPanelKey = string
 
+const ADAPTIVE_SCALE_VALUES = new Set(['auto', 'page-fit', 'page-width'])
+
 export interface SidebarPanel {
     key: string
     title: React.ReactNode
@@ -89,6 +91,30 @@ export const PdfViewerProvider: React.FC<PdfViewerProviderProps> = ({
         setActiveSidebarPanel(null)
     }, [])
 
+    const refreshAdaptiveScale = useCallback(() => {
+        if (!pdfViewer) return
+
+        const currentScaleValue = pdfViewer.currentScaleValue
+        if (!ADAPTIVE_SCALE_VALUES.has(currentScaleValue)) return
+
+        pdfViewer.currentScaleValue = currentScaleValue
+        pdfViewer.update()
+    }, [pdfViewer])
+
+    const handleSidebarTransitionEnd = useCallback(
+        (event: React.TransitionEvent<HTMLElement>) => {
+            if (
+                event.target !== event.currentTarget
+                || event.propertyName !== 'width'
+            ) {
+                return
+            }
+
+            refreshAdaptiveScale()
+        },
+        [refreshAdaptiveScale]
+    )
+
     const isReady = !!(pdfViewer && eventBus && viewerContainerRef.current && !loading)
 
     const { printClean, downloadClean } = usePdfTool(pdfDocument);
@@ -155,7 +181,7 @@ export const PdfViewerProvider: React.FC<PdfViewerProviderProps> = ({
         return () => {
             window.removeEventListener('resize', handleResize)
         }
-    }, [pdfViewer, eventBus, sidebarCollapsed])
+    }, [pdfViewer, eventBus])
 
     const sidebarTriggerElement = sidebar && (
         <Flex gap="2">
@@ -232,6 +258,7 @@ export const PdfViewerProvider: React.FC<PdfViewerProviderProps> = ({
                         <NavigationSidebar
                             open={isNavigationSidebarOpen}
                             onClose={() => setIsNavigationSidebarOpen(false)}
+                            onTransitionEnd={handleSidebarTransitionEnd}
                         />
                         <Flex flexGrow="1" minHeight="0" className={styles.viewerWrapper}>
                             <Flex className={styles.viewerContainer} direction="column" flexGrow="1">
@@ -248,12 +275,14 @@ export const PdfViewerProvider: React.FC<PdfViewerProviderProps> = ({
                                 </Box>
                             </Flex>
                             <Box
+                                id="InkLayer-viewer-sidebar"
                                 className={[
                                     styles.viewerSidebar,
                                     !activePanel ? styles['viewerSidebar--hidden'] : '',
                                 ].join(' ')}
                                 pl="1"
                                 pr="1"
+                                onTransitionEnd={handleSidebarTransitionEnd}
                             >
                                 {activePanel && (
                                     <div className={styles['viewerSidebar-container']}>{activePanel.render(contextValue)}</div>
