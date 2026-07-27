@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.2](https://github.com/Laomai-codefee/inklayer-react/compare/v1.1.1...v1.1.2) (2026-07-27)
+
+
+### Features
+
+* add document navigation sidebar shell ([e099244](https://github.com/Laomai-codefee/inklayer-react/commit/e09924455fd61f661b97f1b9812ab818bfe9a514))
+* add document navigation tabs ([84cb40f](https://github.com/Laomai-codefee/inklayer-react/commit/84cb40f94d646db0ef14d309b770b3670369f65c))
+* add PDF outline navigation ([1d0ab79](https://github.com/Laomai-codefee/inklayer-react/commit/1d0ab79c801dfeadce834c1c88dd134f84a76489))
+* add PDF thumbnail navigation ([967c1ed](https://github.com/Laomai-codefee/inklayer-react/commit/967c1edaa470e01f5bfab5693238e9539c756e85))
+
+
+### Bug Fixes
+
+* align navigation sidebar animation ([5824b74](https://github.com/Laomai-codefee/inklayer-react/commit/5824b74d44afc7ef41dec47d89059e326eed60c0))
+* harden document navigation behavior ([15544f4](https://github.com/Laomai-codefee/inklayer-react/commit/15544f454b35aeae7477cef7d61915897323c3cc))
+* keep adaptive PDF layout within viewer ([74e15cf](https://github.com/Laomai-codefee/inklayer-react/commit/74e15cf2d41fe75ca21e430b5012f007f34d6874))
+
 ### [1.1.1](https://github.com/Laomai-codefee/inklayer-react/compare/v1.1.0...v1.1.1) (2026-07-23)
 
 
