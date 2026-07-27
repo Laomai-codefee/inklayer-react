@@ -22,6 +22,11 @@ const mockPainterInstances: MockPainter[] = []
 const mockDefaultOptions = {}
 let mockInitAnnotations: () => Promise<void>
 let mockUser = { id: 'user-1', name: 'User' }
+let mockAnnotations = new Map<string, { pageNumber: number }>()
+let mockStoreSubscriber: ((
+    state: { annotations: Map<string, { pageNumber: number }> },
+    previousState: { annotations: Map<string, { pageNumber: number }> }
+) => void) | null = null
 
 interface MockPainter {
     destroy: jest.Mock
@@ -56,8 +61,13 @@ jest.mock('../store', () => ({
         (selector: (state: { clearAnnotations: typeof mockClearAnnotations }) => unknown) =>
             selector({ clearAnnotations: mockClearAnnotations }),
         {
-            getState: () => ({ annotations: new Map() }),
-            subscribe: () => jest.fn()
+            getState: () => ({ annotations: mockAnnotations }),
+            subscribe: (subscriber: typeof mockStoreSubscriber) => {
+                mockStoreSubscriber = subscriber
+                return jest.fn(() => {
+                    mockStoreSubscriber = null
+                })
+            }
         }
     )
 }))
@@ -103,6 +113,8 @@ describe('AnnotatorExtension lifecycle', () => {
         jest.clearAllMocks()
         mockPainterInstances.length = 0
         mockUser = { id: 'user-1', name: 'User' }
+        mockAnnotations = new Map()
+        mockStoreSubscriber = null
         requiredProps.onLoad = jest.fn()
     })
 
@@ -168,5 +180,52 @@ describe('AnnotatorExtension lifecycle', () => {
         expect(mockPainterInstances).toHaveLength(1)
         expect(painter.setPermissionContext).toHaveBeenLastCalledWith(mockUser, nextPermissions)
         expect(mockRefreshPainter).toHaveBeenCalled()
+    })
+
+    it('publishes annotation counts by page and clears them on unmount', () => {
+        mockInitAnnotations = async () => undefined
+        mockAnnotations = new Map([
+            ['annotation-1', { pageNumber: 1 }],
+            ['annotation-2', { pageNumber: 1 }],
+            ['annotation-3', { pageNumber: 3 }],
+        ])
+
+        const { unmount } = render(<AnnotatorExtension {...requiredProps} />)
+
+        expect(mockEventBus.dispatch).toHaveBeenCalledWith(
+            'inklayer:navigation-page-markers-changed',
+            {
+                source: 'inklayer-annotator',
+                markers: new Map([[1, 2], [3, 1]]),
+            }
+        )
+
+        const previousAnnotations = mockAnnotations
+        mockAnnotations = new Map([
+            ['annotation-4', { pageNumber: 2 }],
+        ])
+        act(() => {
+            mockStoreSubscriber?.(
+                { annotations: mockAnnotations },
+                { annotations: previousAnnotations }
+            )
+        })
+
+        expect(mockEventBus.dispatch).toHaveBeenLastCalledWith(
+            'inklayer:navigation-page-markers-changed',
+            {
+                source: 'inklayer-annotator',
+                markers: new Map([[2, 1]]),
+            }
+        )
+
+        unmount()
+        expect(mockEventBus.dispatch).toHaveBeenLastCalledWith(
+            'inklayer:navigation-page-markers-changed',
+            {
+                source: 'inklayer-annotator',
+                markers: new Map(),
+            }
+        )
     })
 })

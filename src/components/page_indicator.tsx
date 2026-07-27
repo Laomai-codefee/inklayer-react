@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { usePdfViewerContext } from '../context/pdf_viewer_context'
 import { Flex, TextField, Text, Box, IconButton } from '@radix-ui/themes'
 import { AiOutlineRight, AiOutlineLeft } from 'react-icons/ai'
+import { useTranslation } from 'react-i18next'
 
 const AUTO_HIDE_DELAY = 3000
 
 export const PageIndicator: React.FC = () => {
+    const { t } = useTranslation(['viewer'], { useSuspense: false })
     const { pdfViewer, isReady } = usePdfViewerContext()
 
     const [currentPage, setCurrentPage] = useState<number>(1)
@@ -229,6 +231,7 @@ export const PageIndicator: React.FC = () => {
                     onClick={handlePrevPage}
                     size="1"
                     disabled={currentPage <= 1 || isPageChanging}
+                    aria-label={t('viewer:navigation.previousPage')}
                 >
                     <AiOutlineLeft />
                 </IconButton>
@@ -243,6 +246,7 @@ export const PageIndicator: React.FC = () => {
                         onDoubleClick={handleInputDoubleClick}
                         onKeyDown={handleKeyDown}
                         disabled={isPageChanging}
+                        aria-label={t('viewer:navigation.pageInput')}
                         style={{
                             width: 30,
                             fontWeight: 'bold',
@@ -278,6 +282,7 @@ export const PageIndicator: React.FC = () => {
                     disabled={currentPage >= totalPages || isPageChanging}
                     onClick={handleNextPage}
                     size="1"
+                    aria-label={t('viewer:navigation.nextPage')}
                     style={{
                         color: currentPage >= totalPages || isPageChanging ? '#aaa' : '#fff',
                         transition: 'background-color 0.2s ease',

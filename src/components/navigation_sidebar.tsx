@@ -37,6 +37,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
     }, [])
 
     useEffect(() => {
+        setMarkerSources(new Map())
         if (!eventBus) return
 
         const handleMarkersChanged = ({
@@ -59,6 +60,19 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
             eventBus.off(NAVIGATION_PAGE_MARKERS_CHANGED_EVENT, handleMarkersChanged)
         }
     }, [eventBus])
+
+    useEffect(() => {
+        if (!open) return
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                onClose()
+            }
+        }
+
+        document.addEventListener('keydown', handleKeyDown)
+        return () => document.removeEventListener('keydown', handleKeyDown)
+    }, [onClose, open])
 
     const pageMarkerCounts = useMemo(() => {
         const counts = new Map<number, number>()

@@ -46,6 +46,12 @@ jest.mock('../../../store', () => ({
 
 jest.mock('@/components/color_picker', () => ({ ColorPicker: () => null }))
 
+jest.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => key,
+    })
+}))
+
 const annotation = {
     id: 'annotation-1',
     pageNumber: 1,

@@ -13,6 +13,7 @@ interface PdfThumbnailProps {
     selected: boolean
     markerCount: number
     onSelect: (pageNumber: number) => void
+    onLayoutChange: () => void
     registerElement: (pageNumber: number, element: HTMLButtonElement | null) => void
 }
 
@@ -22,6 +23,7 @@ const PdfThumbnail = memo<PdfThumbnailProps>(({
     selected,
     markerCount,
     onSelect,
+    onLayoutChange,
     registerElement,
 }) => {
     const { t } = useTranslation(['viewer'], { useSuspense: false })
@@ -31,6 +33,12 @@ const PdfThumbnail = memo<PdfThumbnailProps>(({
     const [shouldRender, setShouldRender] = useState(false)
     const [rendered, setRendered] = useState(false)
     const [renderFailed, setRenderFailed] = useState(false)
+    const pageLabel = markerCount > 0
+        ? t('viewer:navigation.pageWithMarkers', {
+            value: pageNumber,
+            count: markerCount,
+        })
+        : t('viewer:navigation.page', { value: pageNumber })
 
     const setItemRef = useCallback((element: HTMLButtonElement | null) => {
         itemRef.current = element
@@ -86,6 +94,7 @@ const PdfThumbnail = memo<PdfThumbnailProps>(({
                 canvas.height = Math.floor(viewport.height * outputScale)
                 canvas.style.width = `${Math.floor(viewport.width)}px`
                 canvas.style.height = `${Math.floor(viewport.height)}px`
+                onLayoutChange()
 
                 renderTask = page.render({
                     canvasContext: context,
@@ -115,7 +124,7 @@ const PdfThumbnail = memo<PdfThumbnailProps>(({
             renderTaskRef.current?.cancel()
             renderTaskRef.current = null
         }
-    }, [pdfDocument, pageNumber, shouldRender])
+    }, [onLayoutChange, pdfDocument, pageNumber, shouldRender])
 
     return (
         <button
@@ -126,7 +135,7 @@ const PdfThumbnail = memo<PdfThumbnailProps>(({
                 selected ? styles['thumbnail--selected'] : '',
             ].join(' ')}
             aria-current={selected ? 'page' : undefined}
-            aria-label={t('viewer:navigation.page', { value: pageNumber })}
+            aria-label={pageLabel}
             onClick={() => onSelect(pageNumber)}
         >
             <span className={styles.thumbnailCanvasWrapper}>
@@ -157,8 +166,10 @@ interface PdfThumbnailListProps {
 export const PdfThumbnailList: React.FC<PdfThumbnailListProps> = ({ pageMarkerCounts }) => {
     const { pdfDocument, pdfViewer, eventBus } = usePdfViewerContext()
     const [currentPage, setCurrentPage] = useState(() => pdfViewer?.currentPageNumber || 1)
+    const currentPageRef = useRef(currentPage)
     const thumbnailElementsRef = useRef(new Map<number, HTMLButtonElement>())
-    const thumbnailListRef = useRef<HTMLDivElement | null>(null)
+    const animationFrameRef = useRef<number | null>(null)
+    const autoFollowCurrentPageRef = useRef(true)
 
     const registerElement = useCallback((pageNumber: number, element: HTMLButtonElement | null) => {
         if (element) {
@@ -168,17 +179,49 @@ export const PdfThumbnailList: React.FC<PdfThumbnailListProps> = ({ pageMarkerCo
         }
     }, [])
 
+    const cancelScheduledScroll = useCallback(() => {
+        if (animationFrameRef.current !== null) {
+            window.cancelAnimationFrame(animationFrameRef.current)
+            animationFrameRef.current = null
+        }
+    }, [])
+
+    const keepCurrentThumbnailVisible = useCallback(() => {
+        if (!autoFollowCurrentPageRef.current) return
+
+        cancelScheduledScroll()
+        animationFrameRef.current = window.requestAnimationFrame(() => {
+            animationFrameRef.current = null
+            thumbnailElementsRef.current.get(currentPageRef.current)?.scrollIntoView({
+                block: 'nearest',
+            })
+        })
+    }, [cancelScheduledScroll])
+
+    const stopAutoFollow = useCallback(() => {
+        autoFollowCurrentPageRef.current = false
+        cancelScheduledScroll()
+    }, [cancelScheduledScroll])
+
     const handlePageSelect = useCallback((pageNumber: number) => {
         if (!pdfViewer) return
+        autoFollowCurrentPageRef.current = true
+        currentPageRef.current = pageNumber
+        setCurrentPage(pageNumber)
         pdfViewer.currentPageNumber = pageNumber
     }, [pdfViewer])
 
     useEffect(() => {
         if (!pdfViewer || !eventBus) return
 
-        setCurrentPage(pdfViewer.currentPageNumber || 1)
+        const initialPage = pdfViewer.currentPageNumber || 1
+        autoFollowCurrentPageRef.current = true
+        currentPageRef.current = initialPage
+        setCurrentPage(initialPage)
 
         const handlePageChanging = ({ pageNumber }: { pageNumber: number }) => {
+            autoFollowCurrentPageRef.current = true
+            currentPageRef.current = pageNumber
             setCurrentPage(pageNumber)
         }
 
@@ -187,48 +230,22 @@ export const PdfThumbnailList: React.FC<PdfThumbnailListProps> = ({ pageMarkerCo
     }, [eventBus, pdfViewer])
 
     useEffect(() => {
-        const list = thumbnailListRef.current
-        let animationFrame: number | null = null
-
-        const keepCurrentThumbnailVisible = () => {
-            if (animationFrame !== null) {
-                window.cancelAnimationFrame(animationFrame)
-            }
-            animationFrame = window.requestAnimationFrame(() => {
-                animationFrame = null
-                thumbnailElementsRef.current.get(currentPage)?.scrollIntoView({
-                    block: 'nearest',
-                })
-            })
-        }
-
+        autoFollowCurrentPageRef.current = true
+        currentPageRef.current = currentPage
         keepCurrentThumbnailVisible()
+    }, [currentPage, keepCurrentThumbnailVisible, pdfDocument])
 
-        if (!list || typeof ResizeObserver === 'undefined') {
-            return () => {
-                if (animationFrame !== null) {
-                    window.cancelAnimationFrame(animationFrame)
-                }
-            }
-        }
-
-        const resizeObserver = new ResizeObserver(keepCurrentThumbnailVisible)
-        resizeObserver.observe(list)
-        const settleTimer = window.setTimeout(() => resizeObserver.disconnect(), 2000)
-
-        return () => {
-            resizeObserver.disconnect()
-            window.clearTimeout(settleTimer)
-            if (animationFrame !== null) {
-                window.cancelAnimationFrame(animationFrame)
-            }
-        }
-    }, [currentPage])
+    useEffect(() => cancelScheduledScroll, [cancelScheduledScroll])
 
     if (!pdfDocument) return null
 
     return (
-        <div ref={thumbnailListRef} className={styles.thumbnailList}>
+        <div
+            className={styles.thumbnailList}
+            onPointerDown={stopAutoFollow}
+            onTouchStart={stopAutoFollow}
+            onWheel={stopAutoFollow}
+        >
             {Array.from({ length: pdfDocument.numPages }, (_, index) => {
                 const pageNumber = index + 1
                 return (
@@ -239,6 +256,7 @@ export const PdfThumbnailList: React.FC<PdfThumbnailListProps> = ({ pageMarkerCo
                         selected={pageNumber === currentPage}
                         markerCount={pageMarkerCounts.get(pageNumber) ?? 0}
                         onSelect={handlePageSelect}
+                        onLayoutChange={keepCurrentThumbnailVisible}
                         registerElement={registerElement}
                     />
                 )

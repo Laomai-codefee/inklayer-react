@@ -5,6 +5,17 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { Theme } from '@radix-ui/themes'
 import { PageIndicator } from '../page_indicator'
 
+jest.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            if (key === 'viewer:navigation.pageInput') return 'Page number'
+            if (key === 'viewer:navigation.previousPage') return 'Previous page'
+            if (key === 'viewer:navigation.nextPage') return 'Next page'
+            return key
+        }
+    })
+}))
+
 const listeners = new Map<string, (event: { pageNumber: number }) => void>()
 const container = document.createElement('div')
 const eventBus = {
@@ -92,5 +103,35 @@ describe('PageIndicator visibility and input selection', () => {
         fireEvent.mouseLeave(indicator)
         act(() => jest.advanceTimersByTime(3000))
         expect(indicator).toHaveStyle({ opacity: '0' })
+    })
+
+    it('navigates by input and buttons and follows PDF.js page changes', () => {
+        const { unmount } = render(
+            <Theme>
+                <PageIndicator />
+            </Theme>
+        )
+
+        const input = screen.getByRole('textbox', { name: 'Page number' })
+        fireEvent.change(input, { target: { value: '446' } })
+        fireEvent.keyDown(input, { key: 'Enter' })
+        expect(pdfViewer.currentPageNumber).toBe(446)
+
+        act(() => {
+            listeners.get('pagechanging')?.({ pageNumber: 200 })
+        })
+        expect(input).toHaveValue('200')
+
+        fireEvent.click(screen.getByRole('button', { name: 'Previous page' }))
+        expect(pdfViewer.currentPageNumber).toBe(199)
+        fireEvent.click(screen.getByRole('button', { name: 'Next page' }))
+        expect(pdfViewer.currentPageNumber).toBe(200)
+
+        fireEvent.change(input, { target: { value: '999' } })
+        fireEvent.blur(input)
+        expect(input).toHaveValue('200')
+
+        unmount()
+        expect(eventBus.off).toHaveBeenCalledWith('pagechanging', expect.any(Function))
     })
 })

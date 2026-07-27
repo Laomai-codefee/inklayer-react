@@ -133,4 +133,68 @@ describe('PdfOutline', () => {
             'location'
         )
     })
+
+    it('uses cached page references and reports outline loading failures', async () => {
+        const pageReference = { num: 8, gen: 0 }
+        const destination = [pageReference, { name: 'Fit' }]
+        const item = createOutlineItem('Cached chapter', { dest: destination })
+        const onNavigate = jest.fn()
+        mockPdfDocument = createDocument([item], {
+            cachedPageNumber: jest.fn(() => 6),
+            getPageIndex: jest.fn(),
+        })
+        mockPdfViewer = createViewer(mockPdfDocument)
+
+        const { rerender } = render(<PdfOutline onNavigate={onNavigate} />)
+        fireEvent.click(await screen.findByRole('button', { name: 'Cached chapter' }))
+
+        expect(mockPdfViewer.scrollPageIntoView).toHaveBeenCalledWith({
+            pageNumber: 6,
+            destArray: destination,
+        })
+        expect(mockPdfDocument.getPageIndex).not.toHaveBeenCalled()
+        expect(onNavigate).toHaveBeenCalledTimes(1)
+
+        mockPdfDocument = createDocument([], {
+            getOutline: jest.fn(async () => {
+                throw new Error('broken outline')
+            }),
+        })
+        mockPdfViewer = createViewer(mockPdfDocument)
+        rerender(<PdfOutline onNavigate={onNavigate} />)
+
+        expect(await screen.findByText('viewer:navigation.outlineError')).toBeInTheDocument()
+    })
+
+    it('ignores a named destination resolved after the document changes', async () => {
+        let resolveDestination!: (destination: unknown[]) => void
+        const staleDestination = new Promise<unknown[]>((resolve) => {
+            resolveDestination = resolve
+        })
+        const firstItem = createOutlineItem('Old chapter', { dest: 'old-chapter' })
+        const firstDocument = createDocument([firstItem], {
+            getDestination: jest.fn(() => staleDestination),
+        })
+        const firstViewer = createViewer(firstDocument)
+        mockPdfDocument = firstDocument
+        mockPdfViewer = firstViewer
+
+        const { rerender } = render(<PdfOutline />)
+        fireEvent.click(await screen.findByRole('button', { name: 'Old chapter' }))
+
+        const secondItem = createOutlineItem('New chapter', {
+            dest: [2, { name: 'Fit' }],
+        })
+        const secondDocument = createDocument([secondItem])
+        mockPdfDocument = secondDocument
+        mockPdfViewer = createViewer(secondDocument)
+        rerender(<PdfOutline />)
+        await screen.findByRole('button', { name: 'New chapter' })
+
+        resolveDestination([{ num: 1, gen: 0 }, { name: 'Fit' }])
+        await waitFor(() => {
+            expect(firstDocument.getDestination).toHaveBeenCalledWith('old-chapter')
+        })
+        expect(firstViewer.scrollPageIntoView).not.toHaveBeenCalled()
+    })
 })

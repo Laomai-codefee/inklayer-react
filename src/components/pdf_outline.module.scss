@@ -22,13 +22,14 @@
     padding-bottom: 2px;
     padding-right: 6px;
     padding-top: 2px;
+
     &--selected {
-        
         .outlineTitle {
             background-color: var(--accent-a4);
+
             &:hover {
                 background-color: var(--accent-a4);
-        }
+            }
         }
     }
 }
