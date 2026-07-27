@@ -1,3 +1,5 @@
+$navigation-sidebar-transition-duration: 200ms;
+
 .navigationSidebar {
     background-color: var(--bg-color-secondary);
     border-right: 1px solid var(--border-color);
@@ -9,7 +11,7 @@
     overflow: hidden;
     width: 240px;
     z-index: 2;
-    transition: width 200ms ease;
+    transition: width $navigation-sidebar-transition-duration ease;
 
     &--hidden {
         border-right: 0;
@@ -18,11 +20,13 @@
 }
 
 .navigationSidebarContainer {
+    align-self: flex-end;
     display: flex;
     flex-direction: column;
     height: 100%;
     min-width: 240px;
     overflow: hidden;
+    width: 240px;
 }
 
 .navigationTabs {
@@ -81,12 +85,16 @@
         z-index: 1000;
         width: 240px;
         box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
-        transition: transform 200ms ease, visibility 0ms ease 0ms;
+        transition:
+            transform $navigation-sidebar-transition-duration ease,
+            visibility 0ms ease 0ms;
 
         &--hidden {
             transform: translateX(-100%);
             visibility: hidden;
-            transition: transform 200ms ease, visibility 0ms ease 200ms;
+            transition:
+                transform $navigation-sidebar-transition-duration ease,
+                visibility 0ms ease $navigation-sidebar-transition-duration;
             width: 240px;
         }
     }
