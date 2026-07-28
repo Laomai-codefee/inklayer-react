@@ -60,6 +60,7 @@
     font-size: var(--font-size-1);
 }
 
+.selectedText,
 .preview,
 .empty {
     display: -webkit-box;
@@ -71,6 +72,14 @@
     overflow-wrap: anywhere;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
+}
+
+.selectedText {
+    padding-left: 8px;
+    border-left: 2px solid var(--accent-a6);
+    color: var(--gray-11);
+    font-style: italic;
+    -webkit-line-clamp: 2;
 }
 
 .empty {

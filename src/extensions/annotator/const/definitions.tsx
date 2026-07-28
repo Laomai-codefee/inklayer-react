@@ -155,7 +155,9 @@ export enum CommentStatus {
 }
 
 export interface IAnnotationContentsObj {
-    text: string; // 文本内容
+    text: string; // 用户输入的批注正文
+    /** Source text covered by a text-markup annotation. */
+    selectedText?: string;
     image?: string; // 可选的图片属性
     /** Structured annotation references contained in `text`. */
     references?: IAnnotationReference[];

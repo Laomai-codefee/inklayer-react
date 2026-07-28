@@ -139,6 +139,24 @@ describe('AnnotationReferenceInput', () => {
         expect(option.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 1024 1024')
     })
 
+    it('uses selected source text when a candidate has no user-authored content', () => {
+        const { input } = renderInput({
+            annotations: [
+                makeAnnotation('annotation-1', 1),
+                makeAnnotation('annotation-2', 2, {
+                    contentsObj: {
+                        text: '',
+                        selectedText: 'Quoted source text'
+                    }
+                })
+            ]
+        })
+
+        fireEvent.change(input, { target: { value: '#' } })
+
+        expect(screen.getByText('Quoted source text')).toBeTruthy()
+    })
+
     it('opens on # and inserts a structured reference with the keyboard', () => {
         const { input, onSubmit } = renderInput()
 

@@ -244,6 +244,8 @@ function extractPayload(store: IAnnotationStore, kind: AnnotationKind): Annotati
       return {
         kind: 'text-markup',
         variant,
+        text: store.contentsObj?.text || '',
+        selectedText: store.contentsObj?.selectedText,
         color: store.color || undefined,
       }
     }
@@ -456,6 +458,11 @@ function extractTitleFromPayload(payload?: AnnotationPayload): string {
 function extractContentsFromPayload(payload?: AnnotationPayload) {
   if (!payload) return null
   switch (payload.kind) {
+    case 'text-markup':
+      return {
+        text: payload.text || '',
+        selectedText: payload.selectedText,
+      }
     case 'note': return { text: payload.text }
     default: return null
   }

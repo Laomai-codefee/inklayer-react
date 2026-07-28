@@ -37,7 +37,7 @@ export class UnderlineParser extends AnnotationParser {
             QuadPoints: quadPoints,
             C: rgbToPdfColor(annotation.color || '#000000'),
             T: stringToPDFHexString(annotation.title || t('normal.unknownUser')),
-            // 这里如果置空，写入的批注中就不会出现内容，和 highlight 不一致
+            // QuadPoints anchor the source text; Contents is only the user-authored note.
             Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
             M: PDFString.of(annotation.date || ''),
             NM: PDFString.of(annotation.id),

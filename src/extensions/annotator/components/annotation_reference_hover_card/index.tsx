@@ -19,7 +19,9 @@ export const AnnotationReferenceHoverCard: React.FC<AnnotationReferenceHoverCard
 }) => {
     const { t } = useTranslation('annotator', { useSuspense: false })
     const [open, setOpen] = useState(false)
-    const preview = createAnnotationPreview(annotation.contentsObj?.text)
+    const commentPreview = createAnnotationPreview(annotation.contentsObj?.text)
+    const selectedTextPreview = createAnnotationPreview(annotation.contentsObj?.selectedText)
+    const hasPreview = Boolean(commentPreview || selectedTextPreview)
     const authorName = annotation.user?.name || annotation.title
     const replyCount = annotation.comments?.length ?? 0
     const referenceLabel = annotation.referenceNumber === undefined
@@ -68,9 +70,29 @@ export const AnnotationReferenceHoverCard: React.FC<AnnotationReferenceHoverCard
                         })}
                     </span>
                 </div>
-                <p className={preview ? styles.preview : styles.empty}>
-                    {preview || t('comment.reference.previewNoContent')}
-                </p>
+                {
+                    selectedTextPreview
+                        ? (
+                            <blockquote className={styles.selectedText}>
+                                {selectedTextPreview}
+                            </blockquote>
+                        )
+                        : null
+                }
+                {
+                    commentPreview
+                        ? <p className={styles.preview}>{commentPreview}</p>
+                        : null
+                }
+                {
+                    hasPreview
+                        ? null
+                        : (
+                            <p className={styles.empty}>
+                                {t('comment.reference.previewNoContent')}
+                            </p>
+                        )
+                }
                 {
                     replyCount > 0
                         ? (

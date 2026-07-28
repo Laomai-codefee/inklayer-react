@@ -203,6 +203,10 @@ describe('PDF annotation export', () => {
             type,
             pdfjsType,
             subtype,
+            contentsObj: {
+                text: 'Reviewer note',
+                selectedText: 'Selected source text'
+            },
             konvaString: JSON.stringify({
                 className: 'Group',
                 attrs: { x: 20, y: 30, scaleX: 2, scaleY: 1.5 },
@@ -216,11 +220,45 @@ describe('PDF annotation export', () => {
         const [textMarkup] = getAnnotationDictionaries(exported)
 
         expect(textMarkup.lookup(PDFName.of('Subtype'), PDFName).toString()).toBe(`/${expectedSubtype}`)
+        expect(textMarkup.lookup(PDFName.of('Contents'), PDFHexString).decodeText()).toBe('Reviewer note')
         expect(getNumberArray(textMarkup, 'QuadPoints')).toEqual([
             40, 740,
             100, 740,
             40, 725,
             100, 725
+        ])
+    })
+
+    it('keeps text-markup geometry when the user content is empty', async () => {
+        const annotation = createAnnotation({
+            type: AnnotationType.HIGHLIGHT,
+            pdfjsType: PdfjsAnnotationType.HIGHLIGHT,
+            subtype: 'Highlight',
+            contentsObj: {
+                text: '',
+                selectedText: 'Selected source text'
+            },
+            konvaString: JSON.stringify({
+                className: 'Group',
+                attrs: {},
+                children: [{
+                    className: 'Rect',
+                    attrs: { x: 10, y: 20, width: 30, height: 10 }
+                }]
+            }),
+            konvaClientRect: { x: 10, y: 20, width: 30, height: 10 }
+        })
+
+        const result = await buildAnnotatedPdf(createViewer(await createBlankPdf()), [annotation])
+        const exported = await PDFDocument.load(result)
+        const [highlight] = getAnnotationDictionaries(exported)
+
+        expect(highlight.lookup(PDFName.of('Contents'), PDFHexString).decodeText()).toBe('')
+        expect(getNumberArray(highlight, 'QuadPoints')).toEqual([
+            10, 780,
+            40, 780,
+            10, 770,
+            40, 770
         ])
     })
 
@@ -527,6 +565,70 @@ describe('PDF annotation export', () => {
     })
 
     const visualTest = spawnSync('pdftoppm', ['-v']).status === 0 ? it : it.skip
+    visualTest('renders text markup identically when selected text is separated from Contents', async () => {
+        const directory = mkdtempSync(join(tmpdir(), 'inklayer-text-markup-visual-'))
+        const cases = [
+            [AnnotationType.HIGHLIGHT, PdfjsAnnotationType.HIGHLIGHT, 'Highlight'],
+            [AnnotationType.UNDERLINE, PdfjsAnnotationType.UNDERLINE, 'Underline'],
+            [AnnotationType.STRIKEOUT, PdfjsAnnotationType.STRIKEOUT, 'StrikeOut']
+        ] as const
+
+        try {
+            for (const [type, pdfjsType, subtype] of cases) {
+                const base = {
+                    type,
+                    pdfjsType,
+                    subtype,
+                    konvaString: JSON.stringify({
+                        className: 'Group',
+                        attrs: {},
+                        children: [{
+                            className: 'Rect',
+                            attrs: { x: 100, y: 100, width: 160, height: 20 }
+                        }]
+                    }),
+                    konvaClientRect: { x: 100, y: 100, width: 160, height: 20 }
+                }
+                const legacy = createAnnotation({
+                    ...base,
+                    contentsObj: { text: 'Selected source text' }
+                })
+                const separated = createAnnotation({
+                    ...base,
+                    contentsObj: {
+                        text: '',
+                        selectedText: 'Selected source text'
+                    }
+                })
+                const [legacyData, separatedData] = await Promise.all([
+                    buildAnnotatedPdf(createViewer(await createBlankPdf()), [legacy]),
+                    buildAnnotatedPdf(createViewer(await createBlankPdf()), [separated])
+                ])
+                const legacyInput = join(directory, `${subtype}-legacy.pdf`)
+                const separatedInput = join(directory, `${subtype}-separated.pdf`)
+                const legacyOutput = join(directory, `${subtype}-legacy`)
+                const separatedOutput = join(directory, `${subtype}-separated`)
+                writeFileSync(legacyInput, legacyData)
+                writeFileSync(separatedInput, separatedData)
+                execFileSync(
+                    'pdftoppm',
+                    ['-r', '72', '-f', '1', '-singlefile', legacyInput, legacyOutput],
+                    { timeout: 5000 }
+                )
+                execFileSync(
+                    'pdftoppm',
+                    ['-r', '72', '-f', '1', '-singlefile', separatedInput, separatedOutput],
+                    { timeout: 5000 }
+                )
+
+                expect(readFileSync(`${separatedOutput}.ppm`))
+                    .toEqual(readFileSync(`${legacyOutput}.ppm`))
+            }
+        } finally {
+            rmSync(directory, { recursive: true, force: true })
+        }
+    })
+
     visualTest('renders the curved Cloud Ink path in the expected page region with Poppler', async () => {
         const annotation = createAnnotation({
             type: AnnotationType.CLOUD,

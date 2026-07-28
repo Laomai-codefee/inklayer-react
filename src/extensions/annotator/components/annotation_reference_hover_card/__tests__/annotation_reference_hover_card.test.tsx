@@ -55,7 +55,10 @@ function makeAnnotation(overrides: Partial<IAnnotationStore> = {}): IAnnotationS
         subtype: 'Square',
         pdfjsType: PdfjsAnnotationType.SQUARE,
         date: null,
-        contentsObj: { text: 'Important context from the annotation.' },
+        contentsObj: {
+            text: 'Important context from the annotation.',
+            selectedText: 'Quoted source text.'
+        },
         comments: [{
             id: 'reply-1',
             title: 'Bob',
@@ -81,6 +84,7 @@ describe('AnnotationReferenceHoverCard', () => {
 
         expect(screen.getAllByText('#2')).toHaveLength(2)
         expect(screen.getByText('Alice')).toBeTruthy()
+        expect(screen.getByText('Quoted source text.')).toBeTruthy()
         expect(screen.getByText('Important context from the annotation.')).toBeTruthy()
         expect(screen.getByText('comment.reference.previewPage:8')).toBeTruthy()
         expect(screen.getByText('comment.reference.replyCount:1')).toBeTruthy()
@@ -90,7 +94,7 @@ describe('AnnotationReferenceHoverCard', () => {
         render(
             <AnnotationReferenceHoverCard
                 annotation={makeAnnotation({
-                    contentsObj: { text: '  ' },
+                    contentsObj: { text: '  ', selectedText: '  ' },
                     comments: []
                 })}
                 onActivate={jest.fn()}

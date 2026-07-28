@@ -42,6 +42,8 @@ describe('annotation store mapping', () => {
     expect(annotation.payload).toEqual({
       kind: 'text-markup',
       variant: 'highlight',
+      text: 'Review this section',
+      selectedText: undefined,
       color: '#ff0000',
     });
     expect(annotation.appearance?.fillColor).toBe('rgba(255, 0, 0, 0.3)');
@@ -193,6 +195,30 @@ describe('annotation store mapping', () => {
     expect(legacy.comments?.[0].references).toEqual([reference]);
     expect(restored.contentsObj).toEqual(original.contentsObj);
     expect(restored.comments).toEqual(original.comments);
+  });
+
+  it('preserves text-markup source text separately from user content', () => {
+    const original = makeStore({
+      contentsObj: {
+        text: 'User-authored note',
+        selectedText: 'Quoted source text',
+      },
+    });
+    const saved = storeToAnnotation(original);
+
+    expect(saved.payload).toMatchObject({
+      kind: 'text-markup',
+      text: 'User-authored note',
+      selectedText: 'Quoted source text',
+    });
+    expect(annotationToStore(saved).contentsObj).toEqual(original.contentsObj);
+
+    const extensions = saved.extensions as {
+      legacy?: unknown
+    };
+    delete extensions.legacy;
+
+    expect(annotationToStore(saved).contentsObj).toEqual(original.contentsObj);
   });
 
   it('keeps legacy comments without an author compatible', () => {

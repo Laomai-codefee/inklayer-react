@@ -208,6 +208,12 @@ export interface TextMarkupPayload {
   
   /** 文本标记变体 */
   variant: 'highlight' | 'underline' | 'squiggly' | 'strikeout'
+
+  /** User-authored annotation text. */
+  text?: string
+
+  /** Source text covered by the markup geometry. */
+  selectedText?: string
   
   /** 语义颜色（可选，用于显示优先级）
    * 

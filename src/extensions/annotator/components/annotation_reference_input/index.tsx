@@ -52,7 +52,10 @@ interface AnnotationReferenceInputProps {
 }
 
 function getAnnotationSummary(annotation: IAnnotationStore): string {
-    return annotation.contentsObj?.text?.replace(/\s+/g, ' ').trim() || ''
+    const contents = annotation.contentsObj
+    return (contents?.text || contents?.selectedText || '')
+        .replace(/\s+/g, ' ')
+        .trim()
 }
 
 export const AnnotationReferenceInput: React.FC<AnnotationReferenceInputProps> = ({

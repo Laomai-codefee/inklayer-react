@@ -32,7 +32,8 @@ export class HighlightParser extends AnnotationParser {
             QuadPoints: quadPoints,
             C: rgbToPdfColor(annotation.color || '#000000'), // 批注颜色
             T: stringToPDFHexString(annotation.title || t('normal.unknownUser')), // 作者
-            Contents: stringToPDFHexString(annotation.contentsObj?.text || ''), // 主内容
+            // QuadPoints anchor the source text; Contents is only the user-authored note.
+            Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
             M: PDFString.of(annotation.date || ''), // 日期
             NM: PDFString.of(annotation.id), // 唯一标识
             F: PDFNumber.of(4),

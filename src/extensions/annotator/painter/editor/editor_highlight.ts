@@ -62,7 +62,8 @@ export class EditorHighLight extends Editor {
         this.setShapeGroupDone({
             id: this.currentShapeGroup.id,
             contentsObj: {
-                text: this.getElementOuterText(elements)
+                text: '',
+                selectedText: this.getSelectedText(elements)
             },
             color: this.currentAnnotation!.style!.color
         })
@@ -136,13 +137,12 @@ export class EditorHighLight extends Editor {
      * @param elements HTMLSpanElement 数组
      * @returns 所有元素内部文字的字符串
      */
-    private getElementOuterText(elements: HTMLSpanElement[]): string {
-        const fullText = elements.map(el => el.outerText).join('');
-        // 如果文本超过60个字符，则保留前30个和后30个，中间用省略号代替
-        if (fullText.length > 60) {
-            return fullText.substring(0, 30) + '...' + fullText.substring(fullText.length - 30);
-        }
-        return fullText;
+    private getSelectedText(elements: HTMLSpanElement[]): string {
+        return elements
+            .map((element) => element.textContent || '')
+            .join('')
+            .replace(/\s+/g, ' ')
+            .trim()
     }
 
     /**
