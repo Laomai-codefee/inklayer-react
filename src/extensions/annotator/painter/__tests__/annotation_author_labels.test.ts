@@ -59,6 +59,7 @@ describe('AnnotationAuthorLabels', () => {
         expect(labels.areAllVisible()).toBe(true)
         expect(label.style.display).toBe('block')
         expect(label.textContent).toBe('#12 · Alice')
+        expect(label.style.backgroundColor).toBe('rgb(110, 86, 207)')
 
         labels.destroy()
     })

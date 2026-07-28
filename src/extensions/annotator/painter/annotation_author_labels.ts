@@ -2,7 +2,7 @@ import type Konva from 'konva'
 
 import type { IAnnotationStore } from '../const/definitions'
 import { ANNOTATION_AUTHOR_LABEL_BOUNDS_CHANGE_EVENT, ANNOTATION_AUTHOR_LABEL_CLASS, ANNOTATION_AUTHOR_LABELS_LAYER_CLASS } from './const'
-import { getAnnotationAuthorLabelPosition, getAnnotationAuthorLabelText, getReadableAuthorLabelTextColor } from './editor/annotation_author_label'
+import { getAnnotationAuthorLabelPosition, getAnnotationAuthorLabelText } from './editor/annotation_author_label'
 import { getTransformerPermissionStyle } from './editor/selector_permissions'
 
 interface AnnotationAuthorLabelsOptions {
@@ -193,7 +193,6 @@ export class AnnotationAuthorLabels {
 
         if (label.textContent !== labelText) label.textContent = labelText
         label.style.backgroundColor = this.primaryColor
-        label.style.color = getReadableAuthorLabelTextColor(this.primaryColor)
         label.style.opacity = String(getTransformerPermissionStyle(this.canTransform(annotation)).authorLabelOpacity)
 
         const visible = this.shouldRevealAll() || annotation.id === this.selectedId
