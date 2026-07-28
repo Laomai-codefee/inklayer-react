@@ -411,6 +411,9 @@ export interface AnnotationRelations {
 
 /** 批注元信息 */
 export interface AnnotationMeta {
+  /** Stable, document-scoped display number used by annotation references. */
+  referenceNumber?: number
+
   /** 创建时间（ISO 8601） */
   createdAt?: string
   

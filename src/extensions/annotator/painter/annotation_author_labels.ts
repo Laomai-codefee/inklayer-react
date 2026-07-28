@@ -2,7 +2,7 @@ import type Konva from 'konva'
 
 import type { IAnnotationStore } from '../const/definitions'
 import { ANNOTATION_AUTHOR_LABEL_BOUNDS_CHANGE_EVENT, ANNOTATION_AUTHOR_LABEL_CLASS, ANNOTATION_AUTHOR_LABELS_LAYER_CLASS } from './const'
-import { getAnnotationAuthorLabelPosition, getAnnotationAuthorName, getReadableAuthorLabelTextColor } from './editor/annotation_author_label'
+import { getAnnotationAuthorLabelPosition, getAnnotationAuthorLabelText, getReadableAuthorLabelTextColor } from './editor/annotation_author_label'
 import { getTransformerPermissionStyle } from './editor/selector_permissions'
 
 interface AnnotationAuthorLabelsOptions {
@@ -170,9 +170,9 @@ export class AnnotationAuthorLabels {
     }
 
     private syncAnnotation(page: AnnotationAuthorLabelsPage, annotation: IAnnotationStore, positionImmediately: boolean): VisibleAnnotationAuthorLabel | null {
-        const authorName = getAnnotationAuthorName(annotation)
+        const labelText = getAnnotationAuthorLabelText(annotation)
         const group = this.getAnnotationGroup(annotation, page.stage)
-        if (!authorName || !group) {
+        if (!labelText || !group) {
             this.unbindGroup(annotation.id)
             const staleLabel = page.labels.get(annotation.id)
             staleLabel?.remove()
@@ -191,7 +191,7 @@ export class AnnotationAuthorLabels {
             page.labels.set(annotation.id, label)
         }
 
-        if (label.textContent !== authorName) label.textContent = authorName
+        if (label.textContent !== labelText) label.textContent = labelText
         label.style.backgroundColor = this.primaryColor
         label.style.color = getReadableAuthorLabelTextColor(this.primaryColor)
         label.style.opacity = String(getTransformerPermissionStyle(this.canTransform(annotation)).authorLabelOpacity)

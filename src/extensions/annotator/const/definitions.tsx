@@ -121,6 +121,16 @@ export interface IAnnotationStyle {
     strokeWidth?: number // 边框宽度
 }
 
+/**
+ * A stable annotation target stored beside the readable #N text.
+ * `annotationId` drives navigation; `label` only identifies the text token.
+ */
+export interface IAnnotationReference {
+    type: 'annotation';
+    annotationId: string;
+    label: string;
+}
+
 // 批注的内容接口
 // 用于描述批注的文本或图像内容
 export interface IAnnotationComment {
@@ -131,6 +141,8 @@ export interface IAnnotationComment {
     status?: CommentStatus;
     /** Stable author identity used by collaboration permissions. */
     user?: User;
+    /** Structured annotation references contained in `content`. */
+    references?: IAnnotationReference[];
 }
 
 export enum CommentStatus {
@@ -145,12 +157,16 @@ export enum CommentStatus {
 export interface IAnnotationContentsObj {
     text: string; // 文本内容
     image?: string; // 可选的图片属性
+    /** Structured annotation references contained in `text`. */
+    references?: IAnnotationReference[];
 }
 
 // 批注存储接口
 // 用于描述存储在应用中的批注信息
 export interface IAnnotationStore {
     id: string; // 批注的唯一标识符
+    /** Stable, document-scoped display number used by annotation references. */
+    referenceNumber?: number;
     pageNumber: number; // 批注所在的页码
     konvaString: string; // Konva 的序列化表示
     konvaClientRect: IRect; // 批注在 stage 中的位置

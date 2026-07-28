@@ -31,7 +31,9 @@ export default {
         dateFormat: {
             full: '{{year}}-{{month}}-{{day}} {{hour}}:{{minute}}',
             dayMonth: '{{month}}-{{day}}',
-            dayMonthYear: '{{year}}-{{month}}-{{day}}'
+            dayMonthYear: '{{year}}-{{month}}-{{day}}',
+            compact: '{{month}}-{{day}} {{hour}}:{{minute}}',
+            compactWithYear: '{{year}}-{{month}}-{{day}} {{hour}}:{{minute}}'
         }
     },
 
@@ -153,7 +155,14 @@ export default {
                 closed: '关闭'
             },
             statusText: '将状态设置为 “{{value}}”',
-            nativeAnnotation: '原生批注'
+            nativeAnnotation: '原生批注',
+            reference: {
+                empty: '没有匹配的批注',
+                inputLabel: '支持引用批注的评论输入框',
+                noContent: '暂无评论内容',
+                open: '跳转到批注 {{value}}',
+                unavailable: '批注 {{value}} 不可用'
+            }
         },
         export: {
             fields: {

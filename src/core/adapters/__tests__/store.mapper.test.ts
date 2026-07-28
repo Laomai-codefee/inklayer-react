@@ -124,6 +124,14 @@ describe('annotation store mapping', () => {
     expect(restored).toEqual(original);
   });
 
+  it('preserves the annotation reference number during a round trip', () => {
+    const original = makeStore({ referenceNumber: 12 });
+    const saved = storeToAnnotation(original);
+
+    expect(saved.meta?.referenceNumber).toBe(12);
+    expect(annotationToStore(saved).referenceNumber).toBe(12);
+  });
+
   it('restores the canonical StrikeOut subtype from core payload data', () => {
     const saved = storeToAnnotation(makeStore({
       type: AnnotationType.STRIKEOUT,
@@ -151,6 +159,39 @@ describe('annotation store mapping', () => {
 
     const restored = annotationToStore(storeToAnnotation(original));
 
+    expect(restored.comments).toEqual(original.comments);
+  });
+
+  it('preserves main-comment and reply annotation references during a round trip', () => {
+    const reference = {
+      type: 'annotation' as const,
+      annotationId: 'annotation-2',
+      label: '#2',
+    };
+    const original = makeStore({
+      contentsObj: {
+        text: 'Compare this with #2.',
+        references: [reference],
+      },
+      comments: [{
+        id: 'comment-1',
+        title: 'Alice',
+        date: '2026-07-18T00:00:00Z',
+        content: 'Please review #2.',
+        references: [reference],
+      }],
+    });
+
+    const saved = storeToAnnotation(original);
+    const restored = annotationToStore(saved);
+    const legacy = saved.extensions?.legacy as {
+      contentsObj?: typeof original.contentsObj
+      comments?: typeof original.comments
+    };
+
+    expect(legacy.contentsObj?.references).toEqual([reference]);
+    expect(legacy.comments?.[0].references).toEqual([reference]);
+    expect(restored.contentsObj).toEqual(original.contentsObj);
     expect(restored.comments).toEqual(original.comments);
   });
 

@@ -6,9 +6,10 @@ import type { IAnnotationStore } from '../../const/definitions'
 import { AnnotationAuthorLabels, isAnnotationAuthorRevealKey } from '../annotation_author_labels'
 import { ANNOTATION_AUTHOR_LABEL_CLASS, ANNOTATION_AUTHOR_LABELS_LAYER_CLASS } from '../const'
 
-function createAnnotation(id: string, name: string): IAnnotationStore {
+function createAnnotation(id: string, name: string, referenceNumber?: number): IAnnotationStore {
     return {
         id,
+        referenceNumber,
         pageNumber: 1,
         title: name,
         user: { id: name.toLowerCase(), name },
@@ -37,7 +38,7 @@ describe('AnnotationAuthorLabels', () => {
     })
 
     it('can show every author label initially', () => {
-        const annotation = createAnnotation('annotation-1', 'Alice')
+        const annotation = createAnnotation('annotation-1', 'Alice', 12)
         const group = createGroup({ x: 20, y: 40, width: 50, height: 30 })
         const wrapper = document.createElement('div')
         const stage = {
@@ -57,6 +58,7 @@ describe('AnnotationAuthorLabels', () => {
 
         expect(labels.areAllVisible()).toBe(true)
         expect(label.style.display).toBe('block')
+        expect(label.textContent).toBe('#12 · Alice')
 
         labels.destroy()
     })

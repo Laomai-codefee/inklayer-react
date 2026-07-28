@@ -1,5 +1,6 @@
 import {
     getAnnotationAuthorLabelPosition,
+    getAnnotationAuthorLabelText,
     getAnnotationAuthorName,
     getReadableAuthorLabelTextColor
 } from '../annotation_author_label'
@@ -25,6 +26,24 @@ describe('annotation author label', () => {
                 user: { id: 'unknown', name: '' },
                 title: '   '
             })).toBeNull()
+        })
+
+        it('prefixes a valid reference number and falls back cleanly for legacy data', () => {
+            expect(getAnnotationAuthorLabelText({
+                user: { id: 'alice', name: 'Alice' },
+                title: 'Fallback',
+                referenceNumber: 12
+            })).toBe('#12 · Alice')
+            expect(getAnnotationAuthorLabelText({
+                user: { id: 'alice', name: 'Alice' },
+                title: 'Fallback',
+                referenceNumber: undefined
+            })).toBe('Alice')
+            expect(getAnnotationAuthorLabelText({
+                user: { id: 'alice', name: 'Alice' },
+                title: 'Fallback',
+                referenceNumber: 0
+            })).toBe('Alice')
         })
     })
 

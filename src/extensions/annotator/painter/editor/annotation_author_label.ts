@@ -1,6 +1,7 @@
 import { IRect } from 'konva/lib/types'
 
 import type { IAnnotationStore } from '../../const/definitions'
+import { isValidReferenceNumber } from '../../references/annotation_numbering'
 
 export const ANNOTATION_AUTHOR_LABEL_MAX_WIDTH = 160
 export const ANNOTATION_AUTHOR_LABEL_GAP = 4
@@ -13,6 +14,17 @@ export function getAnnotationAuthorName(
 
     const title = annotation.title?.trim()
     return title || null
+}
+
+export function getAnnotationAuthorLabelText(
+    annotation: Pick<IAnnotationStore, 'user' | 'title' | 'referenceNumber'>
+): string | null {
+    const authorName = getAnnotationAuthorName(annotation)
+    if (!authorName) return null
+
+    return isValidReferenceNumber(annotation.referenceNumber)
+        ? `#${annotation.referenceNumber} · ${authorName}`
+        : authorName
 }
 
 function parseColor(color: string): [number, number, number] | null {

@@ -28,6 +28,11 @@ import { PDFPageView } from 'pdfjs-dist/types/web/pdf_page_view'
 import { User } from '@/types'
 import { AnnotationPermissionController } from '../permissions/permission_controller'
 import { AnnotationAuthorLabels } from './annotation_author_labels'
+import {
+    assignAnnotationReferenceNumber,
+    getGreatestReferenceNumber,
+    normalizeAnnotationReferenceNumbers
+} from '../references/annotation_numbering'
 
 // KonvaCanvas 接口定义
 export interface KonvaCanvas {
@@ -49,6 +54,10 @@ export class Painter {
     private pdfViewerApplication: PDFViewer // PDFViewerApplication 实例
     private webSelection: WebSelection // WebSelection 实例
     private currentAnnotation: IAnnotationType | null = null // 当前批注类型
+    private nextAnnotationReferenceNumber = 1
+    private highlightRequestId = 0
+    private highlightRetryTimer: number | null = null
+    private resolveHighlightRequest: ((highlighted: boolean) => void) | null = null
     private selector: Selector // 选择器实例
     private authorLabels: AnnotationAuthorLabels
     private transform: Transform // 转换器
@@ -358,18 +367,28 @@ export class Painter {
      */
     private saveToStore(annotationStore: IAnnotationStore, isOriginal: boolean = false) {
         if (!isOriginal && !this.can('annotation.create')) return
-        const currentAnnotation = annotationDefinitions.find((item) => item.pdfjsAnnotationType === annotationStore.pdfjsType)
-        useAnnotationStore.getState().addAnnotation(annotationStore, isOriginal)
-        this.authorLabels.refreshAnnotation(annotationStore.id)
+        const numberedAnnotation = isOriginal
+            ? annotationStore
+            : assignAnnotationReferenceNumber(
+                annotationStore,
+                useAnnotationStore.getState().annotations.values(),
+                this.nextAnnotationReferenceNumber
+            )
+        if (!isOriginal) {
+            this.nextAnnotationReferenceNumber = numberedAnnotation.referenceNumber! + 1
+        }
+        const currentAnnotation = annotationDefinitions.find((item) => item.pdfjsAnnotationType === numberedAnnotation.pdfjsType)
+        useAnnotationStore.getState().addAnnotation(numberedAnnotation, isOriginal)
+        this.authorLabels.refreshAnnotation(numberedAnnotation.id)
         if (isOriginal) return
         if (currentAnnotation) {
             if (currentAnnotation.isOnce) {
-                this.selectAnnotation(annotationStore.id, true)
+                this.selectAnnotation(numberedAnnotation.id, true)
             } else {
-                useAnnotationStore.getState().setSelectedAnnotation(annotationStore, SelectionSource.CANVAS)
+                useAnnotationStore.getState().setSelectedAnnotation(numberedAnnotation, SelectionSource.CANVAS)
             }
         }
-        this.onAnnotationAdd(annotationStore, isOriginal, currentAnnotation)
+        this.onAnnotationAdd(numberedAnnotation, isOriginal, currentAnnotation)
     }
 
     /**
@@ -825,6 +844,12 @@ export class Painter {
      * @description 将annotation 存入 store, 包含外部 annotation 和 pdf 文件上的 annotation
      */
     public async initAnnotationsOnce(annotations: IAnnotationStore[], enableNativeAnnotations: boolean) {
+        const normalizedInputAnnotations = normalizeAnnotationReferenceNumbers(annotations)
+        this.nextAnnotationReferenceNumber = Math.min(
+            getGreatestReferenceNumber(normalizedInputAnnotations) + 1,
+            Number.MAX_SAFE_INTEGER
+        )
+
         // 加载 pdf 文件批注
         if (enableNativeAnnotations) {
             // 先将 pdf 文件中的存入
@@ -833,7 +858,7 @@ export class Painter {
                 this.saveToStore(annotation, true)
             })
             // 再用外部数据覆盖
-            annotations.forEach((annotation) => {
+            normalizedInputAnnotations.forEach((annotation) => {
                 if (annotationMap.has(annotation.id)) {
                     this.updateStore(annotation.id, annotation, true, null)
                 } else {
@@ -841,10 +866,25 @@ export class Painter {
                 }
             })
         } else {
-            annotations.forEach((annotation) => {
+            normalizedInputAnnotations.forEach((annotation) => {
                 this.saveToStore(annotation, true)
             })
         }
+
+        const annotationState = useAnnotationStore.getState()
+        const normalizedAnnotations = normalizeAnnotationReferenceNumbers(
+            Array.from(annotationState.annotations.values())
+        )
+        annotationState.setAnnotationReferenceNumbers(
+            new Map(normalizedAnnotations.map((annotation) => [
+                annotation.id,
+                annotation.referenceNumber!
+            ]))
+        )
+        this.nextAnnotationReferenceNumber = Math.min(
+            getGreatestReferenceNumber(normalizedAnnotations) + 1,
+            Number.MAX_SAFE_INTEGER
+        )
     }
 
     /**
@@ -871,44 +911,87 @@ export class Painter {
         return deleted
     }
 
+    private cancelHighlightRequest(): number {
+        this.highlightRequestId += 1
+        if (this.highlightRetryTimer !== null) {
+            window.clearTimeout(this.highlightRetryTimer)
+            this.highlightRetryTimer = null
+        }
+        this.resolveHighlightRequest?.(false)
+        this.resolveHighlightRequest = null
+        return this.highlightRequestId
+    }
+
     /**
      * @description 高亮选中 annotation
      * @param annotation
      */
-    public async highlight(annotation: IAnnotationStore) {
-        // 跳转至对应页面位置
-        const pageView = this.pdfViewerApplication!._pages![annotation.pageNumber - 1] || this.pdfViewerApplication.getPageView(annotation.pageNumber)
-        const { x, y } = annotation.konvaClientRect
-        // 把 Konva 的左上角坐标转换为 PDF 内部坐标（以页面左下角为原点）
-        const [pdfX, pdfY] = pageView.viewport.convertToPdfPoint(x, y - 200)
-        this.pdfViewerApplication.scrollPageIntoView({
-            pageNumber: annotation.pageNumber,
-            destArray: [null, { name: 'XYZ' }, pdfX, pdfY, null], // 可以加偏移
-            allowNegativeOffset: true
-        })
+    public highlight(annotation: IAnnotationStore): Promise<boolean> {
+        const requestId = this.cancelHighlightRequest()
 
-        const maxRetries = 5 // 最大重试次数
-        const retryInterval = 200 // 每次重试间隔
-        // 封装递归重试机制
-        const attemptHighlight = (retries: number): void => {
-            const storeEditor = this.findEditor(annotation.pageNumber, annotation.type)
-            if (storeEditor) {
-                this.setDefaultMode()
-                this.selector.select(annotation.id)
-                if (this.currentAnnotation && this.currentAnnotation.type === AnnotationType.SELECT) {
-                    this.selector.activate(annotation.pageNumber)
+        // 跳转至对应页面位置
+        const pageIndex = annotation.pageNumber - 1
+        const pageView = this.pdfViewerApplication._pages?.[pageIndex]
+            || this.pdfViewerApplication.getPageView(pageIndex)
+        const { x, y } = annotation.konvaClientRect
+
+        if (pageView?.viewport) {
+            // 把 Konva 的左上角坐标转换为 PDF 内部坐标（以页面左下角为原点）
+            const [pdfX, pdfY] = pageView.viewport.convertToPdfPoint(x, y - 200)
+            this.pdfViewerApplication.scrollPageIntoView({
+                pageNumber: annotation.pageNumber,
+                destArray: [null, { name: 'XYZ' }, pdfX, pdfY, null],
+                allowNegativeOffset: true
+            })
+        } else {
+            this.pdfViewerApplication.scrollPageIntoView({
+                pageNumber: annotation.pageNumber
+            })
+        }
+
+        const maxRetries = 30
+        const retryInterval = 100
+
+        return new Promise<boolean>((resolve) => {
+            this.resolveHighlightRequest = resolve
+
+            const finish = (highlighted: boolean): void => {
+                if (requestId !== this.highlightRequestId) return
+                if (this.highlightRetryTimer !== null) {
+                    window.clearTimeout(this.highlightRetryTimer)
+                    this.highlightRetryTimer = null
                 }
-            } else if (retries > 0) {
-                // 如果没有找到且还有重试次数，继续重试
-                setTimeout(() => {
+                this.resolveHighlightRequest = null
+                resolve(highlighted)
+            }
+
+            const attemptHighlight = (retries: number): void => {
+                if (requestId !== this.highlightRequestId) return
+
+                const storeEditor = this.findEditor(annotation.pageNumber, annotation.type)
+                if (storeEditor) {
+                    this.setDefaultMode()
+                    this.selector.select(annotation.id)
+                    if (this.currentAnnotation && this.currentAnnotation.type === AnnotationType.SELECT) {
+                        this.selector.activate(annotation.pageNumber)
+                    }
+                    finish(true)
+                    return
+                }
+
+                if (retries <= 0) {
+                    finish(false)
+                    return
+                }
+
+                this.highlightRetryTimer = window.setTimeout(() => {
+                    this.highlightRetryTimer = null
                     attemptHighlight(retries - 1)
                 }, retryInterval)
-            } else {
-                console.error('Failed to find editor after maximum retries.')
             }
-        }
-        // 初次尝试执行
-        attemptHighlight(maxRetries)
+
+            attemptHighlight(maxRetries)
+        })
     }
 
     public getData() {
@@ -941,6 +1024,7 @@ export class Painter {
      */
     public destroy(): void {
 
+        this.cancelHighlightRequest()
         this.disablePainting()
         this.webSelection.destroy()
         this.authorLabels.destroy()

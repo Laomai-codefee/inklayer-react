@@ -20,6 +20,7 @@ interface AnnotationState {
     getByPage: (pageNumber: number) => IAnnotationStore[]
     addAnnotation: (annotation: IAnnotationStore, isOriginal?: boolean) => IAnnotationStore
     updateAnnotation: (id: string, updates: Partial<IAnnotationStore>) => IAnnotationStore | null
+    setAnnotationReferenceNumbers: (referenceNumbers: ReadonlyMap<string, number>) => void
     removeAnnotation: (id: string) => void
     clearAnnotations: () => void
     setSelectedAnnotation: (annotation: IAnnotationStore | null, source?: SelectionSource) => void
@@ -86,6 +87,48 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
 
         return updatedAnnotation
     },
+
+    setAnnotationReferenceNumbers: (referenceNumbers) =>
+        set((state) => {
+            const applyReferenceNumbers = (source: Map<string, IAnnotationStore>) => {
+                let changed = false
+                const result = new Map(source)
+
+                referenceNumbers.forEach((referenceNumber, id) => {
+                    const annotation = result.get(id)
+                    if (!annotation || annotation.referenceNumber === referenceNumber) return
+                    result.set(id, { ...annotation, referenceNumber })
+                    changed = true
+                })
+
+                return changed ? result : source
+            }
+
+            const annotations = applyReferenceNumbers(state.annotations)
+            const originalAnnotations = applyReferenceNumbers(state.originalAnnotations)
+            const selectedStore = state.selectedAnnotation?.store
+            const selectedReferenceNumber = selectedStore
+                ? referenceNumbers.get(selectedStore.id)
+                : undefined
+            const selectedAnnotation: SelectionInfo | null = selectedStore
+                && selectedReferenceNumber !== undefined
+                && selectedStore.referenceNumber !== selectedReferenceNumber
+                ? {
+                    store: { ...selectedStore, referenceNumber: selectedReferenceNumber },
+                    source: state.selectedAnnotation?.source ?? null
+                }
+                : state.selectedAnnotation
+
+            if (
+                annotations === state.annotations
+                && originalAnnotations === state.originalAnnotations
+                && selectedAnnotation === state.selectedAnnotation
+            ) {
+                return state
+            }
+
+            return { annotations, originalAnnotations, selectedAnnotation }
+        }),
 
     removeAnnotation: (id: string) =>
         set((state) => {

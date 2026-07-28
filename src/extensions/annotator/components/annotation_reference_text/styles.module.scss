@@ -1,0 +1,35 @@
+.content {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.reference {
+    display: inline;
+    appearance: none;
+    border: 0;
+    border-radius: 3px;
+    padding: 0 2px;
+    color: var(--accent-11);
+    background: transparent;
+    font: inherit;
+    line-height: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--accent-a3);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--accent-8);
+        outline-offset: 1px;
+    }
+}
+
+.unavailable {
+    color: var(--gray-a9);
+    text-decoration: line-through;
+    cursor: not-allowed;
+}

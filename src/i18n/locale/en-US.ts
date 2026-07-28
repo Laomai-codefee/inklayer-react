@@ -31,7 +31,9 @@ export default {
         dateFormat: {
             full: '{{month}}/{{day}}/{{year}} {{hour}}:{{minute}}',
             dayMonth: '{{month}}/{{day}}',
-            dayMonthYear: '{{month}}/{{day}}/{{year}}'
+            dayMonthYear: '{{month}}/{{day}}/{{year}}',
+            compact: '{{month}}/{{day}} {{hour}}:{{minute}}',
+            compactWithYear: '{{month}}/{{day}}/{{year}} {{hour}}:{{minute}}'
         }
     },
 
@@ -153,7 +155,14 @@ export default {
                 closed: 'Closed'
             },
             statusText: 'Set Status: {{value}}',
-            nativeAnnotation: 'Native Annotation'
+            nativeAnnotation: 'Native Annotation',
+            reference: {
+                empty: 'No matching annotations',
+                inputLabel: 'Comment with annotation references',
+                noContent: 'No comment content',
+                open: 'Go to annotation {{value}}',
+                unavailable: 'Annotation {{value}} is unavailable'
+            }
         },
         export: {
             fields: {

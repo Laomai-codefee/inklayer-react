@@ -1,9 +1,9 @@
 import styles from './styles.module.scss';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { CommentStatus, IAnnotationComment, IAnnotationStore, PdfjsAnnotationSubtype } from '../../const/definitions'
+import { annotationDefinitions, CommentStatus, IAnnotationComment, IAnnotationStore, PdfjsAnnotationSubtype } from '../../const/definitions'
 import { useTranslation } from 'react-i18next'
-import { formatPDFDate, formatTimestamp, generateUUID } from '../../utils/utils'
-import { Button, Checkbox, DropdownMenu, Flex, Popover, Text, TextArea, Tooltip } from '@radix-ui/themes'
+import { formatPDFCompactDateTime, formatTimestamp, generateUUID } from '../../utils/utils'
+import { Button, Checkbox, DropdownMenu, Flex, IconButton, Popover, Text, Tooltip } from '@radix-ui/themes'
 import {
     AiOutlineCheckCircle,
     AiOutlineDislike,
@@ -35,6 +35,18 @@ import { SelectionSource, useAnnotationStore } from '../../store'
 import { UserContext } from '@/context/user_context'
 import { usePainter } from '../../context/use_painter'
 import { usePdfViewerContext } from '@/context/pdf_viewer_context'
+import {
+    AnnotationReferenceInput,
+    type AnnotationReferenceDraft
+} from '../annotation_reference_input'
+import { AnnotationReferenceText } from '../annotation_reference_text'
+import {
+    applyAnnotationCommentDraft,
+    applyAnnotationReplyDraft,
+    createAnnotationReply
+} from './comment_mutations'
+import { getAnnotationAuthorName } from '../../painter/editor/annotation_author_label'
+import { isValidReferenceNumber } from '../../references/annotation_numbering'
 
 interface StatusOption {
     labelKey: string // i18n key
@@ -64,6 +76,9 @@ const iconMapping: Record<PdfjsAnnotationSubtype, React.ReactNode> = {
     Arrow: <ArrowIcon />,
     None: undefined
 }
+const annotationToolNames = new Map(
+    annotationDefinitions.map((annotation) => [annotation.type, annotation.name])
+)
 
 const commentStatusOptions: Record<CommentStatus, StatusOption> = {
     [CommentStatus.Accepted]: {
@@ -96,9 +111,22 @@ const getIconBySubtype = (subtype: PdfjsAnnotationSubtype): React.ReactNode => {
     return iconMapping[subtype] || null
 }
 
-const AnnotationIcon: React.FC<{ subtype: PdfjsAnnotationSubtype }> = ({ subtype }) => {
+const AnnotationIcon: React.FC<{
+    subtype: PdfjsAnnotationSubtype
+    label: string
+}> = ({ subtype, label }) => {
     const Icon = getIconBySubtype(subtype)
-    return Icon ? <span style={{ marginRight: 5 }}>{Icon}</span> : null
+    return Icon ? (
+        <Tooltip content={label}>
+            <span
+                className={styles.annotationTypeIcon}
+                role="img"
+                aria-label={label}
+            >
+                {Icon}
+            </span>
+        </Tooltip>
+    ) : null
 }
 
 /**
@@ -117,6 +145,7 @@ const Sidebar: React.FC = () => {
     const [editAnnotation, setEditAnnotation] = useState<IAnnotationStore | null>(null)
     const [selectedUsers, setSelectedUsers] = useState<string[]>([])
     const [selectedTypes, setSelectedTypes] = useState<PdfjsAnnotationSubtype[]>([])
+    const [pendingReferenceAnnotationId, setPendingReferenceAnnotationId] = useState<string | null>(null)
     const clearSelectedAnnotationRef = useRef(clearSelectedAnnotation)
     clearSelectedAnnotationRef.current = clearSelectedAnnotation
 
@@ -177,6 +206,10 @@ const Sidebar: React.FC = () => {
         if (selectedUsers.length === 0 || selectedTypes.length === 0) return []
         return Array.from(annotations.values()).filter((a) => selectedUsers.includes(a.title) && selectedTypes.includes(a.subtype))
     }, [annotations, selectedUsers, selectedTypes])
+    const referenceCandidates = useMemo(
+        () => Array.from(annotations.values()),
+        [annotations]
+    )
 
     const groupedAnnotations = useMemo(() => {
         return filteredAnnotations.reduce(
@@ -190,6 +223,23 @@ const Sidebar: React.FC = () => {
             {} as Record<number, IAnnotationStore[]>
         )
     }, [filteredAnnotations])
+
+    useEffect(() => {
+        if (!pendingReferenceAnnotationId) return
+
+        const animationFrame = window.requestAnimationFrame(() => {
+            const target = annotationRefs.current[pendingReferenceAnnotationId]
+            if (!target) return
+
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest'
+            })
+            setPendingReferenceAnnotationId(null)
+        })
+
+        return () => window.cancelAnimationFrame(animationFrame)
+    }, [groupedAnnotations, pendingReferenceAnnotationId])
 
     const handleUserToggle = (username: string) => {
         setSelectedUsers((prev) => (prev.includes(username) ? prev.filter((u) => u !== username) : [...prev, username]))
@@ -250,43 +300,63 @@ const Sidebar: React.FC = () => {
         </div>
     )
 
-    const getLastStatusIcon = (annotation: IAnnotationStore): React.ReactNode => {
+    const getLastStatus = (annotation: IAnnotationStore): CommentStatus => {
         const lastWithStatus = [...(annotation.comments || [])].reverse().find((c) => c.status !== undefined && c.status !== null)
 
-        const status = lastWithStatus?.status ?? CommentStatus.None
+        return lastWithStatus?.status ?? CommentStatus.None
+    }
+
+    const getLastStatusIcon = (annotation: IAnnotationStore): React.ReactNode => {
+        const status = getLastStatus(annotation)
         return commentStatusOptions[status]?.icon ?? commentStatusOptions[CommentStatus.None].icon
     }
 
     const handleAnnotationClick = (annotation: IAnnotationStore) => {
         setCurrentAnnotation(annotation, SelectionSource.SIDEBAR)
-        painter?.highlight(annotation)
+        void painter?.highlight(annotation)
     }
 
-    const updateComment = (annotation: IAnnotationStore, comment: string) => {
+    const handleReferenceClick = (annotationId: string) => {
+        const annotation = annotations.get(annotationId)
+        if (!annotation) return
+
+        setSelectedUsers((previous) => (
+            previous.includes(annotation.title)
+                ? previous
+                : [...previous, annotation.title]
+        ))
+        setSelectedTypes((previous) => (
+            previous.includes(annotation.subtype)
+                ? previous
+                : [...previous, annotation.subtype]
+        ))
+        setPendingReferenceAnnotationId(annotation.id)
+        setCurrentAnnotation(annotation, SelectionSource.SIDEBAR)
+        void painter?.highlight(annotation)
+    }
+
+    const updateComment = (annotation: IAnnotationStore, draft: AnnotationReferenceDraft) => {
         if (!painter?.can('annotation.edit', annotation)) return
         painter?.update(annotation.id, {
-            contentsObj: {
-                ...(annotation.contentsObj || { text: '' }),
-                text: comment
-            },
+            contentsObj: applyAnnotationCommentDraft(annotation.contentsObj, draft),
             date: formatTimestamp(Date.now())
         }, 'annotation.edit')
 
         setEditAnnotation(null)
     }
 
-    const addReply = (annotation: IAnnotationStore, comment: string, status?: CommentStatus) => {
+    const addReply = (annotation: IAnnotationStore, draft: AnnotationReferenceDraft, status?: CommentStatus) => {
         const action = status === undefined ? 'annotation.comment' : 'annotation.change-status'
         if (!painter?.can(action, annotation)) return
         const replyUser = currentUser?.user ?? undefined
-        const newReply = {
+        const newReply = createAnnotationReply({
             id: generateUUID(),
             title: replyUser?.name ?? 'Anonymous',
             date: formatTimestamp(Date.now()),
-            content: comment,
+            draft,
             status,
             user: replyUser
-        }
+        })
 
         painter?.update(annotation.id, {
             comments: [...(annotation.comments || []), newReply]
@@ -295,19 +365,15 @@ const Sidebar: React.FC = () => {
         setReplyAnnotation(null)
     }
 
-    const updateReply = (annotation: IAnnotationStore, reply: IAnnotationComment, comment: string) => {
+    const updateReply = (annotation: IAnnotationStore, reply: IAnnotationComment, draft: AnnotationReferenceDraft) => {
         if (!painter?.can('comment.edit', annotation, reply)) return
-        const updatedComments = (annotation.comments || []).map((r) => {
-            if (r.id === reply.id) {
-                return {
-                    ...r,
-                    content: comment,
-                    date: formatTimestamp(Date.now()),
-                    title: currentUser?.user?.name || r.title
-                }
-            }
-            return r
-        })
+        const updatedComments = applyAnnotationReplyDraft(
+            annotation.comments || [],
+            reply.id,
+            draft,
+            formatTimestamp(Date.now()),
+            currentUser?.user?.name || reply.title
+        )
 
         painter?.update(annotation.id, {
             comments: updatedComments
@@ -336,47 +402,31 @@ const Sidebar: React.FC = () => {
 
     // Comment 编辑框
     const commentInput = (annotation: IAnnotationStore) => {
-        let comment = ''
         if (editAnnotation && currentAnnotation?.store?.id === annotation.id) {
-            const handleSubmit = () => {
-                updateComment(annotation, comment)
-                setEditAnnotation(null)
-            }
-            const handleTextAreaRef = (element: HTMLTextAreaElement) => {
-                if (element) {
-                    // 延迟执行focus确保DOM已更新
-                    setTimeout(() => {
-                        element.focus()
-                    }, 0)
-                }
-            }
             return (
-                <>
-                    <TextArea
-                        ref={handleTextAreaRef}
-                        defaultValue={annotation?.contentsObj?.text}
-                        autoFocus
-                        rows={4}
-                        style={{ marginBottom: '8px', marginTop: '8px' }}
-                        onBlur={() => setEditAnnotation(null)}
-                        onChange={(e) => (comment = e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault()
-                                handleSubmit()
-                            }
-                        }}
-                    />
-                    <Button style={{ width: '100%' }} onMouseDown={handleSubmit}>
-                        {t('confirm')}
-                    </Button>
-                </>
+                <AnnotationReferenceInput
+                    annotations={referenceCandidates}
+                    excludeAnnotationId={annotation.id}
+                    initialContent={annotation.contentsObj?.text}
+                    initialReferences={annotation.contentsObj?.references}
+                    className={styles.commentEditor}
+                    onSubmit={(draft) => updateComment(annotation, draft)}
+                    onCancel={() => setEditAnnotation(null)}
+                />
             )
         }
+        const content = annotation.contentsObj?.text
+        if (!content?.trim()) return null
+
         return (
             <Flex gap="3" pl="4">
-                <Text as="p" size="2" truncate>
-                    {annotation?.contentsObj?.text}
+                <Text as="p" size="2">
+                    <AnnotationReferenceText
+                        annotations={referenceCandidates}
+                        content={content}
+                        references={annotation.contentsObj?.references}
+                        onActivate={handleReferenceClick}
+                    />
                 </Text>
             </Flex>
         )
@@ -384,42 +434,15 @@ const Sidebar: React.FC = () => {
 
     // 回复框
     const replyInput = (annotation: IAnnotationStore) => {
-        let comment = ''
         if (replyAnnotation && currentAnnotation?.store?.id === annotation.id) {
-            const handleSubmit = () => {
-                addReply(annotation, comment)
-                setReplyAnnotation(null)
-            }
-
-            const handleTextAreaRef = (element: HTMLTextAreaElement) => {
-                if (element) {
-                    // 延迟执行focus确保DOM已更新
-                    setTimeout(() => {
-                        element.focus()
-                    }, 0)
-                }
-            }
-
             return (
-                <>
-                    <TextArea
-                        ref={handleTextAreaRef}
-                        autoFocus
-                        rows={4}
-                        style={{ marginBottom: '8px', marginTop: '8px' }}
-                        onBlur={() => setReplyAnnotation(null)}
-                        onChange={(e) => (comment = e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault()
-                                handleSubmit()
-                            }
-                        }}
-                    />
-                    <Button style={{ width: '100%' }} onMouseDown={handleSubmit}>
-                        {t('confirm')}
-                    </Button>
-                </>
+                <AnnotationReferenceInput
+                    annotations={referenceCandidates}
+                    excludeAnnotationId={annotation.id}
+                    className={styles.commentEditor}
+                    onSubmit={(draft) => addReply(annotation, draft)}
+                    onCancel={() => setReplyAnnotation(null)}
+                />
             )
         }
         return null
@@ -427,50 +450,29 @@ const Sidebar: React.FC = () => {
 
     // 编辑回复框
     const editReplyInput = (annotation: IAnnotationStore, reply: IAnnotationComment) => {
-        let comment = ''
         if (currentReply && currentReply.id === reply.id) {
-            const handleSubmit = () => {
-                updateReply(annotation, reply, comment)
-                setCurrentReply(null)
-            }
-
-            const handleTextAreaRef = (element: HTMLTextAreaElement) => {
-                if (element) {
-                    // 延迟执行focus确保DOM已更新
-                    setTimeout(() => {
-                        element.focus()
-                    }, 0)
-                }
-            }
-
             return (
-                <>
-                    <TextArea
-                        ref={handleTextAreaRef}
-                        defaultValue={currentReply.content}
-                        autoFocus
-                        rows={4}
-                        style={{ marginBottom: '8px' }}
-                        onBlur={() => setCurrentReply(null)}
-                        onChange={(e) => (comment = e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault()
-                                handleSubmit()
-                            }
-                        }}
-                    />
-                    <Button style={{ width: '100%' }} onMouseDown={handleSubmit}>
-                        {t('confirm')}
-                    </Button>
-                </>
+                <AnnotationReferenceInput
+                    annotations={referenceCandidates}
+                    excludeAnnotationId={annotation.id}
+                    initialContent={currentReply.content}
+                    initialReferences={currentReply.references}
+                    className={styles.replyEditor}
+                    onSubmit={(draft) => updateReply(annotation, reply, draft)}
+                    onCancel={() => setCurrentReply(null)}
+                />
             )
         }
 
         return (
             <Flex gap="3">
-                <Text as="p" size="2" truncate>
-                    {reply.content}
+                <Text as="p" size="2">
+                    <AnnotationReferenceText
+                        annotations={referenceCandidates}
+                        content={reply.content}
+                        references={reply.references}
+                        onActivate={handleReferenceClick}
+                    />
                 </Text>
             </Flex>
         )
@@ -496,6 +498,16 @@ const Sidebar: React.FC = () => {
                     const canEdit = Boolean(painter?.can('annotation.edit', annotation))
                     const canDelete = Boolean(painter?.can('annotation.delete', annotation))
                     const canChangeStatus = Boolean(painter?.can('annotation.change-status', annotation))
+                    const lastStatus = getLastStatus(annotation)
+                    const annotationAuthorName = getAnnotationAuthorName(annotation) ?? annotation.title
+                    const annotationHeading = isValidReferenceNumber(annotation.referenceNumber)
+                        ? `#${annotation.referenceNumber}`
+                        : annotationAuthorName
+                    const annotationDateTime = formatPDFCompactDateTime(annotation.date)
+                    const annotationToolName = annotationToolNames.get(annotation.type)
+                    const annotationTypeLabel = annotationToolName
+                        ? t(`annotator:tool.${annotationToolName}`)
+                        : annotation.subtype
                     const commonProps = { className: isSelected ? `${styles.comment} ${styles.selected}` : styles.comment, id: `annotation-${annotation.id}` }
                     return (
                         <div
@@ -504,37 +516,34 @@ const Sidebar: React.FC = () => {
                             onClick={() => handleAnnotationClick(annotation)}
                             ref={(el) => (annotationRefs.current[annotation.id] = el)}
                         >
-                            <div className={styles.title}>
-                                <AnnotationIcon subtype={annotation.subtype} />
-                                <div className={styles.username}>
-                                    <Flex justify="start">
-                                        <Text size="2" as="div" truncate style={{ maxWidth: 150 }}>
-                                            {annotation.title}
-                                        </Text>
-                                        {
-                                            annotation.native && <Tooltip content={t('annotator:comment.nativeAnnotation')}><span><AiOutlineExclamation /></span></Tooltip>
-                                        }
-                                    </Flex>
-
-                                    <Text color="gray" size="2">
-                                        {formatPDFDate(annotation.date, true)}
-                                    </Text>
-                                </div>
-                                <span className={styles.tool}>
+                            <div className={`${styles.title} ${styles.annotationHeader}`}>
+                                <Text
+                                    as="div"
+                                    size="2"
+                                    weight="medium"
+                                    highContrast
+                                    className={styles.annotationHeading}
+                                >
+                                    {annotationHeading}
+                                    {
+                                        annotation.native && <Tooltip content={t('annotator:comment.nativeAnnotation')}><span><AiOutlineExclamation /></span></Tooltip>
+                                    }
+                                </Text>
+                                <Flex align="center" gap="1" ml="auto">
                                     {canChangeStatus && <DropdownMenu.Root>
                                         <DropdownMenu.Trigger>
-                                            <Button
+                                            <IconButton
                                                 variant="ghost"
                                                 color="gray"
-                                                size="2"
-                                                highContrast
+                                                size="1"
+                                                className={styles.toolButton}
+                                                aria-label={t(commentStatusOptions[lastStatus].labelKey)}
                                                 style={{
                                                     boxShadow: 'none'
                                                 }}
-                                                m="2"
                                             >
                                                 {getLastStatusIcon(annotation)}
-                                            </Button>
+                                            </IconButton>
                                         </DropdownMenu.Trigger>
                                         <DropdownMenu.Content onCloseAutoFocus={(event) => event.preventDefault()}>
                                             {Object.entries(commentStatusOptions).map(([statusKey, option]) => (
@@ -543,7 +552,9 @@ const Sidebar: React.FC = () => {
                                                     onSelect={() => {
                                                         addReply(
                                                             annotation,
-                                                            t('annotator:comment.statusText', { value: t(option.labelKey) }),
+                                                            {
+                                                                content: t('annotator:comment.statusText', { value: t(option.labelKey) })
+                                                            },
                                                             statusKey as CommentStatus
                                                         )
                                                         setReplyAnnotation(null)
@@ -556,18 +567,18 @@ const Sidebar: React.FC = () => {
                                     </DropdownMenu.Root>}
                                     {(canComment || canEdit || canDelete) && <DropdownMenu.Root>
                                         <DropdownMenu.Trigger>
-                                            <Button
+                                            <IconButton
                                                 variant="ghost"
                                                 color="gray"
-                                                size="2"
-                                                m="2"
-                                                highContrast
+                                                size="1"
+                                                className={styles.toolButton}
+                                                aria-label={t('more')}
                                                 style={{
                                                     boxShadow: 'none'
                                                 }}
                                             >
                                                 <AiOutlineEllipsis />
-                                            </Button>
+                                            </IconButton>
                                         </DropdownMenu.Trigger>
                                         <DropdownMenu.Content onCloseAutoFocus={(event) => event.preventDefault()}>
                                             {canComment && <DropdownMenu.Item
@@ -596,59 +607,107 @@ const Sidebar: React.FC = () => {
                                             </DropdownMenu.Item>}
                                         </DropdownMenu.Content>
                                     </DropdownMenu.Root>}
-                                </span>
+                                </Flex>
                             </div>
+                            <Flex align="center" gap="1" className={styles.annotationMeta}>
+                                <AnnotationIcon
+                                    subtype={annotation.subtype}
+                                    label={annotationTypeLabel}
+                                />
+                                <Text
+                                    as="span"
+                                    size="1"
+                                    color="gray"
+                                    className={styles.annotationAuthor}
+                                >
+                                    {annotationAuthorName}
+                                </Text>
+                                {annotationDateTime && (
+                                    <>
+                                        <Text as="span" size="1" color="gray" aria-hidden="true">
+                                            ·
+                                        </Text>
+                                        <Text
+                                            as="span"
+                                            size="1"
+                                            color="gray"
+                                            className={styles.annotationDateTime}
+                                        >
+                                            {annotationDateTime}
+                                        </Text>
+                                    </>
+                                )}
+
+                            </Flex>
                             {commentInput(annotation)}
-                            {annotation.comments?.map((reply, index) => (
-                                <div className={styles.reply} key={index}>
-                                    <div className={styles.title}>
-                                        <div className={styles.username}>
-                                            <Text truncate size="2" as="div" style={{ maxWidth: 200 }}>
+                            {annotation.comments?.map((reply) => {
+                                const replyDateTime = formatPDFCompactDateTime(reply.date)
+                                const canEditReply = Boolean(painter?.can('comment.edit', annotation, reply))
+                                const canDeleteReply = Boolean(painter?.can('comment.delete', annotation, reply))
+
+                                return (
+                                    <div className={styles.reply} key={reply.id}>
+                                        <div className={`${styles.title} ${styles.annotationHeader}`}>
+                                            <Text
+                                                truncate
+                                                size="1"
+                                                weight="medium"
+                                                as="div"
+                                                className={styles.annotationHeading}
+                                            >
                                                 {reply.title}
                                             </Text>
-                                            <Text as="div" color="gray" size="2">
-                                                {formatPDFDate(reply.date, true)}
-                                            </Text>
+                                            {(canEditReply || canDeleteReply) && (
+                                                <Flex align="center" gap="1" ml="auto">
+                                                    <DropdownMenu.Root>
+                                                        <DropdownMenu.Trigger>
+                                                            <IconButton
+                                                                variant="ghost"
+                                                                color="gray"
+                                                                highContrast
+                                                                size="1"
+                                                                className={styles.toolButton}
+                                                                aria-label={t('more')}
+                                                                style={{
+                                                                    boxShadow: 'none'
+                                                                }}
+                                                            >
+                                                                <AiOutlineEllipsis />
+                                                            </IconButton>
+                                                        </DropdownMenu.Trigger>
+                                                        <DropdownMenu.Content onCloseAutoFocus={(event) => event.preventDefault()}>
+                                                            {canEditReply && <DropdownMenu.Item
+                                                                onSelect={(e) => {
+                                                                    e.stopPropagation()
+                                                                    setCurrentReply(reply)
+                                                                }}
+                                                            >
+                                                                {t('edit')}
+                                                            </DropdownMenu.Item>}
+                                                            {canDeleteReply && <DropdownMenu.Item
+                                                                onSelect={(e) => {
+                                                                    e.stopPropagation()
+                                                                    deleteReply(annotation, reply)
+                                                                }}
+                                                            >
+                                                                {t('delete')}
+                                                            </DropdownMenu.Item>}
+                                                        </DropdownMenu.Content>
+                                                    </DropdownMenu.Root>
+                                                </Flex>
+                                            )}
                                         </div>
-                                        {(painter?.can('comment.edit', annotation, reply) || painter?.can('comment.delete', annotation, reply)) && <span className={styles.tool}>
-                                            <DropdownMenu.Root>
-                                                <DropdownMenu.Trigger>
-                                                    <Button
-                                                        variant="outline"
-                                                        color="gray"
-                                                        highContrast
-                                                        size="2"
-                                                        style={{
-                                                            boxShadow: 'none'
-                                                        }}
-                                                    >
-                                                        <AiOutlineEllipsis />
-                                                    </Button>
-                                                </DropdownMenu.Trigger>
-                                                <DropdownMenu.Content onCloseAutoFocus={(event) => event.preventDefault()}>
-                                                    {painter?.can('comment.edit', annotation, reply) && <DropdownMenu.Item
-                                                        onSelect={(e) => {
-                                                            e.stopPropagation()
-                                                            setCurrentReply(reply)
-                                                        }}
-                                                    >
-                                                        {t('edit')}
-                                                    </DropdownMenu.Item>}
-                                                    {painter?.can('comment.delete', annotation, reply) && <DropdownMenu.Item
-                                                        onSelect={(e) => {
-                                                            e.stopPropagation()
-                                                            deleteReply(annotation, reply)
-                                                        }}
-                                                    >
-                                                        {t('delete')}
-                                                    </DropdownMenu.Item>}
-                                                </DropdownMenu.Content>
-                                            </DropdownMenu.Root>
-                                        </span>}
+                                        {replyDateTime && (
+                                            <Flex align="center" className={`${styles.annotationMeta} ${styles.replyMeta}`}>
+                                                <Text as="span" size="1" color="gray">
+                                                    {replyDateTime}
+                                                </Text>
+                                            </Flex>
+                                        )}
+                                        {editReplyInput(annotation, reply)}
                                     </div>
-                                    {editReplyInput(annotation, reply)}
-                                </div>
-                            ))}
+                                )
+                            })}
                             <div>
                                 {replyInput(annotation)}
                                 {canComment && !replyAnnotation && !currentReply && !editAnnotation && currentAnnotation?.store?.id === annotation.id && (

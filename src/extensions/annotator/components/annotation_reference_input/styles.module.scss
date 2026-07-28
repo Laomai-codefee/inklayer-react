@@ -1,0 +1,113 @@
+.referenceInput {
+    position: relative;
+}
+
+.editor {
+    position: relative;
+}
+
+.referenceMenu {
+    width: min(var(--radix-popover-trigger-width), calc(100vw - 16px));
+    max-height: 300px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.referenceOption {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 72px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.referenceOption + .referenceOption {
+    margin-top: 2px;
+}
+
+.referenceOption:hover {
+    background: var(--gray-a3);
+}
+
+.referenceOption[aria-selected='true'] {
+    background: var(--accent-a3);
+}
+
+.referenceOption[aria-selected='true']:hover {
+    background: var(--accent-a4);
+}
+
+.referenceOptionHeader {
+    min-width: 0;
+}
+
+.referenceTypeIcon {
+    display: inline-flex;
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.referenceType {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.referencePage {
+    flex: 0 0 auto;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.referenceSummary {
+    display: -webkit-box;
+    overflow: hidden;
+    margin-top: 6px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.referenceMeta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+    min-width: 0;
+    margin-top: 4px;
+    white-space: nowrap;
+}
+
+.referenceAuthor {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.referenceDate {
+    flex: 0 0 auto;
+}
+
+.referenceEmpty {
+    padding: 8px;
+    text-align: center;
+}
+
+.submit {
+    width: 100%;
+    margin-top: 8px;
+}
