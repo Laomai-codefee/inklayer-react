@@ -14,6 +14,8 @@ export const ANNOTATION_AUTHOR_LABEL_CLASS = `${STYLE_PREFIX}_annotation_author_
 
 export const ANNOTATION_AUTHOR_LABEL_BOUNDS_CHANGE_EVENT = 'annotationAuthorLabelBoundsChange'
 
+export const ANNOTATION_HOVER_PREVIEW_NAME = `${STYLE_PREFIX}_annotation_hover_preview`
+
 /**
  * 常量：表示当前是否处于绘画模式的样式名称
  */

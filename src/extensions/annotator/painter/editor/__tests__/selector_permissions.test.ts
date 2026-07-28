@@ -89,6 +89,8 @@ describe('Selector permission interaction', () => {
                 canTransform: () => allowed,
                 onSelected,
                 onSelectionChanged: jest.fn(),
+                onHoverStart: jest.fn(),
+                onHoverEnd: jest.fn(),
                 onCancel: jest.fn(),
                 onChanged: jest.fn(),
                 onDelete: jest.fn()
@@ -108,4 +110,62 @@ describe('Selector permission interaction', () => {
             stage.destroy()
         }
     )
+
+    it('reports hover once for the annotation group and ignores touch pointers', () => {
+        const container = document.createElement('div')
+        document.body.appendChild(container)
+        const stage = new Konva.Stage({ container, width: 600, height: 800 })
+        const layer = new Konva.Layer()
+        const group = new Konva.Group({ id: 'annotation-1', name: SHAPE_GROUP_NAME })
+        group.add(new Konva.Rect({ x: 40, y: 60, width: 120, height: 50 }))
+        group.add(new Konva.Line({ points: [40, 60, 160, 110] }))
+        const secondGroup = new Konva.Group({ id: 'annotation-2', name: SHAPE_GROUP_NAME })
+        secondGroup.add(new Konva.Rect({ x: 200, y: 160, width: 80, height: 40 }))
+        layer.add(group)
+        layer.add(secondGroup)
+        stage.add(layer)
+
+        const onHoverStart = jest.fn()
+        const onHoverEnd = jest.fn()
+        const selector = new Selector({
+            primaryColor: '#6e56cf',
+            konvaCanvasStore: new Map([[
+                1,
+                { pageNumber: 1, konvaStage: stage, wrapper: container, isActive: false }
+            ]]),
+            getAnnotationStore: jest.fn(),
+            canTransform: () => true,
+            onSelected: jest.fn(),
+            onSelectionChanged: jest.fn(),
+            onHoverStart,
+            onHoverEnd,
+            onCancel: jest.fn(),
+            onChanged: jest.fn(),
+            onDelete: jest.fn()
+        })
+
+        selector.activate(1)
+        group.fire('pointerenter', { evt: { pointerType: 'mouse' } })
+        group.fire('pointerenter', { evt: { pointerType: 'mouse' } })
+        expect(onHoverStart).toHaveBeenCalledTimes(1)
+        expect(onHoverStart).toHaveBeenCalledWith(group.id())
+        expect(document.body.classList.contains('InkLayer_Annotator_selector_hover')).toBe(true)
+
+        secondGroup.fire('pointerenter', { evt: { pointerType: 'mouse' } })
+        expect(onHoverStart).toHaveBeenLastCalledWith(secondGroup.id())
+        expect(onHoverEnd).not.toHaveBeenCalled()
+
+        group.fire('pointerleave', { evt: { pointerType: 'mouse' } })
+        expect(onHoverEnd).not.toHaveBeenCalled()
+
+        secondGroup.fire('pointerleave', { evt: { pointerType: 'mouse' } })
+        expect(onHoverEnd).toHaveBeenCalledWith(secondGroup.id())
+        expect(document.body.classList.contains('InkLayer_Annotator_selector_hover')).toBe(false)
+
+        group.fire('pointerenter', { evt: { pointerType: 'touch' } })
+        expect(onHoverStart).toHaveBeenCalledTimes(2)
+
+        selector.clear()
+        stage.destroy()
+    })
 })

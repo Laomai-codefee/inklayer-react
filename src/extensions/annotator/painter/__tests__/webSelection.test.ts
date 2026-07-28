@@ -113,6 +113,7 @@ describe('WebSelection', () => {
         webSelection.create(root)
 
         document.dispatchEvent(new Event('selectionchange'))
+        expect(webSelection.isRangeSelectionActive()).toBe(true)
 
         selection = {
             type: 'Range',
@@ -124,6 +125,7 @@ describe('WebSelection', () => {
         document.dispatchEvent(new Event('selectionchange'))
         input.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }))
 
+        expect(webSelection.isRangeSelectionActive()).toBe(false)
         expect(onSelect).toHaveBeenLastCalledWith(null)
         expect(onSelect).not.toHaveBeenCalledWith(pdfRange)
 

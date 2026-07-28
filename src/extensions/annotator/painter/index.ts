@@ -33,6 +33,13 @@ import {
     getGreatestReferenceNumber,
     normalizeAnnotationReferenceNumbers
 } from '../references/annotation_numbering'
+import {
+    AnnotationHoverCoordinator,
+    type AnnotationHoverSnapshot,
+    type AnnotationHoverSource
+} from './annotation_hover'
+import { AnnotationHoverPreview } from './annotation_hover_preview'
+import { AnnotationPassiveHover } from './annotation_passive_hover'
 
 // KonvaCanvas 接口定义
 export interface KonvaCanvas {
@@ -60,6 +67,10 @@ export class Painter {
     private resolveHighlightRequest: ((highlighted: boolean) => void) | null = null
     private selector: Selector // 选择器实例
     private authorLabels: AnnotationAuthorLabels
+    private hoverPreview: AnnotationHoverPreview
+    private passiveHover: AnnotationPassiveHover
+    private readonly annotationHover = new AnnotationHoverCoordinator()
+    private readonly unsubscribeAnnotationHover: () => void
     private transform: Transform // 转换器
     private tempDataTransfer: string | null = null // 临时数据传输
     public readonly onTextSelected: (range: Range | null) => void
@@ -116,6 +127,20 @@ export class Painter {
             },
             canTransform: (annotationStore) => this.permissionController.can('annotation.transform', annotationStore)
         })
+        this.hoverPreview = new AnnotationHoverPreview({
+            primaryColor: this.primaryColor,
+            getAnnotation: (id) => useAnnotationStore.getState().getAnnotation(id),
+            getStage: (pageNumber) => this.konvaCanvasStore.get(pageNumber)?.konvaStage,
+            getAnnotationGroup: (annotationStore, konvaStage) => {
+                return konvaStage.findOne((node: Konva.Node) => node.getType() === 'Group' && node.id() === annotationStore.id) as Konva.Group | null
+            }
+        })
+        this.unsubscribeAnnotationHover = this.annotationHover.subscribe((snapshot) => {
+            this.authorLabels.setHovered(snapshot.annotationId)
+            this.hoverPreview.setHovered(
+                snapshot.source === 'canvas-passive' ? null : snapshot.annotationId
+            )
+        })
         this.pdfViewerApplication = PDFViewerApplication // 初始化 PDFViewerApplication
         this.onTextSelected = onTextSelected
         this.onAnnotationAdd = onAnnotationAdd
@@ -140,6 +165,13 @@ export class Painter {
             },
             onSelectionChanged: (id) => {
                 this.authorLabels.setSelected(id)
+                this.hoverPreview.setSelected(id)
+            },
+            onHoverStart: (id) => {
+                this.annotationHover.set('canvas', id)
+            },
+            onHoverEnd: (id) => {
+                this.annotationHover.clear('canvas', id)
             },
             onChanged: async (id, groupString, _rawAnnotationStore, konvaClientRect, transformerRect) => {
                 const editor = this.findEditorForGroupId(id)
@@ -198,6 +230,17 @@ export class Painter {
                 })
             }
         })
+        this.passiveHover = new AnnotationPassiveHover({
+            shouldSuppress: () => {
+                return this.currentAnnotation !== null || this.webSelection.isRangeSelectionActive()
+            },
+            onHoverStart: (id) => {
+                this.annotationHover.set('canvas-passive', id)
+            },
+            onHoverEnd: (id) => {
+                this.annotationHover.clear('canvas-passive', id)
+            }
+        })
         this.transform = new Transform(PDFViewerApplication)
         this.bindGlobalEvents() // 绑定全局事件
     }
@@ -225,6 +268,22 @@ export class Painter {
 
     public setAnnotationAuthorLabelsVisible(visible: boolean): void {
         this.authorLabels.setAllVisible(visible)
+    }
+
+    public setAnnotationHover(source: AnnotationHoverSource, annotationId: string): void {
+        this.annotationHover.set(source, annotationId)
+    }
+
+    public clearAnnotationHover(source: AnnotationHoverSource, annotationId: string): void {
+        this.annotationHover.clear(source, annotationId)
+    }
+
+    public subscribeAnnotationHover(listener: (snapshot: AnnotationHoverSnapshot) => void): () => void {
+        return this.annotationHover.subscribe(listener)
+    }
+
+    public getAnnotationHoverSnapshot(): AnnotationHoverSnapshot {
+        return this.annotationHover.getSnapshot()
     }
 
     private setDefaultMode = () => {
@@ -302,6 +361,8 @@ export class Painter {
         if (!konvaCanvas) return
 
         this.authorLabels.unregisterPage(pageNumber)
+        this.hoverPreview.unregisterPage(pageNumber)
+        this.passiveHover.unregisterPage(pageNumber)
         konvaCanvas.konvaStage.destroy()
         konvaCanvas.wrapper.remove()
         this.konvaCanvasStore.delete(pageNumber)
@@ -319,6 +380,7 @@ export class Painter {
         const konvaStage = this.createKonvaStage(painterWrapper, pageView.viewport)
 
         this.konvaCanvasStore.set(pageNumber, { pageNumber, konvaStage, wrapper: painterWrapper, isActive: false })
+        this.passiveHover.registerPage(pageNumber, pageView.div, konvaStage)
         this.authorLabels.registerPage(pageNumber, painterWrapper, konvaStage)
         this.reDrawAnnotation(pageNumber) // 重绘批注
         this.enablePainting() // 启用绘画
@@ -340,6 +402,7 @@ export class Painter {
         konvaStage.width(width)
         konvaStage.height(height)
         this.authorLabels.refreshPage(pageNumber)
+        this.hoverPreview.refresh()
     }
 
     /**
@@ -702,6 +765,7 @@ export class Painter {
             }
         })
         this.authorLabels.refreshPage(pageNumber)
+        this.hoverPreview.refresh()
     }
 
     /**
@@ -711,6 +775,7 @@ export class Painter {
     private deleteAnnotation(id: string, emit: boolean = false): boolean {
         const annotationStore = useAnnotationStore.getState().getAnnotation(id)
         if (!annotationStore || !this.can('annotation.delete', annotationStore)) return false
+        this.annotationHover.clearAnnotation(id)
         useAnnotationStore.getState().removeAnnotation(id)
         this.authorLabels.remove(id)
         const storeEditor = this.findEditor(annotationStore.pageNumber, annotationStore.type)
@@ -785,6 +850,7 @@ export class Painter {
             return
         }
         this.currentAnnotation = annotation
+        this.passiveHover.clear()
         this.disablePainting()
         this.saveTempDataTransfer(dataTransfer || '')
 
@@ -1027,6 +1093,10 @@ export class Painter {
         this.cancelHighlightRequest()
         this.disablePainting()
         this.webSelection.destroy()
+        this.passiveHover.destroy()
+        this.annotationHover.destroy()
+        this.unsubscribeAnnotationHover()
+        this.hoverPreview.destroy()
         this.authorLabels.destroy()
 
         // 移除全局事件监听器

@@ -106,6 +106,10 @@ export class WebSelection {
         }
     }
 
+    public isRangeSelectionActive(): boolean {
+        return this.isSelecting
+    }
+
     public destroy() {
         document.removeEventListener('selectionchange', this.handleSelectionChange)
         document.removeEventListener('mouseup', this.handleSelectionEnd)

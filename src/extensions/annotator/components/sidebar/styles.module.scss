@@ -57,6 +57,9 @@
                 min-width: 0;
                 line-height: 1;
             }
+            .annotationHeadingActive {
+                color: var(--accent-11);
+            }
             .annotationMeta {
                 min-width: 0;
                 min-height: 18px;
@@ -91,6 +94,12 @@
         }
 
         .comment:hover {
+            background-color: var(--bg-hover);
+            .reply {
+                background-color: var(--bg-color-quaternary);
+            }
+        }
+        .preview {
             background-color: var(--bg-hover);
             .reply {
                 background-color: var(--bg-color-quaternary);

@@ -50,6 +50,12 @@ function createPainter(can: boolean) {
             refreshAll: jest.fn(),
             remove: jest.fn()
         },
+        annotationHover: {
+            clearAnnotation: jest.fn()
+        },
+        passiveHover: {
+            clear: jest.fn()
+        },
         editorStore: new Map(),
         konvaCanvasStore: new Map(),
         onAnnotationChanged: jest.fn(),
@@ -105,6 +111,8 @@ describe('Painter permission guards', () => {
 
         expect(painter.delete(annotation.id, true)).toBe(false)
         expect(mockState.removeAnnotation).not.toHaveBeenCalled()
+        expect((painter as unknown as { annotationHover: { clearAnnotation: jest.Mock } }).annotationHover.clearAnnotation)
+            .not.toHaveBeenCalled()
         expect((painter as unknown as { selector: { delete: jest.Mock } }).selector.delete).not.toHaveBeenCalled()
         expect((painter as unknown as { onAnnotationDelete: jest.Mock }).onAnnotationDelete).not.toHaveBeenCalled()
     })
@@ -139,6 +147,8 @@ describe('Painter permission guards', () => {
         expect(bob.delete(annotation.id, true)).toBe(false)
         expect(admin.update(annotation.id, { title: 'Admin edited' })).toBeDefined()
         expect(admin.delete(annotation.id, true)).toBe(true)
+        expect((admin as unknown as { annotationHover: { clearAnnotation: jest.Mock } }).annotationHover.clearAnnotation)
+            .toHaveBeenCalledWith(annotation.id)
     })
 
     it('updates the active permission context without recreating the painter', () => {

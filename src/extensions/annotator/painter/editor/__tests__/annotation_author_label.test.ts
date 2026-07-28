@@ -44,6 +44,14 @@ describe('annotation author label', () => {
                 referenceNumber: 0
             })).toBe('Alice')
         })
+
+        it('keeps a numbered annotation identifiable when its author is missing', () => {
+            expect(getAnnotationAuthorLabelText({
+                user: { id: 'unknown', name: '   ' },
+                title: '   ',
+                referenceNumber: 12
+            })).toBe('#12')
+        })
     })
 
     describe('position', () => {

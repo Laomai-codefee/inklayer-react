@@ -4,7 +4,10 @@ import type Konva from 'konva'
 
 import type { IAnnotationStore } from '../../const/definitions'
 import { AnnotationAuthorLabels, isAnnotationAuthorRevealKey } from '../annotation_author_labels'
-import { ANNOTATION_AUTHOR_LABEL_CLASS, ANNOTATION_AUTHOR_LABELS_LAYER_CLASS } from '../const'
+import {
+    ANNOTATION_AUTHOR_LABEL_CLASS,
+    ANNOTATION_AUTHOR_LABELS_LAYER_CLASS
+} from '../const'
 
 function createAnnotation(id: string, name: string, referenceNumber?: number): IAnnotationStore {
     return {
@@ -141,6 +144,68 @@ describe('AnnotationAuthorLabels', () => {
         expect(wrapper.querySelector(`.${ANNOTATION_AUTHOR_LABELS_LAYER_CLASS}`)).toBeNull()
         expect(aliceGroup.off).toHaveBeenCalledWith('.annotationAuthorLabels')
         expect(bobGroup.off).toHaveBeenCalledWith('.annotationAuthorLabels')
+    })
+
+    it('shows the hovered label without replacing the selected label', () => {
+        const alice = createAnnotation('annotation-alice', 'Alice')
+        const bob = createAnnotation('annotation-bob', 'Bob')
+        const groups = new Map([
+            [alice.id, createGroup({ x: 50, y: 80, width: 100, height: 60 })],
+            [bob.id, createGroup({ x: 200, y: 160, width: 80, height: 40 })]
+        ])
+        const wrapper = document.createElement('div')
+        const stage = {
+            width: () => 500,
+            height: () => 700
+        } as unknown as Konva.Stage
+        const labels = new AnnotationAuthorLabels({
+            primaryColor: '#6e56cf',
+            getAnnotationsByPage: () => [alice, bob],
+            getAnnotationGroup: (annotation) => groups.get(annotation.id) as unknown as Konva.Group,
+            canTransform: () => true
+        })
+
+        labels.registerPage(1, wrapper, stage)
+        const aliceLabel = wrapper.querySelector(`[data-annotation-id="${alice.id}"]`) as HTMLDivElement
+        const bobLabel = wrapper.querySelector(`[data-annotation-id="${bob.id}"]`) as HTMLDivElement
+
+        labels.setSelected(alice.id)
+        labels.setHovered(bob.id)
+        expect(aliceLabel.style.display).toBe('block')
+        expect(bobLabel.style.display).toBe('block')
+
+        labels.setSelected(bob.id)
+        expect(bobLabel.style.display).toBe('block')
+
+        labels.setHovered(null)
+        expect(aliceLabel.style.display).toBe('none')
+        expect(bobLabel.style.display).toBe('block')
+
+        labels.destroy()
+    })
+
+    it('preserves a hovered id until its page stage is registered', () => {
+        const annotation = createAnnotation('annotation-1', 'Alice')
+        const group = createGroup({ x: 20, y: 40, width: 50, height: 30 })
+        const wrapper = document.createElement('div')
+        const stage = {
+            width: () => 500,
+            height: () => 700
+        } as unknown as Konva.Stage
+        const labels = new AnnotationAuthorLabels({
+            primaryColor: '#6e56cf',
+            getAnnotationsByPage: () => [annotation],
+            getAnnotationGroup: () => group as unknown as Konva.Group,
+            canTransform: () => true
+        })
+
+        labels.setHovered(annotation.id)
+        labels.registerPage(1, wrapper, stage)
+
+        const label = wrapper.querySelector(`[data-annotation-id="${annotation.id}"]`) as HTMLDivElement
+        expect(label.style.display).toBe('block')
+
+        labels.destroy()
     })
 
     it('exits reveal mode when the window loses focus', () => {

@@ -20,11 +20,11 @@ export function getAnnotationAuthorLabelText(
     annotation: Pick<IAnnotationStore, 'user' | 'title' | 'referenceNumber'>
 ): string | null {
     const authorName = getAnnotationAuthorName(annotation)
-    if (!authorName) return null
+    const hasReferenceNumber = isValidReferenceNumber(annotation.referenceNumber)
 
-    return isValidReferenceNumber(annotation.referenceNumber)
-        ? `#${annotation.referenceNumber} · ${authorName}`
-        : authorName
+    if (hasReferenceNumber && authorName) return `#${annotation.referenceNumber} · ${authorName}`
+    if (hasReferenceNumber) return `#${annotation.referenceNumber}`
+    return authorName
 }
 
 interface AnnotationAuthorLabelPositionOptions {

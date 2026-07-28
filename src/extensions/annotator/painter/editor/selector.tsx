@@ -15,6 +15,8 @@ export interface ISelectorOptions {
     canTransform: (annotation: IAnnotationStore) => boolean
     onSelected: (id: string, isClick: boolean, transformerRect: IRect) => void // 选中回调
     onSelectionChanged: (id: string | null) => void
+    onHoverStart: (id: string) => void
+    onHoverEnd: (id: string) => void
     onCancel: () => void
     onChanged: (id: string, konvaGroupString: string, rawAnnotationStore: IAnnotationStore, konvaClientRect: IRect, transformerRect: IRect) => void // 注解变化时的回调
     onDelete: (id: string) => void // 删除注解时的回调
@@ -27,6 +29,8 @@ export class Selector {
     private primaryColor: string
     public readonly onSelected: (id: string, isClick: boolean, clientRect: IRect) => void
     public readonly onSelectionChanged: (id: string | null) => void
+    public readonly onHoverStart: (id: string) => void
+    public readonly onHoverEnd: (id: string) => void
     public readonly onChanged: (id: string, konvaGroupString: string, rawAnnotationStore: IAnnotationStore, konvaClientRect: IRect, transformerRect: IRect) => void
     public readonly onDelete: (id: string) => void
     public readonly onCancel: () => void
@@ -38,6 +42,7 @@ export class Selector {
     private _currentTransformerId: string | null = null // 当前激活的变换器ID
 
     private selectedId: string | null = null
+    private hoveredGroupId: string | null = null
 
     private isSelectedByClick: boolean = false // 是否通过点击选中
 
@@ -45,7 +50,19 @@ export class Selector {
     private tweenStore: Map<string, { fadeOut: Konva.Tween | null; fadeIn: Konva.Tween | null }> = new Map()
 
     // 构造函数，初始化选择器类
-    constructor({ primaryColor, konvaCanvasStore, getAnnotationStore, canTransform, onDelete, onSelected, onSelectionChanged, onCancel, onChanged }: ISelectorOptions) {
+    constructor({
+        primaryColor,
+        konvaCanvasStore,
+        getAnnotationStore,
+        canTransform,
+        onDelete,
+        onSelected,
+        onSelectionChanged,
+        onHoverStart,
+        onHoverEnd,
+        onCancel,
+        onChanged
+    }: ISelectorOptions) {
         this.primaryColor = primaryColor
         this.konvaCanvasStore = konvaCanvasStore
         this.getAnnotationStore = getAnnotationStore
@@ -53,6 +70,8 @@ export class Selector {
         this.onDelete = onDelete
         this.onSelected = onSelected
         this.onSelectionChanged = onSelectionChanged
+        this.onHoverStart = onHoverStart
+        this.onHoverEnd = onHoverEnd
         this.onCancel = onCancel
         this.onChanged = onChanged
     }
@@ -126,6 +145,8 @@ export class Selector {
      */
     private enableShapeGroups(groups: Konva.Group[], konvaStage: Konva.Stage): void {
         groups.forEach(group => {
+            this.removeGroupHoverEvents(group)
+            this.bindGroupHoverEvents(group)
             group.getChildren().forEach(shape => {
                 if (shape instanceof Konva.Shape) {
                     this.removeShapeEvents(shape)
@@ -141,6 +162,7 @@ export class Selector {
      */
     private disableShapeGroups(groups: Konva.Group[]): void {
         groups.forEach(group => {
+            this.removeGroupHoverEvents(group)
             group.getChildren().forEach(shape => {
                 if (shape instanceof Konva.Shape) {
                     this.removeShapeEvents(shape)
@@ -150,7 +172,7 @@ export class Selector {
     }
 
     /**
-     * 为给定形状绑定点击、鼠标悬停和鼠标离开事件。
+     * 为给定形状绑定点击事件。
      * @param shape - 要绑定事件的形状。
      * @param konvaStage - 形状所在的 Konva Stage。
      */
@@ -161,16 +183,6 @@ export class Selector {
                 this.handleShapeClick(shape, konvaStage, true)
             }
         })
-        shape.on('mouseover', e => {
-            if (e.evt.button === 0) {
-                this.handleShapeMouseover()
-            }
-        })
-        shape.on('mouseout', e => {
-            if (e.evt.button === 0) {
-                this.handleShapeMouseout()
-            }
-        })
     }
 
     /**
@@ -179,6 +191,26 @@ export class Selector {
      */
     private removeShapeEvents(shape: Konva.Shape): void {
         shape.off('pointerclick mouseover mouseout pointerdblclick')
+    }
+
+    private bindGroupHoverEvents(group: Konva.Group): void {
+        group.on('pointerenter.annotationSelectorHover', (event) => {
+            if (this.isTouchPointer(event.evt)) return
+            this.handleGroupPointerEnter(group.id())
+        })
+        group.on('pointerleave.annotationSelectorHover', (event) => {
+            if (this.isTouchPointer(event.evt)) return
+            this.handleGroupPointerLeave(group.id())
+        })
+    }
+
+    private removeGroupHoverEvents(group: Konva.Group): void {
+        group.off('.annotationSelectorHover')
+        if (this.hoveredGroupId === group.id()) this.clearCanvasHover()
+    }
+
+    private isTouchPointer(event: Event): boolean {
+        return 'pointerType' in event && event.pointerType === 'touch'
     }
 
     /**
@@ -457,25 +489,31 @@ export class Selector {
         document.body.classList.toggle(SELECTOR_HOVER_STYLE, add)
     }
 
-    /**
-     * 处理形状的鼠标悬停事件。
-     */
-    private handleShapeMouseover(): void {
+    private handleGroupPointerEnter(id: string): void {
+        if (this.hoveredGroupId === id) return
+        this.hoveredGroupId = id
         this.toggleCursorStyle(true)
+        this.onHoverStart(id)
     }
 
-    /**
-     * 处理形状的鼠标离开事件。
-     */
-    private handleShapeMouseout(): void {
+    private handleGroupPointerLeave(id: string): void {
+        if (this.hoveredGroupId !== id) return
+        this.clearCanvasHover()
+    }
+
+    private clearCanvasHover(): void {
+        const id = this.hoveredGroupId
+        if (!id) return
+        this.hoveredGroupId = null
         this.toggleCursorStyle(false)
+        this.onHoverEnd(id)
     }
 
     /**
      * 清除所有变换器。
      */
     private clearTransformers(): void {
-        this.toggleCursorStyle(false)
+        this.toggleCursorStyle(this.hoveredGroupId !== null)
         // 只有当有实际选中的变换器时才调用onCancel
         const hadCurrentTransformer = this._currentTransformerId !== null
 
@@ -542,6 +580,7 @@ export class Selector {
      * 清除选择器的所有状态和事件。
      */
     public clear(): void {
+        this.clearCanvasHover()
         this.clearTransformers()
         this.konvaCanvasStore.forEach(konvaCanvas => {
             const { konvaStage } = konvaCanvas
