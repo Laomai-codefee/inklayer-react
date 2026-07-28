@@ -6,6 +6,7 @@ import type {
     IAnnotationStore
 } from '../../const/definitions'
 import { synchronizeAnnotationReferenceLabels } from '../../references/annotation_reference'
+import { AnnotationReferenceHoverCard } from '../annotation_reference_hover_card'
 import { createAnnotationReferenceSegments } from './reference_segments'
 import styles from './styles.module.scss'
 
@@ -65,23 +66,25 @@ export const AnnotationReferenceText: React.FC<AnnotationReferenceTextProps> = (
                 }
 
                 return (
-                    <button
+                    <AnnotationReferenceHoverCard
                         key={`reference-${segment.annotationId}-${index}`}
-                        className={styles.reference}
-                        type="button"
-                        aria-label={t('comment.reference.open', {
-                            value: segment.value
-                        })}
-                        title={t('comment.reference.open', {
-                            value: segment.value
-                        })}
-                        onClick={(event) => {
-                            event.stopPropagation()
-                            onActivate(segment.annotationId)
-                        }}
+                        annotation={target}
+                        onActivate={onActivate}
                     >
-                        {segment.value}
-                    </button>
+                        <button
+                            className={styles.reference}
+                            type="button"
+                            aria-label={t('comment.reference.open', {
+                                value: segment.value
+                            })}
+                            onClick={(event) => {
+                                event.stopPropagation()
+                                onActivate(segment.annotationId)
+                            }}
+                        >
+                            {segment.value}
+                        </button>
+                    </AnnotationReferenceHoverCard>
                 )
             })}
         </span>

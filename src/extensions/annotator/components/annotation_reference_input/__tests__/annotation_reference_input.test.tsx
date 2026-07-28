@@ -120,6 +120,25 @@ describe('annotation reference input helpers', () => {
 })
 
 describe('AnnotationReferenceInput', () => {
+    it('uses the InkLayer annotation type for candidate icons', () => {
+        const arrow = makeAnnotation('annotation-arrow', 2, {
+            type: AnnotationType.ARROW,
+            subtype: 'Ink',
+            pdfjsType: PdfjsAnnotationType.INK
+        })
+        const { input } = renderInput({
+            annotations: [
+                makeAnnotation('annotation-1', 1),
+                arrow
+            ]
+        })
+
+        fireEvent.change(input, { target: { value: '#' } })
+
+        const option = screen.getByRole('option')
+        expect(option.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 1024 1024')
+    })
+
     it('opens on # and inserts a structured reference with the keyboard', () => {
         const { input, onSubmit } = renderInput()
 

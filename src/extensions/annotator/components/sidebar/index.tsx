@@ -15,22 +15,6 @@ import {
     AiOutlineMinusSquare,
     AiOutlineStop
 } from 'react-icons/ai'
-import {
-    CircleIcon,
-    FreehandIcon,
-    FreeHighlightIcon,
-    FreetextIcon,
-    HighlightIcon,
-    RectangleIcon,
-    StampIcon,
-    StrikeoutIcon,
-    UnderlineIcon,
-    SignatureIcon,
-    NoteIcon,
-    ExportIcon,
-    ArrowIcon,
-    CloudIcon
-} from '../../const/icons'
 import { SelectionSource, useAnnotationStore } from '../../store'
 import { UserContext } from '@/context/user_context'
 import { usePainter } from '../../context/use_painter'
@@ -47,35 +31,13 @@ import {
 } from './comment_mutations'
 import { getAnnotationAuthorName } from '../../painter/editor/annotation_author_label'
 import { isValidReferenceNumber } from '../../references/annotation_numbering'
+import { AnnotationTypeIcon } from '../annotation_type_icon'
 
 interface StatusOption {
     labelKey: string // i18n key
     icon: React.ReactNode
 }
 
-const iconMapping: Record<PdfjsAnnotationSubtype, React.ReactNode> = {
-    Circle: <CircleIcon />,
-    FreeText: <FreetextIcon />,
-    Ink: <FreehandIcon />,
-    Highlight: <HighlightIcon />,
-    Underline: <UnderlineIcon />,
-    Squiggly: <FreeHighlightIcon />,
-    StrikeOut: <StrikeoutIcon />,
-    Stamp: <StampIcon />,
-    Line: <FreehandIcon />,
-    Square: <RectangleIcon />,
-    Polygon: <FreehandIcon />,
-    PolyLine: <CloudIcon />,
-    Caret: <SignatureIcon />,
-    Link: <FreehandIcon />,
-    Text: <NoteIcon />,
-    FileAttachment: <ExportIcon />,
-    Popup: <FreehandIcon />,
-    Widget: <FreehandIcon />,
-    Note: <NoteIcon />,
-    Arrow: <ArrowIcon />,
-    None: undefined
-}
 const annotationToolNames = new Map(
     annotationDefinitions.map((annotation) => [annotation.type, annotation.name])
 )
@@ -105,28 +67,6 @@ const commentStatusOptions: Record<CommentStatus, StatusOption> = {
         labelKey: 'annotator:comment.status.none',
         icon: <AiOutlineMinusSquare />
     }
-}
-
-const getIconBySubtype = (subtype: PdfjsAnnotationSubtype): React.ReactNode => {
-    return iconMapping[subtype] || null
-}
-
-const AnnotationIcon: React.FC<{
-    subtype: PdfjsAnnotationSubtype
-    label: string
-}> = ({ subtype, label }) => {
-    const Icon = getIconBySubtype(subtype)
-    return Icon ? (
-        <Tooltip content={label}>
-            <span
-                className={styles.annotationTypeIcon}
-                role="img"
-                aria-label={label}
-            >
-                {Icon}
-            </span>
-        </Tooltip>
-    ) : null
 }
 
 /**
@@ -485,10 +425,10 @@ const Sidebar: React.FC = () => {
         return (
             <div key={pageNumber} className={styles.group}>
                 <Flex gap="2" justify="between" p="1">
-                    <Text size="2">
+                    <Text size="1">
                         {t('annotator:comment.page', { value: pageNumber })}
                     </Text>
-                    <Text size="2">
+                    <Text size="1">
                         {t('annotator:comment.total', { value: annotationsForPage.length })}
                     </Text>
                 </Flex>
@@ -610,9 +550,10 @@ const Sidebar: React.FC = () => {
                                 </Flex>
                             </div>
                             <Flex align="center" gap="1" className={styles.annotationMeta}>
-                                <AnnotationIcon
-                                    subtype={annotation.subtype}
+                                <AnnotationTypeIcon
+                                    type={annotation.type}
                                     label={annotationTypeLabel}
+                                    className={styles.annotationTypeIcon}
                                 />
                                 <Text
                                     as="span"

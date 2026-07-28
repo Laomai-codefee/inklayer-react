@@ -161,6 +161,11 @@ export default {
                 inputLabel: 'Comment with annotation references',
                 noContent: 'No comment content',
                 open: 'Go to annotation {{value}}',
+                previewNoContent: 'No annotation content',
+                previewPage: 'Page {{value}}',
+                replyCount: '{{count}} replies',
+                replyCount_one: '{{count}} reply',
+                replyCount_other: '{{count}} replies',
                 unavailable: 'Annotation {{value}} is unavailable'
             }
         },

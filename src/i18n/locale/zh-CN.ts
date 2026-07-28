@@ -161,6 +161,10 @@ export default {
                 inputLabel: '支持引用批注的评论输入框',
                 noContent: '暂无评论内容',
                 open: '跳转到批注 {{value}}',
+                previewNoContent: '暂无批注内容',
+                previewPage: '第{{value}}页',
+                replyCount: '{{count}} 条回复',
+                replyCount_other: '{{count}} 条回复',
                 unavailable: '批注 {{value}} 不可用'
             }
         },

@@ -19,23 +19,7 @@ import type {
     IAnnotationReference,
     IAnnotationStore
 } from '../../const/definitions'
-import { annotationDefinitions, PdfjsAnnotationSubtype } from '../../const/definitions'
-import {
-    ArrowIcon,
-    CircleIcon,
-    CloudIcon,
-    ExportIcon,
-    FreehandIcon,
-    FreeHighlightIcon,
-    FreetextIcon,
-    HighlightIcon,
-    NoteIcon,
-    RectangleIcon,
-    SignatureIcon,
-    StampIcon,
-    StrikeoutIcon,
-    UnderlineIcon
-} from '../../const/icons'
+import { annotationDefinitions } from '../../const/definitions'
 import {
     normalizeAnnotationReferences,
     synchronizeAnnotationReferenceLabels,
@@ -47,35 +31,13 @@ import {
     findAnnotationReferenceQuery,
     type AnnotationReferenceQuery
 } from './reference_query'
+import { AnnotationTypeIcon } from '../annotation_type_icon'
 import styles from './styles.module.scss'
 
 const SEPARATOR_PREFIX_PATTERN = /^[\s.,!?;:'"<>/\\，。！？；：、“”‘’《》（）()[\]{}]/
 const annotationTypeNames = new Map(
     annotationDefinitions.map((annotation) => [annotation.type, annotation.name])
 )
-const annotationIcons: Record<PdfjsAnnotationSubtype, React.ReactNode> = {
-    Circle: <CircleIcon />,
-    FreeText: <FreetextIcon />,
-    Ink: <FreehandIcon />,
-    Highlight: <HighlightIcon />,
-    Underline: <UnderlineIcon />,
-    Squiggly: <FreeHighlightIcon />,
-    StrikeOut: <StrikeoutIcon />,
-    Stamp: <StampIcon />,
-    Line: <FreehandIcon />,
-    Square: <RectangleIcon />,
-    Polygon: <FreehandIcon />,
-    PolyLine: <CloudIcon />,
-    Caret: <SignatureIcon />,
-    Link: <FreehandIcon />,
-    Text: <NoteIcon />,
-    FileAttachment: <ExportIcon />,
-    Popup: <FreehandIcon />,
-    Widget: <FreehandIcon />,
-    Note: <NoteIcon />,
-    Arrow: <ArrowIcon />,
-    None: null
-}
 
 export type AnnotationReferenceDraft = AnnotationReferenceContent
 
@@ -336,6 +298,7 @@ export const AnnotationReferenceInput: React.FC<AnnotationReferenceInputProps> =
 
                     <Popover.Content
                         ref={menuRef}
+                        container={rootRef.current}
                         id={listboxId}
                         className={styles.referenceMenu}
                         role="listbox"
@@ -372,15 +335,9 @@ export const AnnotationReferenceInput: React.FC<AnnotationReferenceInputProps> =
                                     onClick={() => insertReference(annotation)}
                                 >
                                     <Flex align="center" gap="2" className={styles.referenceOptionHeader}>
-                                        <Badge size="1" radius="full" variant="soft" highContrast>
+                                        <Badge size="1" radius="full" variant="soft">
                                             #{annotation.referenceNumber}
                                         </Badge>
-                                        <span className={styles.referenceTypeIcon} aria-hidden="true">
-                                            {annotationIcons[annotation.subtype]}
-                                        </span>
-                                        <Text as="span" size="1" weight="medium" className={styles.referenceType}>
-                                            {typeLabel}
-                                        </Text>
                                         <Text as="span" size="1" color="gray" className={styles.referencePage}>
                                             {t('annotator:comment.page', { value: annotation.pageNumber })}
                                         </Text>
@@ -389,9 +346,17 @@ export const AnnotationReferenceInput: React.FC<AnnotationReferenceInputProps> =
                                         {summary || t('annotator:comment.reference.noContent')}
                                     </Text>
                                     <Text as="span" size="1" color="gray" className={styles.referenceMeta}>
+                                        <AnnotationTypeIcon
+                                            type={annotation.type}
+                                            label={typeLabel}
+                                            className={styles.referenceTypeIcon}
+                                            decorative
+                                            showTooltip={false}
+                                        />
                                         <span className={styles.referenceAuthor}>
                                             {annotation.title}
                                         </span>
+
                                         {formattedDate && (
                                             <>
                                                 <span aria-hidden="true">·</span>
