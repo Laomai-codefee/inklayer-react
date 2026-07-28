@@ -32,7 +32,7 @@ import {
 import { getAnnotationAuthorName } from '../../painter/editor/annotation_author_label'
 import { isValidReferenceNumber } from '../../references/annotation_numbering'
 import { AnnotationTypeIcon } from '../annotation_type_icon'
-import { useAnnotationHoveredId } from '../../context/use_annotation_hover'
+import { useAnnotationHoverSnapshot } from '../../context/use_annotation_hover'
 
 interface StatusOption {
     labelKey: string // i18n key
@@ -78,7 +78,8 @@ const Sidebar: React.FC = () => {
     const currentUser = useContext(UserContext)
     const { isSidebarCollapsed } = usePdfViewerContext()
     const { painter } = usePainter()
-    const hoveredAnnotationId = useAnnotationHoveredId()
+    const annotationHover = useAnnotationHoverSnapshot()
+    const hoveredAnnotationId = annotationHover.annotationId
     const currentAnnotation = useAnnotationStore((state) => state.selectedAnnotation)
     const setCurrentAnnotation = useAnnotationStore((state) => state.setSelectedAnnotation)
     const clearSelectedAnnotation = useAnnotationStore((state) => state.clearSelectedAnnotation)
@@ -315,15 +316,18 @@ const Sidebar: React.FC = () => {
         painter?.setAnnotationHover('sidebar-focus', annotationId)
     }
 
+    const clearAnnotationFocus = (annotationId: string) => {
+        if (focusedAnnotationIdRef.current !== annotationId) return
+        focusedAnnotationIdRef.current = null
+        painter?.clearAnnotationHover('sidebar-focus', annotationId)
+    }
+
     const handleAnnotationBlur = (
         annotationId: string,
         event: React.FocusEvent<HTMLElement>
     ) => {
         if (getAnnotationFocusOwner(event.relatedTarget) === annotationId) return
-        if (focusedAnnotationIdRef.current === annotationId) {
-            focusedAnnotationIdRef.current = null
-        }
-        painter?.clearAnnotationHover('sidebar-focus', annotationId)
+        clearAnnotationFocus(annotationId)
     }
 
     const handleReferenceClick = (annotationId: string) => {
@@ -353,6 +357,7 @@ const Sidebar: React.FC = () => {
         }, 'annotation.edit')
 
         setEditAnnotation(null)
+        clearAnnotationFocus(annotation.id)
     }
 
     const addReply = (annotation: IAnnotationStore, draft: AnnotationReferenceDraft, status?: CommentStatus) => {
@@ -373,6 +378,7 @@ const Sidebar: React.FC = () => {
         }, action)
 
         setReplyAnnotation(null)
+        clearAnnotationFocus(annotation.id)
     }
 
     const updateReply = (annotation: IAnnotationStore, reply: IAnnotationComment, draft: AnnotationReferenceDraft) => {
@@ -390,6 +396,7 @@ const Sidebar: React.FC = () => {
         }, 'comment.edit', reply)
 
         setCurrentReply(null)
+        clearAnnotationFocus(annotation.id)
     }
 
     const deleteAnnotation = (annotation: IAnnotationStore) => {
@@ -407,6 +414,7 @@ const Sidebar: React.FC = () => {
 
         if (currentReply?.id === reply.id) {
             setCurrentReply(null)
+            clearAnnotationFocus(annotation.id)
         }
     }
 
@@ -421,7 +429,10 @@ const Sidebar: React.FC = () => {
                     initialReferences={annotation.contentsObj?.references}
                     className={styles.commentEditor}
                     onSubmit={(draft) => updateComment(annotation, draft)}
-                    onCancel={() => setEditAnnotation(null)}
+                    onCancel={() => {
+                        setEditAnnotation(null)
+                        clearAnnotationFocus(annotation.id)
+                    }}
                 />
             )
         }
@@ -451,7 +462,10 @@ const Sidebar: React.FC = () => {
                     excludeAnnotationId={annotation.id}
                     className={styles.commentEditor}
                     onSubmit={(draft) => addReply(annotation, draft)}
-                    onCancel={() => setReplyAnnotation(null)}
+                    onCancel={() => {
+                        setReplyAnnotation(null)
+                        clearAnnotationFocus(annotation.id)
+                    }}
                 />
             )
         }
@@ -469,7 +483,10 @@ const Sidebar: React.FC = () => {
                     initialReferences={currentReply.references}
                     className={styles.replyEditor}
                     onSubmit={(draft) => updateReply(annotation, reply, draft)}
-                    onCancel={() => setCurrentReply(null)}
+                    onCancel={() => {
+                        setCurrentReply(null)
+                        clearAnnotationFocus(annotation.id)
+                    }}
                 />
             )
         }
@@ -505,6 +522,8 @@ const Sidebar: React.FC = () => {
                 {sortedAnnotations.map((annotation) => {
                     const isSelected = annotation.id === currentAnnotation?.store?.id
                     const isPreviewed = annotation.id === hoveredAnnotationId
+                    const showPreviewStyle = isPreviewed
+                        && (!isSelected || annotationHover.source !== 'sidebar-focus')
                     const canComment = Boolean(painter?.can('annotation.comment', annotation))
                     const canEdit = Boolean(painter?.can('annotation.edit', annotation))
                     const canDelete = Boolean(painter?.can('annotation.delete', annotation))
@@ -524,7 +543,7 @@ const Sidebar: React.FC = () => {
                     const commonProps = {
                         className: [
                             styles.comment,
-                            isPreviewed ? styles.preview : '',
+                            showPreviewStyle ? styles.preview : '',
                             isSelected ? styles.selected : ''
                         ].filter(Boolean).join(' '),
                         id: `annotation-${annotation.id}`,

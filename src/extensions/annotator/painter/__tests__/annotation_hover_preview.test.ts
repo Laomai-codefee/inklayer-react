@@ -46,6 +46,7 @@ describe('AnnotationHoverPreview', () => {
         expect(previewRect).toBeInstanceOf(Konva.Rect)
         expect(previewRect.listening()).toBe(false)
         expect(previewRect.stroke()).toBe('#6e56cf')
+        expect(previewRect.strokeWidth()).toBe(1.5)
         expect(previewRect.dash()).toEqual([])
         expect(previewRect.opacity()).toBe(0.7)
         expect(previewRect.strokeScaleEnabled()).toBe(false)

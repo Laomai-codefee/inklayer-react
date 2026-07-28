@@ -222,6 +222,7 @@ export class Selector {
         const group = shape.findAncestor(`.${SHAPE_GROUP_NAME}`) as Konva.Group
 
         if (!group) return
+        if (this.hoveredGroupId === group.id()) this.clearCanvasHover()
         this.clearTransformers() // 清除之前的变换器
 
         const flash = !isClick

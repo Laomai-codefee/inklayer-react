@@ -120,6 +120,27 @@ describe('annotation reference input helpers', () => {
 })
 
 describe('AnnotationReferenceInput', () => {
+    it('does not propagate editor clicks to an enclosing annotation card', () => {
+        const onCardClick = jest.fn()
+        render(
+            <div onClick={onCardClick}>
+                <Theme>
+                    <AnnotationReferenceInput
+                        annotations={annotations}
+                        excludeAnnotationId="annotation-1"
+                        onSubmit={jest.fn()}
+                        onCancel={jest.fn()}
+                    />
+                </Theme>
+            </div>
+        )
+
+        fireEvent.click(screen.getByRole('combobox'))
+        fireEvent.click(screen.getByRole('button', { name: 'common:confirm' }))
+
+        expect(onCardClick).not.toHaveBeenCalled()
+    })
+
     it('uses the InkLayer annotation type for candidate icons', () => {
         const arrow = makeAnnotation('annotation-arrow', 2, {
             type: AnnotationType.ARROW,

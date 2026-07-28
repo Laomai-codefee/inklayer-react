@@ -257,6 +257,7 @@ export const AnnotationReferenceInput: React.FC<AnnotationReferenceInputProps> =
             ref={rootRef}
             className={`${styles.referenceInput} ${className ?? ''}`}
             onBlurCapture={handleBlur}
+            onClick={(event) => event.stopPropagation()}
         >
             <div className={styles.editor}>
                 <Popover.Root

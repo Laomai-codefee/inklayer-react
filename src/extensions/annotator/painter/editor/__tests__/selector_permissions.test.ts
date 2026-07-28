@@ -16,8 +16,8 @@ describe('selector permission styles', () => {
     it('keeps a visible selection border but hides resize anchors in read-only mode', () => {
         expect(getTransformerPermissionStyle(false)).toEqual({
             borderStrokeWidth: 2,
-            borderDash: [6, 4],
-            opacity: 0.5,
+            borderDash: [3, 3],
+            opacity: 0.8,
             authorLabelOpacity: 0.8,
             anchorFill: 'transparent',
             anchorStrokeWidth: 0,
@@ -45,7 +45,7 @@ describe('Selector permission interaction', () => {
 
     it.each([
         ['editable', true, true, true, [], 1],
-        ['read-only', false, false, false, [6, 4], 0.5]
+        ['read-only', false, false, false, [3, 3], 0.8]
     ] as const)(
         'keeps an annotation selectable while applying the %s transform state',
         (_state, allowed, draggable, resizeEnabled, borderDash, opacity) => {
@@ -162,8 +162,13 @@ describe('Selector permission interaction', () => {
         expect(onHoverEnd).toHaveBeenCalledWith(secondGroup.id())
         expect(document.body.classList.contains('InkLayer_Annotator_selector_hover')).toBe(false)
 
+        group.fire('pointerenter', { evt: { pointerType: 'mouse' } })
+        group.getChildren()[0].fire('pointerclick', { evt: { button: 0 } })
+        expect(onHoverEnd).toHaveBeenLastCalledWith(group.id())
+        expect(document.body.classList.contains('InkLayer_Annotator_selector_hover')).toBe(false)
+
         group.fire('pointerenter', { evt: { pointerType: 'touch' } })
-        expect(onHoverStart).toHaveBeenCalledTimes(2)
+        expect(onHoverStart).toHaveBeenCalledTimes(3)
 
         selector.clear()
         stage.destroy()

@@ -66,7 +66,7 @@ export class AnnotationHoverPreview {
             width: rect.width + padding * 2,
             height: rect.height + padding * 2,
             stroke: this.primaryColor,
-            strokeWidth: 2,
+            strokeWidth: 1.5,
             dash: [],
             strokeScaleEnabled: false,
             opacity: 0.7,

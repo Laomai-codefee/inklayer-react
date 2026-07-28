@@ -25,7 +25,7 @@
             margin-bottom: 10px;
         }
         .comment {
-            border: 1px solid var(--border-color);
+            border: 2px solid var(--border-color);
             background-color: var(--bg-color);
             border-radius: 8px;
             padding: 2px 10px 10px;
@@ -93,17 +93,13 @@
             }
         }
 
-        .comment:hover {
-            background-color: var(--bg-hover);
-            .reply {
-                background-color: var(--bg-color-quaternary);
+        @media (hover: hover) and (pointer: fine) {
+            .comment:hover {
+                border-color: var(--accent-8);
             }
         }
         .preview {
-            background-color: var(--bg-hover);
-            .reply {
-                background-color: var(--bg-color-quaternary);
-            }
+            border-color: var(--accent-8);
         }
         .selected {
             background-color: var(--bg-selected) !important;

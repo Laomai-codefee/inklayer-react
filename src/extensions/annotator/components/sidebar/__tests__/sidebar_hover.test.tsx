@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { act, createEvent, fireEvent, render } from '@testing-library/react'
+import { act, createEvent, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { Theme } from '@radix-ui/themes'
 
 import { UserContext } from '@/context/user_context'
@@ -72,7 +72,20 @@ const annotation = {
     native: false
 } as IAnnotationStore
 
-function renderSidebar(selected = false) {
+const secondAnnotation = {
+    ...annotation,
+    id: 'annotation-2',
+    referenceNumber: 2,
+    title: 'Bob',
+    user: { id: 'bob', name: 'Bob' }
+} as IAnnotationStore
+
+function renderSidebar(
+    selected = false,
+    annotationList = [annotation],
+    can: (action: string) => boolean = () => false,
+    selectionSource = 'sidebar'
+) {
     const coordinator = new AnnotationHoverCoordinator()
     const setSelectedAnnotation = jest.fn()
     const clearSelectedAnnotation = jest.fn()
@@ -84,17 +97,18 @@ function renderSidebar(selected = false) {
         coordinator.clear(source, annotationId)
     })
     mockPainter = {
-        can: jest.fn(() => false),
+        can: jest.fn(can),
         highlight,
+        update: jest.fn(),
         setAnnotationHover,
         clearAnnotationHover,
         subscribeAnnotationHover: coordinator.subscribe,
         getAnnotationHoverSnapshot: coordinator.getSnapshot
     }
     mockStoreState = {
-        annotations: new Map([[annotation.id, annotation]]),
+        annotations: new Map(annotationList.map((item) => [item.id, item])),
         selectedAnnotation: selected
-            ? { store: annotation, source: 'sidebar' }
+            ? { store: annotation, source: selectionSource }
             : null,
         setSelectedAnnotation,
         clearSelectedAnnotation
@@ -183,7 +197,7 @@ describe('Sidebar annotation hover', () => {
         outside.remove()
     })
 
-    it('renders an external Canvas preview without overriding selected state', () => {
+    it('adds preview styling while the selected annotation is actively hovered', () => {
         const { coordinator } = renderSidebar(true)
         const card = document.getElementById(`annotation-${annotation.id}`)!
         const heading = card.querySelector('.annotationHeading')!
@@ -196,6 +210,64 @@ describe('Sidebar annotation hover', () => {
         expect(card.classList.contains('selected')).toBe(true)
         expect(heading.classList.contains('annotationHeadingActive')).toBe(true)
         expect(list.scrollTop).toBe(80)
+    })
+
+    it('does not use a focus preview as a hover border on a selected card', () => {
+        const { coordinator } = renderSidebar(true)
+        const selectedCard = document.getElementById(`annotation-${annotation.id}`)!
+
+        act(() => coordinator.set('sidebar-focus', annotation.id))
+
+        expect(selectedCard.classList.contains('selected')).toBe(true)
+        expect(selectedCard.classList.contains('preview')).toBe(false)
+    })
+
+    it('removes preview styling from a selected card after its pointer hover clears', () => {
+        const { coordinator } = renderSidebar(true, [annotation, secondAnnotation])
+        const selectedCard = document.getElementById(`annotation-${annotation.id}`)!
+        const otherCard = document.getElementById(`annotation-${secondAnnotation.id}`)!
+
+        act(() => coordinator.set('sidebar-pointer', annotation.id))
+        expect(selectedCard.classList.contains('selected')).toBe(true)
+        expect(selectedCard.classList.contains('preview')).toBe(true)
+
+        act(() => coordinator.clear('sidebar-pointer', annotation.id))
+        expect(selectedCard.classList.contains('preview')).toBe(false)
+
+        act(() => coordinator.set('sidebar-pointer', secondAnnotation.id))
+        expect(otherCard.classList.contains('preview')).toBe(true)
+
+        act(() => coordinator.clear('sidebar-pointer', secondAnnotation.id))
+        expect(selectedCard.classList.contains('preview')).toBe(false)
+        expect(otherCard.classList.contains('preview')).toBe(false)
+    })
+
+    it('clears focus hover when a focused reply editor is submitted and unmounted', async () => {
+        const {
+            coordinator,
+            clearAnnotationHover
+        } = renderSidebar(
+            true,
+            [annotation],
+            (action) => action === 'annotation.comment',
+            'canvas'
+        )
+        const input = await screen.findByRole('combobox')
+        await waitFor(() => expect(document.activeElement).toBe(input))
+        expect(coordinator.getSnapshot()).toEqual({
+            annotationId: annotation.id,
+            source: 'sidebar-focus'
+        })
+
+        fireEvent.change(input, { target: { value: 'Reply' } })
+        fireEvent.keyDown(input, { key: 'Enter' })
+
+        await waitFor(() => expect(screen.queryByRole('combobox')).toBeNull())
+        expect(clearAnnotationHover).toHaveBeenCalledWith('sidebar-focus', annotation.id)
+        expect(coordinator.getSnapshot()).toEqual({
+            annotationId: null,
+            source: null
+        })
     })
 
     it('clears active Sidebar sources when it unmounts', () => {
