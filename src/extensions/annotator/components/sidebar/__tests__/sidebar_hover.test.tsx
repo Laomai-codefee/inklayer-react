@@ -280,6 +280,29 @@ describe('Sidebar annotation hover', () => {
         })
     })
 
+    it('uses distinct placeholders for annotation comments and replies', async () => {
+        const commentView = renderSidebar(
+            true,
+            [annotation],
+            (action) => action === 'annotation.edit',
+            'canvas'
+        )
+        expect(
+            (await screen.findByRole('combobox')).getAttribute('placeholder')
+        ).toBe('annotator:comment.reference.commentPlaceholder')
+        commentView.unmount()
+
+        renderSidebar(
+            true,
+            [annotation],
+            (action) => action === 'annotation.comment',
+            'canvas'
+        )
+        expect(
+            (await screen.findByRole('combobox')).getAttribute('placeholder')
+        ).toBe('annotator:comment.reference.replyPlaceholder')
+    })
+
     it('replaces the active editor when Canvas selection moves to another annotation', async () => {
         const annotationWithContent = {
             ...secondAnnotation,

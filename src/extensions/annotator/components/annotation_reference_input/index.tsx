@@ -47,6 +47,7 @@ interface AnnotationReferenceInputProps {
     initialContent?: string
     initialReferences?: readonly IAnnotationReference[]
     className?: string
+    placeholder?: string
     onSubmit: (draft: AnnotationReferenceDraft) => void
     onCancel: () => void
 }
@@ -64,6 +65,7 @@ export const AnnotationReferenceInput: React.FC<AnnotationReferenceInputProps> =
     initialContent = '',
     initialReferences,
     className,
+    placeholder,
     onSubmit,
     onCancel
 }) => {
@@ -277,6 +279,7 @@ export const AnnotationReferenceInput: React.FC<AnnotationReferenceInputProps> =
                             ref={textareaRef}
                             value={content}
                             rows={4}
+                            placeholder={placeholder}
                             role="combobox"
                             aria-label={t('annotator:comment.reference.inputLabel')}
                             aria-autocomplete="list"

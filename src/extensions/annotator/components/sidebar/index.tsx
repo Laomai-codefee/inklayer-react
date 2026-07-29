@@ -594,6 +594,7 @@ const Sidebar: React.FC = () => {
                     initialContent={annotation.contentsObj?.text}
                     initialReferences={annotation.contentsObj?.references}
                     className={styles.commentEditor}
+                    placeholder={t('annotator:comment.reference.commentPlaceholder')}
                     onSubmit={(draft) => updateComment(annotation, draft)}
                     onCancel={() => {
                         setEditorState(null)
@@ -631,6 +632,7 @@ const Sidebar: React.FC = () => {
                     annotations={referenceCandidates}
                     excludeAnnotationId={annotation.id}
                     className={styles.commentEditor}
+                    placeholder={t('annotator:comment.reference.replyPlaceholder')}
                     onSubmit={(draft) => addReply(annotation, draft)}
                     onCancel={() => {
                         setEditorState(null)
@@ -656,6 +658,7 @@ const Sidebar: React.FC = () => {
                     initialContent={reply.content}
                     initialReferences={reply.references}
                     className={styles.replyEditor}
+                    placeholder={t('annotator:comment.reference.replyPlaceholder')}
                     onSubmit={(draft) => updateReply(annotation, reply, draft)}
                     onCancel={() => {
                         setEditorState(null)

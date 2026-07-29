@@ -157,6 +157,7 @@ export default {
             statusText: '将状态设置为 “{{value}}”',
             nativeAnnotation: '原生批注',
             reference: {
+                commentPlaceholder: '发表评论或用“#”引用批注',
                 empty: '没有匹配的批注',
                 inputLabel: '支持引用批注的评论输入框',
                 noContent: '暂无评论内容',
@@ -165,6 +166,7 @@ export default {
                 previewPage: '第{{value}}页',
                 replyCount: '{{count}} 条回复',
                 replyCount_other: '{{count}} 条回复',
+                replyPlaceholder: '回复或用“#”引用批注',
                 unavailable: '批注 {{value}} 不可用'
             }
         },

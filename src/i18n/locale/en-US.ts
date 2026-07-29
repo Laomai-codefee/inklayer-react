@@ -157,6 +157,7 @@ export default {
             statusText: 'Set Status: {{value}}',
             nativeAnnotation: 'Native Annotation',
             reference: {
+                commentPlaceholder: 'Post a comment or use “#” to reference an annotation',
                 empty: 'No matching annotations',
                 inputLabel: 'Comment with annotation references',
                 noContent: 'No comment content',
@@ -166,6 +167,7 @@ export default {
                 replyCount: '{{count}} replies',
                 replyCount_one: '{{count}} reply',
                 replyCount_other: '{{count}} replies',
+                replyPlaceholder: 'Reply or use “#” to reference an annotation',
                 unavailable: 'Annotation {{value}} is unavailable'
             }
         },
