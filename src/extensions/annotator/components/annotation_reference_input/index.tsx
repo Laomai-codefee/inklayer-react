@@ -222,6 +222,12 @@ export const AnnotationReferenceInput: React.FC<AnnotationReferenceInputProps> =
             }
         }
 
+        if (event.key === 'Escape') {
+            event.preventDefault()
+            onCancel()
+            return
+        }
+
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault()
             submit()

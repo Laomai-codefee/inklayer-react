@@ -118,10 +118,7 @@ const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(function MenuBar(props, ref
 
     const handleOpenComment = (annotation: IAnnotationStore) => {
         openSidebar('annotator-sidebar-toggle')
-        useAnnotationStore.getState().setSelectedAnnotation(null)
-        setTimeout(() => {
-            useAnnotationStore.getState().setSelectedAnnotation(annotation, SelectionSource.CANVAS)
-        }, 100)
+        useAnnotationStore.getState().setSelectedAnnotation(annotation, SelectionSource.CANVAS)
     }
 
     return (

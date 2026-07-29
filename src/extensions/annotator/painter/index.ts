@@ -163,6 +163,10 @@ export class Painter {
                     this.onAnnotationSelected(annotationStore, isClick, transformerRect)
                 }
             },
+            onDeselected: () => {
+                useAnnotationStore.getState().clearSelectedAnnotation()
+                this.onAnnotationSelected(undefined, false, { x: 0, y: 0, width: 0, height: 0 })
+            },
             onSelectionChanged: (id) => {
                 this.authorLabels.setSelected(id)
                 this.hoverPreview.setSelected(id)

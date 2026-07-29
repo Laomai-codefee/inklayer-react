@@ -301,6 +301,14 @@ describe('AnnotationReferenceInput', () => {
         expect(onSubmit).not.toHaveBeenCalled()
     })
 
+    it('cancels the editor with Escape when the reference menu is closed', () => {
+        const { input, onCancel } = renderInput()
+
+        fireEvent.keyDown(input, { key: 'Escape' })
+
+        expect(onCancel).toHaveBeenCalledTimes(1)
+    })
+
     it('cancels only after focus leaves the complete editor', async () => {
         const { input, onCancel } = renderInput()
         const confirm = screen.getByRole('button', { name: 'common:confirm' })

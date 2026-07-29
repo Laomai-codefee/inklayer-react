@@ -39,6 +39,11 @@ interface StatusOption {
     icon: React.ReactNode
 }
 
+type SidebarEditorState =
+    | { kind: 'annotation-edit'; annotationId: string }
+    | { kind: 'annotation-reply'; annotationId: string }
+    | { kind: 'reply-edit'; annotationId: string; replyId: string }
+
 const annotationToolNames = new Map(
     annotationDefinitions.map((annotation) => [annotation.type, annotation.name])
 )
@@ -81,47 +86,54 @@ const Sidebar: React.FC = () => {
     const annotationHover = useAnnotationHoverSnapshot()
     const hoveredAnnotationId = annotationHover.annotationId
     const currentAnnotation = useAnnotationStore((state) => state.selectedAnnotation)
+    const selectionRevision = useAnnotationStore((state) => state.selectionRevision)
     const setCurrentAnnotation = useAnnotationStore((state) => state.setSelectedAnnotation)
-    const clearSelectedAnnotation = useAnnotationStore((state) => state.clearSelectedAnnotation)
-    const [replyAnnotation, setReplyAnnotation] = useState<IAnnotationStore | null>(null)
-    const [currentReply, setCurrentReply] = useState<IAnnotationComment | null>(null)
-    const [editAnnotation, setEditAnnotation] = useState<IAnnotationStore | null>(null)
+    const [editorState, setEditorState] = useState<SidebarEditorState | null>(null)
     const [selectedUsers, setSelectedUsers] = useState<string[]>([])
     const [selectedTypes, setSelectedTypes] = useState<PdfjsAnnotationSubtype[]>([])
     const [pendingReferenceAnnotationId, setPendingReferenceAnnotationId] = useState<string | null>(null)
-    const clearSelectedAnnotationRef = useRef(clearSelectedAnnotation)
+    const knownUsersRef = useRef<Set<string> | null>(null)
+    const knownTypesRef = useRef<Set<PdfjsAnnotationSubtype> | null>(null)
     const pointerHoveredAnnotationIdRef = useRef<string | null>(null)
     const focusedAnnotationIdRef = useRef<string | null>(null)
     const pendingMenuActionRef = useRef<(() => void) | null>(null)
     const pendingMenuActionFrameRef = useRef<number | null>(null)
-    clearSelectedAnnotationRef.current = clearSelectedAnnotation
 
     const { t } = useTranslation(['common', 'annotator'], { useSuspense: false })
 
-    const activeEditorAnnotationId = useMemo(() => {
-        if (editAnnotation) return editAnnotation.id
-        if (replyAnnotation) return replyAnnotation.id
-        if (!currentReply) return null
-
-        return Array.from(annotations.values()).find((annotation) => (
-            annotation.comments?.some((reply) => reply.id === currentReply.id)
-        ))?.id ?? null
-    }, [annotations, currentReply, editAnnotation, replyAnnotation])
+    const activeEditorAnnotationId = editorState?.annotationId ?? null
 
     useEffect(() => {
-        if (currentAnnotation?.store && currentAnnotation.source === SelectionSource.CANVAS && !isSidebarCollapsed) {
-            const annotation = currentAnnotation.store
-            const canEdit = Boolean(painter?.can('annotation.edit', annotation))
-            const isEmptyComment = annotation.contentsObj?.text === ''
-            const isEmptyReply = annotation.comments?.length === 0
-            // 👇 根据批注归属与内容决定打开评论或回复
-            if (canEdit && isEmptyComment && isEmptyReply) {
-                setEditAnnotation(annotation)
-            } else if (painter?.can('annotation.comment', annotation)) {
-                setReplyAnnotation(annotation)
-            }
+        const selectedAnnotationId = currentAnnotation?.store?.id
+        if (
+            !selectedAnnotationId
+            || currentAnnotation.source !== SelectionSource.CANVAS
+            || isSidebarCollapsed
+        ) {
+            return
         }
-    }, [currentAnnotation, isSidebarCollapsed, painter])
+
+        const annotation = useAnnotationStore.getState().getAnnotation(selectedAnnotationId)
+        if (!annotation) return
+
+        const canEdit = Boolean(painter?.can('annotation.edit', annotation))
+        const isEmptyComment = annotation.contentsObj?.text === ''
+        const isEmptyReply = annotation.comments?.length === 0
+        // 根据批注归属与内容决定打开评论或回复。
+        setEditorState(
+            canEdit && isEmptyComment && isEmptyReply
+                ? { kind: 'annotation-edit', annotationId: annotation.id }
+                : painter?.can('annotation.comment', annotation)
+                    ? { kind: 'annotation-reply', annotationId: annotation.id }
+                    : null
+        )
+    }, [
+        currentAnnotation?.source,
+        currentAnnotation?.store?.id,
+        isSidebarCollapsed,
+        painter,
+        selectionRevision
+    ])
 
     const annotationRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -141,13 +153,40 @@ const Sidebar: React.FC = () => {
         return Array.from(types.entries()) // [subtype, count]
     }, [annotations])
 
-    // ✅ 初始化默认选中所有 username/type
     useEffect(() => {
-        setSelectedUsers(allUsers.map(([u]) => u))
+        const nextUsers = new Set(allUsers.map(([user]) => user))
+        const previousUsers = knownUsersRef.current
+        knownUsersRef.current = nextUsers
+
+        setSelectedUsers((previous) => {
+            if (previousUsers === null) return Array.from(nextUsers)
+
+            const retained = previous.filter((user) => nextUsers.has(user))
+            const newlyAdded = Array.from(nextUsers).filter((user) => !previousUsers.has(user))
+            const next = [...retained, ...newlyAdded]
+            return next.length === previous.length
+                && next.every((user, index) => user === previous[index])
+                ? previous
+                : next
+        })
     }, [allUsers])
 
     useEffect(() => {
-        setSelectedTypes(allTypes.map(([t]) => t))
+        const nextTypes = new Set(allTypes.map(([type]) => type))
+        const previousTypes = knownTypesRef.current
+        knownTypesRef.current = nextTypes
+
+        setSelectedTypes((previous) => {
+            if (previousTypes === null) return Array.from(nextTypes)
+
+            const retained = previous.filter((type) => nextTypes.has(type))
+            const newlyAdded = Array.from(nextTypes).filter((type) => !previousTypes.has(type))
+            const next = [...retained, ...newlyAdded]
+            return next.length === previous.length
+                && next.every((type, index) => type === previous[index])
+                ? previous
+                : next
+        })
     }, [allTypes])
 
     useEffect(() => {
@@ -156,10 +195,6 @@ const Sidebar: React.FC = () => {
                 cancelAnimationFrame(pendingMenuActionFrameRef.current)
             }
             pendingMenuActionRef.current = null
-            setReplyAnnotation(null)
-            setCurrentReply(null)
-            setEditAnnotation(null)
-            clearSelectedAnnotationRef.current()
         }
     }, [])
 
@@ -182,6 +217,40 @@ const Sidebar: React.FC = () => {
         if (selectedUsers.length === 0 || selectedTypes.length === 0) return []
         return Array.from(annotations.values()).filter((a) => selectedUsers.includes(a.title) && selectedTypes.includes(a.subtype))
     }, [annotations, selectedUsers, selectedTypes])
+
+    useEffect(() => {
+        if (!editorState) return
+
+        const selectedAnnotationId = currentAnnotation?.store?.id
+        const editorIsVisible = filteredAnnotations.some(
+            (annotation) => annotation.id === editorState.annotationId
+        )
+        const canvasWillReplaceEditor = Boolean(
+            selectedAnnotationId
+            && selectedAnnotationId !== editorState.annotationId
+            && currentAnnotation?.source === SelectionSource.CANVAS
+        )
+        if (
+            editorIsVisible
+            && !isSidebarCollapsed
+            && (selectedAnnotationId === editorState.annotationId || canvasWillReplaceEditor)
+        ) {
+            return
+        }
+
+        setEditorState(null)
+        if (focusedAnnotationIdRef.current === editorState.annotationId) {
+            focusedAnnotationIdRef.current = null
+            painter?.clearAnnotationHover('sidebar-focus', editorState.annotationId)
+        }
+    }, [
+        currentAnnotation?.source,
+        currentAnnotation?.store?.id,
+        editorState,
+        filteredAnnotations,
+        isSidebarCollapsed,
+        painter
+    ])
 
     useEffect(() => {
         const visibleAnnotationIds = new Set(filteredAnnotations.map((annotation) => annotation.id))
@@ -308,9 +377,8 @@ const Sidebar: React.FC = () => {
             activeEditorAnnotationId
             && activeEditorAnnotationId !== annotation.id
         ) {
-            setReplyAnnotation(null)
-            setCurrentReply(null)
-            setEditAnnotation(null)
+            setEditorState(null)
+            clearAnnotationFocus(activeEditorAnnotationId)
         }
         setCurrentAnnotation(annotation, SelectionSource.SIDEBAR)
         void painter?.highlight(annotation)
@@ -323,24 +391,24 @@ const Sidebar: React.FC = () => {
 
         event.preventDefault()
         event.stopPropagation()
-        setReplyAnnotation(null)
-        setCurrentReply(null)
-        setEditAnnotation(null)
+        setEditorState(null)
         clearAnnotationFocus(activeEditorAnnotationId)
     }
 
     const openAnnotationReply = (annotation: IAnnotationStore) => {
         handleAnnotationClick(annotation)
-        setCurrentReply(null)
-        setEditAnnotation(null)
-        setReplyAnnotation(annotation)
+        setEditorState({
+            kind: 'annotation-reply',
+            annotationId: annotation.id
+        })
     }
 
     const openAnnotationEditor = (annotation: IAnnotationStore) => {
         handleAnnotationClick(annotation)
-        setCurrentReply(null)
-        setReplyAnnotation(null)
-        setEditAnnotation(annotation)
+        setEditorState({
+            kind: 'annotation-edit',
+            annotationId: annotation.id
+        })
     }
 
     const openReplyEditor = (
@@ -348,9 +416,11 @@ const Sidebar: React.FC = () => {
         reply: IAnnotationComment
     ) => {
         handleAnnotationClick(annotation)
-        setReplyAnnotation(null)
-        setEditAnnotation(null)
-        setCurrentReply(reply)
+        setEditorState({
+            kind: 'reply-edit',
+            annotationId: annotation.id,
+            replyId: reply.id
+        })
     }
 
     const queueMenuAction = (action: () => void) => {
@@ -431,19 +501,22 @@ const Sidebar: React.FC = () => {
     }
 
     const updateComment = (annotation: IAnnotationStore, draft: AnnotationReferenceDraft) => {
-        if (!painter?.can('annotation.edit', annotation)) return
-        painter?.update(annotation.id, {
-            contentsObj: applyAnnotationCommentDraft(annotation.contentsObj, draft),
+        const latestAnnotation = useAnnotationStore.getState().getAnnotation(annotation.id)
+        if (!latestAnnotation || !painter?.can('annotation.edit', latestAnnotation)) return
+        painter.update(latestAnnotation.id, {
+            contentsObj: applyAnnotationCommentDraft(latestAnnotation.contentsObj, draft),
             date: formatTimestamp(Date.now())
         }, 'annotation.edit')
 
-        setEditAnnotation(null)
-        clearAnnotationFocus(annotation.id)
+        setEditorState(null)
+        clearAnnotationFocus(latestAnnotation.id)
     }
 
     const addReply = (annotation: IAnnotationStore, draft: AnnotationReferenceDraft, status?: CommentStatus) => {
+        const latestAnnotation = useAnnotationStore.getState().getAnnotation(annotation.id)
+        if (!latestAnnotation) return
         const action = status === undefined ? 'annotation.comment' : 'annotation.change-status'
-        if (!painter?.can(action, annotation)) return
+        if (!painter?.can(action, latestAnnotation)) return
         const replyUser = currentUser?.user ?? undefined
         const newReply = createAnnotationReply({
             id: generateUUID(),
@@ -454,30 +527,38 @@ const Sidebar: React.FC = () => {
             user: replyUser
         })
 
-        painter?.update(annotation.id, {
-            comments: [...(annotation.comments || []), newReply]
+        painter.update(latestAnnotation.id, {
+            comments: [...(latestAnnotation.comments || []), newReply]
         }, action)
 
-        setReplyAnnotation(null)
-        clearAnnotationFocus(annotation.id)
+        setEditorState(null)
+        clearAnnotationFocus(latestAnnotation.id)
     }
 
     const updateReply = (annotation: IAnnotationStore, reply: IAnnotationComment, draft: AnnotationReferenceDraft) => {
-        if (!painter?.can('comment.edit', annotation, reply)) return
+        const latestAnnotation = useAnnotationStore.getState().getAnnotation(annotation.id)
+        const latestReply = latestAnnotation?.comments?.find((comment) => comment.id === reply.id)
+        if (
+            !latestAnnotation
+            || !latestReply
+            || !painter?.can('comment.edit', latestAnnotation, latestReply)
+        ) {
+            return
+        }
         const updatedComments = applyAnnotationReplyDraft(
-            annotation.comments || [],
-            reply.id,
+            latestAnnotation.comments || [],
+            latestReply.id,
             draft,
             formatTimestamp(Date.now()),
-            currentUser?.user?.name || reply.title
+            currentUser?.user?.name || latestReply.title
         )
 
-        painter?.update(annotation.id, {
+        painter.update(latestAnnotation.id, {
             comments: updatedComments
-        }, 'comment.edit', reply)
+        }, 'comment.edit', latestReply)
 
-        setCurrentReply(null)
-        clearAnnotationFocus(annotation.id)
+        setEditorState(null)
+        clearAnnotationFocus(latestAnnotation.id)
     }
 
     const deleteAnnotation = (annotation: IAnnotationStore) => {
@@ -493,15 +574,19 @@ const Sidebar: React.FC = () => {
             comments: updatedComments
         }, 'comment.delete', reply)
 
-        if (currentReply?.id === reply.id) {
-            setCurrentReply(null)
+        if (editorState?.kind === 'reply-edit' && editorState.replyId === reply.id) {
+            setEditorState(null)
             clearAnnotationFocus(annotation.id)
         }
     }
 
     // Comment 编辑框
     const commentInput = (annotation: IAnnotationStore) => {
-        if (editAnnotation && currentAnnotation?.store?.id === annotation.id) {
+        if (
+            editorState?.kind === 'annotation-edit'
+            && editorState.annotationId === annotation.id
+            && currentAnnotation?.store?.id === annotation.id
+        ) {
             return (
                 <AnnotationReferenceInput
                     annotations={referenceCandidates}
@@ -511,7 +596,7 @@ const Sidebar: React.FC = () => {
                     className={styles.commentEditor}
                     onSubmit={(draft) => updateComment(annotation, draft)}
                     onCancel={() => {
-                        setEditAnnotation(null)
+                        setEditorState(null)
                         clearAnnotationFocus(annotation.id)
                     }}
                 />
@@ -536,7 +621,11 @@ const Sidebar: React.FC = () => {
 
     // 回复框
     const replyInput = (annotation: IAnnotationStore) => {
-        if (replyAnnotation && currentAnnotation?.store?.id === annotation.id) {
+        if (
+            editorState?.kind === 'annotation-reply'
+            && editorState.annotationId === annotation.id
+            && currentAnnotation?.store?.id === annotation.id
+        ) {
             return (
                 <AnnotationReferenceInput
                     annotations={referenceCandidates}
@@ -544,7 +633,7 @@ const Sidebar: React.FC = () => {
                     className={styles.commentEditor}
                     onSubmit={(draft) => addReply(annotation, draft)}
                     onCancel={() => {
-                        setReplyAnnotation(null)
+                        setEditorState(null)
                         clearAnnotationFocus(annotation.id)
                     }}
                 />
@@ -555,17 +644,21 @@ const Sidebar: React.FC = () => {
 
     // 编辑回复框
     const editReplyInput = (annotation: IAnnotationStore, reply: IAnnotationComment) => {
-        if (currentReply && currentReply.id === reply.id) {
+        if (
+            editorState?.kind === 'reply-edit'
+            && editorState.annotationId === annotation.id
+            && editorState.replyId === reply.id
+        ) {
             return (
                 <AnnotationReferenceInput
                     annotations={referenceCandidates}
                     excludeAnnotationId={annotation.id}
-                    initialContent={currentReply.content}
-                    initialReferences={currentReply.references}
+                    initialContent={reply.content}
+                    initialReferences={reply.references}
                     className={styles.replyEditor}
                     onSubmit={(draft) => updateReply(annotation, reply, draft)}
                     onCancel={() => {
-                        setCurrentReply(null)
+                        setEditorState(null)
                         clearAnnotationFocus(annotation.id)
                     }}
                 />
@@ -696,7 +789,6 @@ const Sidebar: React.FC = () => {
                                                             },
                                                             statusKey as CommentStatus
                                                         )
-                                                        setReplyAnnotation(null)
                                                     }}
                                                 >
                                                     {option.icon} {t(option.labelKey)}
@@ -873,7 +965,7 @@ const Sidebar: React.FC = () => {
                             })}
                             <div>
                                 {replyInput(annotation)}
-                                {canComment && !replyAnnotation && !currentReply && !editAnnotation && currentAnnotation?.store?.id === annotation.id && (
+                                {canComment && !editorState && currentAnnotation?.store?.id === annotation.id && (
                                     <Button mt="2" style={{ width: '100%' }} onClick={() => openAnnotationReply(annotation)}>
                                         {t('reply')}
                                     </Button>

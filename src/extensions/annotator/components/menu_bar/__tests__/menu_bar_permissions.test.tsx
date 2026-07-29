@@ -6,7 +6,9 @@ import { MenuBar, MenuBarRef } from '..'
 import type { IAnnotationStore } from '../../../const/definitions'
 
 const mockCan = jest.fn()
-let renderButtons: (() => Array<{ key: string }>) | undefined
+const mockOpenSidebar = jest.fn()
+const mockSetSelectedAnnotation = jest.fn()
+let renderButtons: (() => Array<{ key: string; onClick?: () => void }>) | undefined
 
 jest.mock('konva', () => ({
     Node: {
@@ -19,7 +21,7 @@ jest.mock('konva', () => ({
 jest.mock('@/components/popover_bar', () => {
     const React = jest.requireActual('react')
     return {
-        PopoverBar: React.forwardRef((props: { renderButtons: () => Array<{ key: string }> }, ref: React.Ref<unknown>) => {
+        PopoverBar: React.forwardRef((props: { renderButtons: () => Array<{ key: string; onClick?: () => void }> }, ref: React.Ref<unknown>) => {
             renderButtons = props.renderButtons
             React.useImperativeHandle(ref, () => ({ openWithRect: jest.fn(), close: jest.fn() }))
             return null
@@ -36,12 +38,12 @@ jest.mock('../../../context/options_context', () => ({
 }))
 
 jest.mock('@/context/pdf_viewer_context', () => ({
-    usePdfViewerContext: () => ({ openSidebar: jest.fn(), activeSidebarPanel: null })
+    usePdfViewerContext: () => ({ openSidebar: mockOpenSidebar, activeSidebarPanel: null })
 }))
 
 jest.mock('../../../store', () => ({
     SelectionSource: { CANVAS: 'canvas' },
-    useAnnotationStore: { getState: () => ({ setSelectedAnnotation: jest.fn() }) }
+    useAnnotationStore: { getState: () => ({ setSelectedAnnotation: mockSetSelectedAnnotation }) }
 }))
 
 jest.mock('@/components/color_picker', () => ({ ColorPicker: () => null }))
@@ -92,5 +94,18 @@ describe('MenuBar permissions', () => {
         act(() => ref.current?.open(annotation, annotation.konvaClientRect))
 
         expect(renderButtons?.().map(button => button.key)).toEqual(['comment', 'palette', 'delete'])
+    })
+
+    it('opens comments with one synchronous Canvas selection', () => {
+        mockCan.mockImplementation((action: string) => action === 'annotation.comment')
+        const ref = createRef<MenuBarRef>()
+        render(<MenuBar ref={ref} />)
+        act(() => ref.current?.open(annotation, annotation.konvaClientRect))
+
+        act(() => renderButtons?.().find((button) => button.key === 'comment')?.onClick?.())
+
+        expect(mockOpenSidebar).toHaveBeenCalledWith('annotator-sidebar-toggle')
+        expect(mockSetSelectedAnnotation).toHaveBeenCalledTimes(1)
+        expect(mockSetSelectedAnnotation).toHaveBeenCalledWith(annotation, 'canvas')
     })
 })

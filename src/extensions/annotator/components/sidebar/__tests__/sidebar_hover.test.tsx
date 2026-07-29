@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { act, createEvent, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Theme } from '@radix-ui/themes'
 
 import { UserContext } from '@/context/user_context'
@@ -31,6 +31,7 @@ jest.mock('../styles.module.scss', () => ({
 
 jest.mock('../../../utils/utils', () => ({
     formatPDFCompactDateTime: jest.fn(() => '07-28 12:00'),
+    formatPDFDate: jest.fn(() => '07-28'),
     formatTimestamp: jest.fn(() => ''),
     generateUUID: jest.fn(() => 'generated-id')
 }))
@@ -52,8 +53,13 @@ jest.mock('@/context/pdf_viewer_context', () => ({
 
 jest.mock('../../../store', () => ({
     SelectionSource: { CANVAS: 'canvas', SIDEBAR: 'sidebar' },
-    useAnnotationStore: (selector: (state: Record<string, unknown>) => unknown) =>
-        selector(mockStoreState)
+    useAnnotationStore: Object.assign(
+        (selector: (state: Record<string, unknown>) => unknown) =>
+            selector(mockStoreState),
+        {
+            getState: () => mockStoreState
+        }
+    )
 }))
 
 const annotation = {
@@ -110,20 +116,24 @@ function renderSidebar(
         selectedAnnotation: selected
             ? { store: annotation, source: selectionSource }
             : null,
+        selectionRevision: 0,
+        getAnnotation: (id: string) => annotationList.find((item) => item.id === id),
         setSelectedAnnotation,
         clearSelectedAnnotation
     }
 
-    const view = render(
+    const renderTree = () => (
         <Theme>
             <UserContext.Provider value={{ user: annotation.user! }}>
                 <Sidebar />
             </UserContext.Provider>
         </Theme>
     )
+    const view = render(renderTree())
 
     return {
         ...view,
+        rerenderSidebar: () => view.rerender(renderTree()),
         coordinator,
         setSelectedAnnotation,
         clearSelectedAnnotation,
@@ -268,6 +278,78 @@ describe('Sidebar annotation hover', () => {
             annotationId: null,
             source: null
         })
+    })
+
+    it('replaces the active editor when Canvas selection moves to another annotation', async () => {
+        const annotationWithContent = {
+            ...secondAnnotation,
+            contentsObj: { text: 'Existing comment' }
+        }
+        const { rerenderSidebar } = renderSidebar(
+            true,
+            [annotation, annotationWithContent],
+            (action) => action === 'annotation.edit' || action === 'annotation.comment',
+            'canvas'
+        )
+
+        await screen.findByRole('combobox')
+
+        mockStoreState = {
+            ...mockStoreState,
+            selectedAnnotation: {
+                store: annotationWithContent,
+                source: 'canvas'
+            },
+            selectionRevision: 1
+        }
+        rerenderSidebar()
+
+        await waitFor(() => expect(screen.getAllByRole('combobox')).toHaveLength(1))
+        expect((screen.getByRole('combobox') as HTMLTextAreaElement).value).toBe('')
+    })
+
+    it('uses the first pointer click on another menu to collapse the active editor', async () => {
+        renderSidebar(
+            true,
+            [annotation, secondAnnotation],
+            (action) => action === 'annotation.edit',
+            'canvas'
+        )
+        await screen.findByRole('combobox')
+
+        const secondCard = document.getElementById(`annotation-${secondAnnotation.id}`)!
+        const menuTrigger = within(secondCard).getByRole('button', { name: 'more' })
+
+        fireEvent.pointerDown(menuTrigger, { button: 0, ctrlKey: false })
+        await waitFor(() => expect(screen.queryByRole('combobox')).toBeNull())
+        expect(screen.queryByRole('menu')).toBeNull()
+    })
+
+    it('preserves user filters when annotation content changes', async () => {
+        const { rerenderSidebar } = renderSidebar(false, [annotation, secondAnnotation])
+
+        fireEvent.click(screen.getAllByRole('button')[0])
+        const aliceFilter = await screen.findByRole('checkbox', { name: /Alice/ })
+        fireEvent.click(aliceFilter)
+        expect(aliceFilter.getAttribute('data-state')).toBe('unchecked')
+
+        const updatedAnnotation = {
+            ...annotation,
+            contentsObj: { text: 'Updated comment' }
+        }
+        mockStoreState = {
+            ...mockStoreState,
+            annotations: new Map([
+                [updatedAnnotation.id, updatedAnnotation],
+                [secondAnnotation.id, secondAnnotation]
+            ])
+        }
+        rerenderSidebar()
+
+        expect(
+            (await screen.findByRole('checkbox', { name: /Alice/ }))
+                .getAttribute('data-state')
+        ).toBe('unchecked')
     })
 
     it('clears active Sidebar sources when it unmounts', () => {

@@ -14,6 +14,7 @@ export interface ISelectorOptions {
     getAnnotationStore: (id: string) => IAnnotationStore | undefined // 获取注解存储的方法
     canTransform: (annotation: IAnnotationStore) => boolean
     onSelected: (id: string, isClick: boolean, transformerRect: IRect) => void // 选中回调
+    onDeselected: () => void
     onSelectionChanged: (id: string | null) => void
     onHoverStart: (id: string) => void
     onHoverEnd: (id: string) => void
@@ -28,6 +29,7 @@ export interface ISelectorOptions {
 export class Selector {
     private primaryColor: string
     public readonly onSelected: (id: string, isClick: boolean, clientRect: IRect) => void
+    public readonly onDeselected: () => void
     public readonly onSelectionChanged: (id: string | null) => void
     public readonly onHoverStart: (id: string) => void
     public readonly onHoverEnd: (id: string) => void
@@ -57,6 +59,7 @@ export class Selector {
         canTransform,
         onDelete,
         onSelected,
+        onDeselected,
         onSelectionChanged,
         onHoverStart,
         onHoverEnd,
@@ -69,6 +72,7 @@ export class Selector {
         this.canTransform = canTransform
         this.onDelete = onDelete
         this.onSelected = onSelected
+        this.onDeselected = onDeselected
         this.onSelectionChanged = onSelectionChanged
         this.onHoverStart = onHoverStart
         this.onHoverEnd = onHoverEnd
@@ -107,6 +111,7 @@ export class Selector {
         konvaStage.on('click tap', e => {
             if (e.target !== konvaStage) return
             this.clearTransformers()
+            this.onDeselected()
         })
     }
 

@@ -15,6 +15,7 @@ interface AnnotationState {
     annotations: Map<string, IAnnotationStore>
     originalAnnotations: Map<string, IAnnotationStore>
     selectedAnnotation: SelectionInfo | null
+    selectionRevision: number
     currentAnnotationType: IAnnotationType | null
     getAnnotation: (id: string) => IAnnotationStore | undefined
     getByPage: (pageNumber: number) => IAnnotationStore[]
@@ -32,6 +33,7 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
     annotations: new Map(),
     originalAnnotations: new Map(),
     selectedAnnotation: null,
+    selectionRevision: 0,
     currentAnnotationType: null,
 
     getAnnotation: (id: string) => {
@@ -82,7 +84,14 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
             const newAnnotations = new Map(state.annotations)
             newAnnotations.set(id, updatedAnnotation)
 
-            return { annotations: newAnnotations }
+            const selectedAnnotation = state.selectedAnnotation?.store?.id === id
+                ? {
+                    ...state.selectedAnnotation,
+                    store: updatedAnnotation
+                }
+                : state.selectedAnnotation
+
+            return { annotations: newAnnotations, selectedAnnotation }
         })
 
         return updatedAnnotation
@@ -135,27 +144,48 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
             const newAnnotations = new Map(state.annotations)
             if (newAnnotations.has(id)) {
                 newAnnotations.delete(id)
-                return { annotations: newAnnotations }
+                const isSelected = state.selectedAnnotation?.store?.id === id
+                return {
+                    annotations: newAnnotations,
+                    selectedAnnotation: isSelected ? null : state.selectedAnnotation,
+                    selectionRevision: isSelected
+                        ? state.selectionRevision + 1
+                        : state.selectionRevision
+                }
             }
             console.warn(`Annotation with id ${id} not found.`)
             return state
         }),
 
     clearAnnotations: () =>
-        set({
+        set((state) => ({
             annotations: new Map(),
-            originalAnnotations: new Map()
-        }),
+            originalAnnotations: new Map(),
+            selectedAnnotation: null,
+            selectionRevision: state.selectedAnnotation
+                ? state.selectionRevision + 1
+                : state.selectionRevision
+        })),
 
     setSelectedAnnotation: (annotation: IAnnotationStore | null, source?: SelectionSource) =>
-        set({
-            selectedAnnotation: {
-                store: annotation,
-                source: source || null
-            }
-        }),
+        set((state) => ({
+            selectedAnnotation: annotation
+                ? {
+                    store: annotation,
+                    source: source || null
+                }
+                : null,
+            selectionRevision: state.selectionRevision + 1
+        })),
 
     setCurrentAnnotationType: (annotationType: IAnnotationType | null) => set({ currentAnnotationType: annotationType }),
 
-    clearSelectedAnnotation: () => set({ selectedAnnotation: null })
+    clearSelectedAnnotation: () => set((state) => (
+        state.selectedAnnotation
+            ? {
+                selectedAnnotation: null,
+                selectionRevision: state.selectionRevision + 1
+            }
+            : state
+    ))
 }))

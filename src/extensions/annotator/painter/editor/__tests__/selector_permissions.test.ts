@@ -88,6 +88,7 @@ describe('Selector permission interaction', () => {
                 getAnnotationStore: () => annotation,
                 canTransform: () => allowed,
                 onSelected,
+                onDeselected: jest.fn(),
                 onSelectionChanged: jest.fn(),
                 onHoverStart: jest.fn(),
                 onHoverEnd: jest.fn(),
@@ -127,6 +128,7 @@ describe('Selector permission interaction', () => {
 
         const onHoverStart = jest.fn()
         const onHoverEnd = jest.fn()
+        const onDeselected = jest.fn()
         const selector = new Selector({
             primaryColor: '#6e56cf',
             konvaCanvasStore: new Map([[
@@ -136,6 +138,7 @@ describe('Selector permission interaction', () => {
             getAnnotationStore: jest.fn(),
             canTransform: () => true,
             onSelected: jest.fn(),
+            onDeselected,
             onSelectionChanged: jest.fn(),
             onHoverStart,
             onHoverEnd,
@@ -145,6 +148,9 @@ describe('Selector permission interaction', () => {
         })
 
         selector.activate(1)
+        stage.fire('click', { target: stage })
+        expect(onDeselected).toHaveBeenCalledTimes(1)
+
         group.fire('pointerenter', { evt: { pointerType: 'mouse' } })
         group.fire('pointerenter', { evt: { pointerType: 'mouse' } })
         expect(onHoverStart).toHaveBeenCalledTimes(1)
