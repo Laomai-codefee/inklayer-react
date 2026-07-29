@@ -95,16 +95,17 @@
 
         @media (hover: hover) and (pointer: fine) {
             .comment:hover {
-                border-color: var(--accent-8);
+                border-color: var(--border-color);
             }
         }
         .preview {
             border-color: var(--accent-8);
+            background-color: var(--bg-hover);
         }
         .selected {
             background-color: var(--bg-selected) !important;
             .reply {
-                background-color: var(--bg-color-quaternary) !important;
+                background-color: var(--bg-selected-strong) !important;
             }
         }
         h3,
