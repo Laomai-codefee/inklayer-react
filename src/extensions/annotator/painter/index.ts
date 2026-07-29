@@ -236,7 +236,11 @@ export class Painter {
         })
         this.passiveHover = new AnnotationPassiveHover({
             shouldSuppress: () => {
-                return this.currentAnnotation !== null || this.webSelection.isRangeSelectionActive()
+                const isDrawingToolActive = Boolean(
+                    this.currentAnnotation
+                    && !this.currentAnnotation.webSelectionDependencies
+                )
+                return isDrawingToolActive || this.webSelection.isRangeSelectionActive()
             },
             onHoverStart: (id) => {
                 this.annotationHover.set('canvas-passive', id)

@@ -4,6 +4,7 @@ import type { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
 
 import type { PdfAnnotatorOptions } from '../../types/annotator'
 import { Painter } from '..'
+import { AnnotationType, annotationDefinitions } from '../../const/definitions'
 
 jest.mock('../../utils/utils', () => ({
     isElementInDOM: jest.fn(() => true),
@@ -90,6 +91,46 @@ describe('Painter annotation hover', () => {
         painter.clearAnnotationHover('sidebar-pointer', 'annotation-1')
         expect(setLabelHovered).toHaveBeenLastCalledWith('annotation-1')
         expect(setPreviewHovered).toHaveBeenLastCalledWith(null)
+
+        painter.destroy()
+    })
+
+    it('keeps passive hover available while a text-markup tool is active', () => {
+        const painter = new Painter({
+            primaryColor: '#6e56cf',
+            defaultOptions: {} as PdfAnnotatorOptions,
+            currentUser: { id: 'alice', name: 'Alice' },
+            defaultShowAnnotationAuthorLabels: false,
+            PDFViewerApplication: {} as PDFViewer,
+            onTextSelected: jest.fn(),
+            onAnnotationAdd: jest.fn(),
+            onAnnotationDelete: jest.fn(),
+            onAnnotationSelected: jest.fn(),
+            onAnnotationChanging: jest.fn(),
+            onAnnotationChanged: jest.fn()
+        })
+        const internals = painter as unknown as {
+            passiveHover: { shouldSuppress: () => boolean }
+            webSelection: { isRangeSelectionActive: () => boolean }
+        }
+        const highlight = annotationDefinitions.find(
+            (annotation) => annotation.type === AnnotationType.HIGHLIGHT
+        )!
+        const rectangle = annotationDefinitions.find(
+            (annotation) => annotation.type === AnnotationType.RECTANGLE
+        )!
+
+        painter.activate(highlight, null)
+        expect(internals.passiveHover.shouldSuppress()).toBe(false)
+
+        const rangeSelectionSpy = jest
+            .spyOn(internals.webSelection, 'isRangeSelectionActive')
+            .mockReturnValue(true)
+        expect(internals.passiveHover.shouldSuppress()).toBe(true)
+
+        rangeSelectionSpy.mockRestore()
+        painter.activate(rectangle, null)
+        expect(internals.passiveHover.shouldSuppress()).toBe(true)
 
         painter.destroy()
     })
