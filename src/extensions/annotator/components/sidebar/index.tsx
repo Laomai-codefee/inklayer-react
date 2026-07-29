@@ -92,9 +92,21 @@ const Sidebar: React.FC = () => {
     const clearSelectedAnnotationRef = useRef(clearSelectedAnnotation)
     const pointerHoveredAnnotationIdRef = useRef<string | null>(null)
     const focusedAnnotationIdRef = useRef<string | null>(null)
+    const pendingMenuActionRef = useRef<(() => void) | null>(null)
+    const pendingMenuActionFrameRef = useRef<number | null>(null)
     clearSelectedAnnotationRef.current = clearSelectedAnnotation
 
     const { t } = useTranslation(['common', 'annotator'], { useSuspense: false })
+
+    const activeEditorAnnotationId = useMemo(() => {
+        if (editAnnotation) return editAnnotation.id
+        if (replyAnnotation) return replyAnnotation.id
+        if (!currentReply) return null
+
+        return Array.from(annotations.values()).find((annotation) => (
+            annotation.comments?.some((reply) => reply.id === currentReply.id)
+        ))?.id ?? null
+    }, [annotations, currentReply, editAnnotation, replyAnnotation])
 
     useEffect(() => {
         if (currentAnnotation?.store && currentAnnotation.source === SelectionSource.CANVAS && !isSidebarCollapsed) {
@@ -140,6 +152,10 @@ const Sidebar: React.FC = () => {
 
     useEffect(() => {
         return () => {
+            if (pendingMenuActionFrameRef.current !== null) {
+                cancelAnimationFrame(pendingMenuActionFrameRef.current)
+            }
+            pendingMenuActionRef.current = null
             setReplyAnnotation(null)
             setCurrentReply(null)
             setEditAnnotation(null)
@@ -288,8 +304,73 @@ const Sidebar: React.FC = () => {
     }
 
     const handleAnnotationClick = (annotation: IAnnotationStore) => {
+        if (
+            activeEditorAnnotationId
+            && activeEditorAnnotationId !== annotation.id
+        ) {
+            setReplyAnnotation(null)
+            setCurrentReply(null)
+            setEditAnnotation(null)
+        }
         setCurrentAnnotation(annotation, SelectionSource.SIDEBAR)
         void painter?.highlight(annotation)
+    }
+
+    const handleMenuTriggerPointerDown = (
+        event: React.PointerEvent<HTMLButtonElement>
+    ) => {
+        if (!activeEditorAnnotationId) return
+
+        event.preventDefault()
+        event.stopPropagation()
+        setReplyAnnotation(null)
+        setCurrentReply(null)
+        setEditAnnotation(null)
+        clearAnnotationFocus(activeEditorAnnotationId)
+    }
+
+    const openAnnotationReply = (annotation: IAnnotationStore) => {
+        handleAnnotationClick(annotation)
+        setCurrentReply(null)
+        setEditAnnotation(null)
+        setReplyAnnotation(annotation)
+    }
+
+    const openAnnotationEditor = (annotation: IAnnotationStore) => {
+        handleAnnotationClick(annotation)
+        setCurrentReply(null)
+        setReplyAnnotation(null)
+        setEditAnnotation(annotation)
+    }
+
+    const openReplyEditor = (
+        annotation: IAnnotationStore,
+        reply: IAnnotationComment
+    ) => {
+        handleAnnotationClick(annotation)
+        setReplyAnnotation(null)
+        setEditAnnotation(null)
+        setCurrentReply(reply)
+    }
+
+    const queueMenuAction = (action: () => void) => {
+        pendingMenuActionRef.current = action
+    }
+
+    const handleMenuCloseAutoFocus = (event: Event) => {
+        event.preventDefault()
+
+        const action = pendingMenuActionRef.current
+        pendingMenuActionRef.current = null
+        if (!action) return
+
+        if (pendingMenuActionFrameRef.current !== null) {
+            cancelAnimationFrame(pendingMenuActionFrameRef.current)
+        }
+        pendingMenuActionFrameRef.current = requestAnimationFrame(() => {
+            pendingMenuActionFrameRef.current = null
+            action()
+        })
     }
 
     const handleAnnotationPointerEnter = (annotationId: string, event: React.PointerEvent<HTMLDivElement>) => {
@@ -576,7 +657,12 @@ const Sidebar: React.FC = () => {
                                         annotation.native && <Tooltip content={t('annotator:comment.nativeAnnotation')}><span><AiOutlineExclamation /></span></Tooltip>
                                     }
                                 </Text>
-                                <Flex align="center" gap="1" ml="auto">
+                                <Flex
+                                    align="center"
+                                    gap="1"
+                                    ml="auto"
+                                    onClick={(event) => event.stopPropagation()}
+                                >
                                     {canChangeStatus && <DropdownMenu.Root>
                                         <DropdownMenu.Trigger>
                                             <IconButton
@@ -585,6 +671,7 @@ const Sidebar: React.FC = () => {
                                                 size="1"
                                                 className={styles.toolButton}
                                                 aria-label={t(commentStatusOptions[lastStatus].labelKey)}
+                                                onPointerDown={handleMenuTriggerPointerDown}
                                                 style={{
                                                     boxShadow: 'none'
                                                 }}
@@ -596,7 +683,7 @@ const Sidebar: React.FC = () => {
                                             data-annotation-hover-owner={annotation.id}
                                             onFocusCapture={() => handleAnnotationFocus(annotation.id)}
                                             onBlurCapture={(event) => handleAnnotationBlur(annotation.id, event)}
-                                            onCloseAutoFocus={(event) => event.preventDefault()}
+                                            onCloseAutoFocus={handleMenuCloseAutoFocus}
                                         >
                                             {Object.entries(commentStatusOptions).map(([statusKey, option]) => (
                                                 <DropdownMenu.Item
@@ -625,6 +712,7 @@ const Sidebar: React.FC = () => {
                                                 size="1"
                                                 className={styles.toolButton}
                                                 aria-label={t('more')}
+                                                onPointerDown={handleMenuTriggerPointerDown}
                                                 style={{
                                                     boxShadow: 'none'
                                                 }}
@@ -636,12 +724,14 @@ const Sidebar: React.FC = () => {
                                             data-annotation-hover-owner={annotation.id}
                                             onFocusCapture={() => handleAnnotationFocus(annotation.id)}
                                             onBlurCapture={(event) => handleAnnotationBlur(annotation.id, event)}
-                                            onCloseAutoFocus={(event) => event.preventDefault()}
+                                            onCloseAutoFocus={handleMenuCloseAutoFocus}
                                         >
                                             {canComment && <DropdownMenu.Item
                                                 onSelect={(e) => {
                                                     e.stopPropagation()
-                                                    setReplyAnnotation(annotation)
+                                                    queueMenuAction(() => (
+                                                        openAnnotationReply(annotation)
+                                                    ))
                                                 }}
                                             >
                                                 {t('reply')}
@@ -649,7 +739,9 @@ const Sidebar: React.FC = () => {
                                             {canEdit && <DropdownMenu.Item
                                                 onSelect={(e) => {
                                                     e.stopPropagation()
-                                                    setEditAnnotation(annotation)
+                                                    queueMenuAction(() => (
+                                                        openAnnotationEditor(annotation)
+                                                    ))
                                                 }}
                                             >
                                                 {t('edit')}
@@ -716,7 +808,12 @@ const Sidebar: React.FC = () => {
                                                 {reply.title}
                                             </Text>
                                             {(canEditReply || canDeleteReply) && (
-                                                <Flex align="center" gap="1" ml="auto">
+                                                <Flex
+                                                    align="center"
+                                                    gap="1"
+                                                    ml="auto"
+                                                    onClick={(event) => event.stopPropagation()}
+                                                >
                                                     <DropdownMenu.Root>
                                                         <DropdownMenu.Trigger>
                                                             <IconButton
@@ -726,6 +823,7 @@ const Sidebar: React.FC = () => {
                                                                 size="1"
                                                                 className={styles.toolButton}
                                                                 aria-label={t('more')}
+                                                                onPointerDown={handleMenuTriggerPointerDown}
                                                                 style={{
                                                                     boxShadow: 'none'
                                                                 }}
@@ -737,12 +835,14 @@ const Sidebar: React.FC = () => {
                                                             data-annotation-hover-owner={annotation.id}
                                                             onFocusCapture={() => handleAnnotationFocus(annotation.id)}
                                                             onBlurCapture={(event) => handleAnnotationBlur(annotation.id, event)}
-                                                            onCloseAutoFocus={(event) => event.preventDefault()}
+                                                            onCloseAutoFocus={handleMenuCloseAutoFocus}
                                                         >
                                                             {canEditReply && <DropdownMenu.Item
                                                                 onSelect={(e) => {
                                                                     e.stopPropagation()
-                                                                    setCurrentReply(reply)
+                                                                    queueMenuAction(() => (
+                                                                        openReplyEditor(annotation, reply)
+                                                                    ))
                                                                 }}
                                                             >
                                                                 {t('edit')}
@@ -774,7 +874,7 @@ const Sidebar: React.FC = () => {
                             <div>
                                 {replyInput(annotation)}
                                 {canComment && !replyAnnotation && !currentReply && !editAnnotation && currentAnnotation?.store?.id === annotation.id && (
-                                    <Button mt="2" style={{ width: '100%' }} onClick={() => setReplyAnnotation(annotation)}>
+                                    <Button mt="2" style={{ width: '100%' }} onClick={() => openAnnotationReply(annotation)}>
                                         {t('reply')}
                                     </Button>
                                 )}
