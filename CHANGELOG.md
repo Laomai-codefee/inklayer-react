@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/Laomai-codefee/inklayer-react/compare/v1.1.2...v1.2.0) (2026-07-29)
+
+
+### Features
+
+* **annotator:** add annotation reference previews ([79d645d](https://github.com/Laomai-codefee/inklayer-react/commit/79d645d7e6b6b844d8de01dfc39330f41a3746b6))
+* **annotator:** add annotation references ([a635ede](https://github.com/Laomai-codefee/inklayer-react/commit/a635ededb8a90c7306caac75dddf87d3b00d6583))
+* **annotator:** add cross-view hover previews ([fbf4704](https://github.com/Laomai-codefee/inklayer-react/commit/fbf470495b7025775606acc6d393d7914444731b))
+* **annotator:** explain annotation references in editors ([b48b6f4](https://github.com/Laomai-codefee/inklayer-react/commit/b48b6f4fac8b086d0d72a952a9798bed51ae69af))
+* **annotator:** separate selected text from comments ([b0a4840](https://github.com/Laomai-codefee/inklayer-react/commit/b0a4840dd4c1595a9ade57cb7a08caf6862b1116))
+
+
+### Bug Fixes
+
+* **annotator:** coordinate sidebar editor menu focus ([e1c382f](https://github.com/Laomai-codefee/inklayer-react/commit/e1c382f4cecb8c971f5c889b8526087655fd35b9))
+* **annotator:** refine hover interaction states ([723f100](https://github.com/Laomai-codefee/inklayer-react/commit/723f1002bdcca24016ae49bc6ecd6d75039d9cba))
+* **annotator:** restore markup hover and sidebar alignment ([4da2cf9](https://github.com/Laomai-codefee/inklayer-react/commit/4da2cf9e45c93f59dc48f891f84ad6f56b50d741))
+* **annotator:** unify annotation selection and editor state ([1c18ffc](https://github.com/Laomai-codefee/inklayer-react/commit/1c18ffcf1a995d343e7ad41c98b2d7c7bec4c0d9))
+* **annotator:** use theme contrast for author labels ([211486b](https://github.com/Laomai-codefee/inklayer-react/commit/211486b43cd34e56bf113ed1a0387a069a8fa0ef))
+
 ### [1.1.2](https://github.com/Laomai-codefee/inklayer-react/compare/v1.1.1...v1.1.2) (2026-07-27)
 
 
