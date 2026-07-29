@@ -279,6 +279,7 @@ export const AnnotationReferenceInput: React.FC<AnnotationReferenceInputProps> =
                             ref={textareaRef}
                             value={content}
                             rows={4}
+                            size="1"
                             placeholder={placeholder}
                             role="combobox"
                             aria-label={t('annotator:comment.reference.inputLabel')}

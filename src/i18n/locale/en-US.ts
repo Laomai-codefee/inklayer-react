@@ -157,7 +157,7 @@ export default {
             statusText: 'Set Status: {{value}}',
             nativeAnnotation: 'Native Annotation',
             reference: {
-                commentPlaceholder: 'Post a comment or use “#” to reference an annotation',
+                commentPlaceholder: 'Comment or use “#” to reference an annotation',
                 empty: 'No matching annotations',
                 inputLabel: 'Comment with annotation references',
                 noContent: 'No comment content',
