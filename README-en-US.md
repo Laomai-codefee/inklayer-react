@@ -64,10 +64,22 @@ http://localhost:5173
 - 🚀 PDF Viewer (zoom / search / theming)
 - 🖍️ PDF Annotation System (highlight / ink / shapes / stamps / signatures)
 - 💬 Comment & review workflow
+- 🔗 Annotation references and cross-page navigation (`#` references / hover previews / click-to-jump)
 - 🔐 Collaborative annotation permissions (ownership / admin overrides / read-only)
 - 💾 Annotation data model (persistable)
 - 📤 Export support (PDF / Excel)
 - 🎨 Customizable UI (toolbar / sidebar)
+
+---
+
+## 📣 Recent updates
+
+### 🔥 1.2.0
+
+- Reference other annotations with `#` from comments and replies
+- Preview referenced annotations, selected text, authors, pages, and replies on hover
+- Jump between sidebar entries and PDF annotations, including across pages
+- Improved annotation selection, editor focus, and hover interactions
 
 ---
 
