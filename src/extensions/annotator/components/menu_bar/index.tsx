@@ -1,8 +1,9 @@
 
-import { forwardRef, useImperativeHandle, useRef, useState, useEffect } from 'react'
+import { forwardRef, useCallback, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react'
 import { IAnnotationStore, IAnnotationStyle, annotationDefinitions } from '../../const/definitions'
 import { AnnoIcon, DeleteIcon, PaletteSingleColorIcon } from '../../const/icons'
 import Konva from 'konva'
+import { AiOutlineArrowLeft } from 'react-icons/ai'
 import { useTranslation } from 'react-i18next'
 import { useOptionsContext } from '../../context/options_context'
 import { PopoverBar, PopoverBarProps, PopoverBarRef } from '@/components/popover_bar'
@@ -11,8 +12,8 @@ import { PAINTER_WRAPPER_PREFIX } from '../../painter/const'
 import { usePainter } from '../../context/use_painter'
 import { usePdfViewerContext } from '@/context/pdf_viewer_context'
 import { SelectionSource, useAnnotationStore } from '../../store'
-import { Box, Flex, Separator, Slider, Text } from '@radix-ui/themes'
-import { ColorPicker } from '@/components/color_picker';
+import { Box, Button, Flex, Separator, Slider, Text } from '@radix-ui/themes'
+import { ColorPicker } from '@/components/color_picker'
 
 interface MenuBarProps {
     popoverBarProps?: Omit<PopoverBarProps, 'renderButtons' | 'buttons'>
@@ -33,7 +34,7 @@ function getKonvaShapeForString(konvaString: string) {
  */
 const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(function MenuBar(props, ref) {
     const { t } = useTranslation(['common', 'annotator'], { useSuspense: false })
-    const { openSidebar, activeSidebarPanel } = usePdfViewerContext()
+    const { openSidebar, activeSidebarPanel, viewerContainerRef } = usePdfViewerContext()
 
     const { painter } = usePainter()
     const { defaultOptions } = useOptionsContext()
@@ -49,9 +50,11 @@ const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(function MenuBar(props, ref
     const selectorRectRef = useRef<IRect | null>(null)
 
     // 计算 PopoverBar 的位置
-    const calculateAndSetPosition = (annotation: IAnnotationStore, selectorRect: IRect) => {
+    const calculateAndSetPosition = useCallback((annotation: IAnnotationStore, selectorRect: IRect) => {
         const wrapperId = `${PAINTER_WRAPPER_PREFIX}_page_${annotation.pageNumber}`
-        const konvaContainer = document.querySelector(`#${wrapperId} .konvajs-content`) as HTMLElement
+        const konvaContainer = viewerContainerRef?.current?.querySelector(
+            `#${wrapperId} .konvajs-content`
+        ) as HTMLElement | null
         if (konvaContainer) {
             const containerRect = konvaContainer.getBoundingClientRect()
             const realX = selectorRect.x + containerRect.left
@@ -71,17 +74,14 @@ const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(function MenuBar(props, ref
 
             popoverBarRef.current?.openWithRect(domRect)
         }
-    }
+    }, [viewerContainerRef])
 
-    // 当 showStyle 改变时，重新计算 PopoverBar 的位置
-    useEffect(() => {
-        if (showStyle && currentAnnotation && selectorRectRef.current) {
-            // 延迟一小段时间确保 DOM 已经更新后再重新定位
-            setTimeout(() => {
-                calculateAndSetPosition(currentAnnotation, selectorRectRef.current!)
-            }, 0)
-        }
-    }, [showStyle, currentAnnotation])
+    // 内容层级切换后，在布局阶段重算位置，避免先跳动再归位。
+    useLayoutEffect(() => {
+        const selectorRect = selectorRectRef.current
+        if (!currentAnnotation || !selectorRect) return
+        calculateAndSetPosition(currentAnnotation, selectorRect)
+    }, [calculateAndSetPosition, currentAnnotation, showStyle])
 
     useImperativeHandle(ref, () => ({
         open: (annotation: IAnnotationStore, selectorRect: IRect) => {
@@ -171,11 +171,25 @@ const MenuBar = forwardRef<MenuBarRef, MenuBarProps>(function MenuBar(props, ref
             {...popoverBarProps}
         >
             {showStyle && currentAnnotation && canEdit && isStyleSupported && (
-                <div style={{margin: 8}}>
+                <div style={{ margin: 8 }}>
+                    <Button
+                        size="2"
+                        variant="ghost"
+                        color="gray"
+                        highContrast
+                        onMouseDown={(event) => {
+                            event.preventDefault()
+                            setShowStyle(false)
+                        }}
+                    >
+                        <AiOutlineArrowLeft />
+                        {t('back')}
+                    </Button>
+                    <Separator my="2" size="4" />
                     {isStyleSupported?.color && (
                         <ColorPicker
-                            value={currentAnnotation!.color!}
-                            onChange={(color) => { 
+                            value={currentAnnotation.color ?? undefined}
+                            onChange={(color) => {
                                 handleAnnotationStyleChange({ color })
                             }}
                             popover={false}

@@ -16,6 +16,7 @@ export default {
         selectAll: 'Select All',
         draw: 'Draw',
         enter: 'Enter',
+        back: 'Back',
         confirm: 'Confirm',
         reply: 'Reply',
         edit: 'Edit',

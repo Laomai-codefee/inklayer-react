@@ -1,7 +1,8 @@
 import {
     getAnnotationAuthorLabelPosition,
     getAnnotationAuthorLabelText,
-    getAnnotationAuthorName
+    getAnnotationAuthorName,
+    resolveAnnotationAuthorLabelCollisions
 } from '../annotation_author_label'
 
 describe('annotation author label', () => {
@@ -83,6 +84,28 @@ describe('annotation author label', () => {
                 stageWidth: 500,
                 stageHeight: 700
             })).toEqual({ x: 80, y: 74 })
+        })
+
+        it('separates overlapping labels while keeping them inside the page', () => {
+            const positions = resolveAnnotationAuthorLabelCollisions([
+                { id: 'first', x: 80, y: 52, width: 70, height: 24 },
+                { id: 'second', x: 90, y: 52, width: 70, height: 24 },
+                { id: 'third', x: 100, y: 52, width: 70, height: 24 }
+            ], 120)
+
+            expect(positions.get('first')).toEqual({ x: 80, y: 52 })
+            expect(positions.get('second')).toEqual({ x: 90, y: 80 })
+            expect(positions.get('third')).toEqual({ x: 100, y: 24 })
+        })
+
+        it('does not move labels whose horizontal bounds do not overlap', () => {
+            const positions = resolveAnnotationAuthorLabelCollisions([
+                { id: 'first', x: 0, y: 20, width: 40, height: 20 },
+                { id: 'second', x: 100, y: 20, width: 40, height: 20 }
+            ], 100)
+
+            expect(positions.get('first')).toEqual({ x: 0, y: 20 })
+            expect(positions.get('second')).toEqual({ x: 100, y: 20 })
         })
     })
 })

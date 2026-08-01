@@ -16,6 +16,7 @@ export default {
         selectAll: '全选',
         draw: '绘制',
         enter: '输入',
+        back: '返回',
         confirm: '确认',
         reply: '回复',
         edit: '编辑',

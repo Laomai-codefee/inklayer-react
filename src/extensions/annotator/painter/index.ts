@@ -183,7 +183,6 @@ export class Painter {
                     ? this.updateStore(id, { konvaString: groupString, konvaClientRect }, false, 'annotation.transform')
                     : undefined
                 if (!updatedAnnotation) return
-                useAnnotationStore.getState().setSelectedAnnotation(updatedAnnotation, SelectionSource.SIDEBAR)
 
                 this.onAnnotationChanged(updatedAnnotation, transformerRect)
             },
