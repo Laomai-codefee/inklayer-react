@@ -74,6 +74,12 @@ http://localhost:5173
 
 ## 📣 Recent updates
 
+### 🔥 1.2.1
+
+- Restore a deleted annotation or reply before the notification disappears
+- Fixed annotation selection state and the color picker's back, layout, and timer interactions
+- Improved author-label collision handling, drag updates, and hover-preview layering
+
 ### 🔥 1.2.0
 
 - Reference other annotations with `#` from comments and replies
