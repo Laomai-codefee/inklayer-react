@@ -21,6 +21,8 @@ export default {
         reply: 'Reply',
         edit: 'Edit',
         delete: 'Delete',
+        restore: 'Restore',
+        restoreAll: 'Restore all',
         more: 'More',
         color: 'Color',
         strokeWidth: 'Stroke',
@@ -102,6 +104,24 @@ export default {
         authorLabels: {
             show: 'Show annotation authors · Hold {{shortcut}} to peek',
             hide: 'Hide annotation authors'
+        },
+        deleteUndo: {
+            annotationDeleted: 'Deleted{{reference}}',
+            annotationDeletedDetailed: 'Deleted{{reference}} · {{detail}}',
+            commentDeleted: 'Deleted comment in{{reference}}',
+            commentDeletedDetailed: 'Deleted comment in{{reference}} · {{detail}}',
+            commentDeletedByAuthor: 'Deleted {{author}}’s comment in{{reference}}',
+            annotationsDeleted: '{{count}} annotations deleted',
+            annotationsDeletedDetailed: '{{count}} annotations deleted · {{references}}',
+            commentsDeleted: '{{count}} comments deleted',
+            commentsDeletedDetailed: '{{count}} comments deleted · {{references}}',
+            itemsDeleted: '{{count}} items deleted',
+            itemsDeletedDetailed: '{{count}} items deleted · {{references}}',
+            typeAndPage: '{{type}}, page {{page}}',
+            page: 'Page {{page}}',
+            referencesMore: '{{references}}, and more',
+            deletedCommentPreview: 'Deleted comment',
+            deletedCommentsMore: '{{count}} more'
         },
         common: {
             createStamp: 'Create Stamp',

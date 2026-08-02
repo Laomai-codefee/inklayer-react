@@ -65,6 +65,25 @@ describe('annotation selection store', () => {
         expect(useAnnotationStore.getState().selectedAnnotation).toBeNull()
     })
 
+    it('restores an annotation at its original insertion position', () => {
+        const first = makeAnnotation('annotation-1')
+        const second = makeAnnotation('annotation-2')
+        const third = makeAnnotation('annotation-3')
+        const store = useAnnotationStore.getState()
+        store.addAnnotation(first)
+        store.addAnnotation(second)
+        store.addAnnotation(third)
+        store.removeAnnotation(second.id)
+
+        expect(store.restoreAnnotation(second, 1)).toBe(true)
+        expect(Array.from(useAnnotationStore.getState().annotations.keys())).toEqual([
+            first.id,
+            second.id,
+            third.id
+        ])
+        expect(store.restoreAnnotation(second, 1)).toBe(false)
+    })
+
     it('clears selection together with all annotations', () => {
         const annotation = makeAnnotation('annotation-1')
         const store = useAnnotationStore.getState()

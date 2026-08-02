@@ -20,6 +20,7 @@ interface AnnotationState {
     getAnnotation: (id: string) => IAnnotationStore | undefined
     getByPage: (pageNumber: number) => IAnnotationStore[]
     addAnnotation: (annotation: IAnnotationStore, isOriginal?: boolean) => IAnnotationStore
+    restoreAnnotation: (annotation: IAnnotationStore, index: number) => boolean
     updateAnnotation: (id: string, updates: Partial<IAnnotationStore>) => IAnnotationStore | null
     setAnnotationReferenceNumbers: (referenceNumbers: ReadonlyMap<string, number>) => void
     removeAnnotation: (id: string) => void
@@ -64,6 +65,19 @@ export const useAnnotationStore = create<AnnotationState>((set, get) => ({
 
         // 返回新添加的注解
         return annotation
+    },
+
+    restoreAnnotation: (annotation: IAnnotationStore, index: number) => {
+        if (get().annotations.has(annotation.id)) return false
+
+        set((state) => {
+            const entries = Array.from(state.annotations.entries())
+            const insertionIndex = Math.max(0, Math.min(index, entries.length))
+            entries.splice(insertionIndex, 0, [annotation.id, annotation])
+            return { annotations: new Map(entries) }
+        })
+
+        return true
     },
 
     updateAnnotation: (id: string, updates: Partial<IAnnotationStore>) => {

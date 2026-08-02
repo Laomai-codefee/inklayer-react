@@ -107,6 +107,28 @@ describe('AnnotationReferenceHoverCard', () => {
         expect(screen.queryByText(/comment\.reference\.replyCount/)).toBeNull()
     })
 
+    it('shows the deleted comment instead of only summarizing its parent annotation', () => {
+        render(
+            <AnnotationReferenceHoverCard
+                annotation={makeAnnotation()}
+                previewComments={[{
+                    id: 'deleted-reply',
+                    title: 'Bob',
+                    date: null,
+                    content: 'This deleted reply must remain visible.'
+                }]}
+            >
+                <button type="button">#2</button>
+            </AnnotationReferenceHoverCard>
+        )
+
+        expect(screen.getByText('deleteUndo.deletedCommentPreview')).toBeTruthy()
+        expect(screen.getByText('Bob')).toBeTruthy()
+        expect(screen.getByText('This deleted reply must remain visible.')).toBeTruthy()
+        expect(screen.queryByText('Important context from the annotation.')).toBeNull()
+        expect(screen.queryByText(/comment\.reference\.replyCount/)).toBeNull()
+    })
+
     it('only activates the preview number without selecting its source annotation', () => {
         const onActivate = jest.fn()
         const onSourceClick = jest.fn()

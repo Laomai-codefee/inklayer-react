@@ -29,6 +29,7 @@ const annotation = {
 } as IAnnotationStore
 
 const mockState = {
+    annotations: new Map([[annotation.id, annotation]]),
     getAnnotation: jest.fn(() => annotation),
     updateAnnotation: jest.fn((_id: string, updates: Partial<IAnnotationStore>) => ({ ...annotation, ...updates })),
     removeAnnotation: jest.fn(),
@@ -115,6 +116,17 @@ describe('Painter permission guards', () => {
             .not.toHaveBeenCalled()
         expect((painter as unknown as { selector: { delete: jest.Mock } }).selector.delete).not.toHaveBeenCalled()
         expect((painter as unknown as { onAnnotationDelete: jest.Mock }).onAnnotationDelete).not.toHaveBeenCalled()
+    })
+
+    it('does not delete a comment when comment deletion is denied', () => {
+        const reply = { id: 'reply-1', title: 'Alice', date: '', content: 'Reply', user: annotation.user }
+        const annotationWithReply = { ...annotation, comments: [reply] }
+        mockState.getAnnotation.mockReturnValueOnce(annotationWithReply)
+        const painter = createPainter(false)
+
+        expect(painter.deleteComment(annotation.id, reply.id)).toBe(false)
+        expect(mockState.updateAnnotation).not.toHaveBeenCalled()
+        expect((painter as unknown as { onAnnotationChanged: jest.Mock }).onAnnotationChanged).not.toHaveBeenCalled()
     })
 
     it('blocks annotation tools and text highlighting when creation is denied', () => {

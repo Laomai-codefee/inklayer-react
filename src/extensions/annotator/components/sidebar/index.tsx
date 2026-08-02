@@ -567,12 +567,7 @@ const Sidebar: React.FC = () => {
     }
 
     const deleteReply = (annotation: IAnnotationStore, reply: IAnnotationComment) => {
-        if (!painter?.can('comment.delete', annotation, reply)) return
-        const updatedComments = (annotation.comments || []).filter((comment) => comment.id !== reply.id)
-
-        painter?.update(annotation.id, {
-            comments: updatedComments
-        }, 'comment.delete', reply)
+        if (!painter?.deleteComment(annotation.id, reply.id)) return
 
         if (editorState?.kind === 'reply-edit' && editorState.replyId === reply.id) {
             setEditorState(null)

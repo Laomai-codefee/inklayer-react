@@ -3,7 +3,7 @@ import './index.scss' // 导入画笔样式文件
 import Konva from 'konva'
 import { annotationDefinitions, AnnotationType, IAnnotationComment, IAnnotationStore, IAnnotationStyle, IAnnotationType } from '../const/definitions'
 import { isElementInDOM, removeCssCustomProperty } from '../utils/utils'
-import { CURSOR_CSS_PROPERTY, PAINTER_IS_PAINTING_STYLE, PAINTER_PAINTING_TYPE, PAINTER_WRAPPER_PREFIX } from './const'
+import { CURSOR_CSS_PROPERTY, PAINTER_IS_PAINTING_STYLE, PAINTER_PAINTING_TYPE, PAINTER_WRAPPER_PREFIX, SHAPE_GROUP_NAME } from './const'
 import { Editor } from './editor/editor'
 import { EditorCircle } from './editor/editor_circle'
 import { EditorFreeHand } from './editor/editor_free_hand'
@@ -40,6 +40,14 @@ import {
 } from './annotation_hover'
 import { AnnotationHoverPreview } from './annotation_hover_preview'
 import { AnnotationPassiveHover } from './annotation_passive_hover'
+import {
+    cloneAnnotationForUndo,
+    cloneCommentForUndo,
+    DeleteUndoController,
+    type DeletedAnnotationEntry,
+    type DeletedCommentEntry,
+    type DeleteUndoSnapshot
+} from './delete_undo'
 
 // KonvaCanvas 接口定义
 export interface KonvaCanvas {
@@ -70,6 +78,7 @@ export class Painter {
     private hoverPreview: AnnotationHoverPreview
     private passiveHover: AnnotationPassiveHover
     private readonly annotationHover = new AnnotationHoverCoordinator()
+    private deleteUndoController?: DeleteUndoController
     private readonly unsubscribeAnnotationHover: () => void
     private transform: Transform // 转换器
     private tempDataTransfer: string | null = null // 临时数据传输
@@ -118,6 +127,7 @@ export class Painter {
             getCurrentUser: () => this.currentUser,
             getPermissions: () => this.annotationPermissions
         })
+        this.deleteUndoController = new DeleteUndoController()
         this.authorLabels = new AnnotationAuthorLabels({
             primaryColor: this.primaryColor,
             defaultVisible: defaultShowAnnotationAuthorLabels,
@@ -190,7 +200,7 @@ export class Painter {
                 this.onAnnotationChanging() // 批注正在更改的回调
             },
             onDelete: (id) => {
-                this.deleteAnnotation(id, true)
+                this.delete(id, true)
             }
         })
         this.webSelection = new WebSelection({
@@ -796,6 +806,76 @@ export class Painter {
         return true
     }
 
+    private createDeletedAnnotationEntry(annotationStore: IAnnotationStore): DeletedAnnotationEntry {
+        const annotationIds = Array.from(useAnnotationStore.getState().annotations.keys())
+        const konvaStage = this.konvaCanvasStore.get(annotationStore.pageNumber)?.konvaStage
+        const group = konvaStage?.findOne((node: Konva.Node) => (
+            node.getType() === 'Group'
+            && node.name() === SHAPE_GROUP_NAME
+            && node.id() === annotationStore.id
+        ))
+
+        return {
+            kind: 'annotation',
+            annotation: cloneAnnotationForUndo(annotationStore),
+            storeIndex: Math.max(0, annotationIds.indexOf(annotationStore.id)),
+            konvaIndex: group?.zIndex() ?? null
+        }
+    }
+
+    private restoreDeletedAnnotation(entry: DeletedAnnotationEntry): boolean {
+        const annotation = cloneAnnotationForUndo(entry.annotation)
+        const annotationState = useAnnotationStore.getState()
+        if (!annotationState.restoreAnnotation(annotation, entry.storeIndex)) {
+            console.warn(`Annotation with id ${annotation.id} already exists; delete undo was skipped.`)
+            return false
+        }
+
+        const konvaCanvas = this.konvaCanvasStore.get(annotation.pageNumber)
+        if (konvaCanvas) {
+            let editor = this.findEditor(annotation.pageNumber, annotation.type)
+            if (!editor) {
+                const definition = annotationDefinitions.find((item) => item.type === annotation.type)
+                if (definition) {
+                    this.enableEditor({
+                        konvaStage: konvaCanvas.konvaStage,
+                        pageNumber: annotation.pageNumber,
+                        annotation: definition
+                    })
+                    editor = this.findEditor(annotation.pageNumber, annotation.type)
+                }
+            }
+
+            editor?.addSerializedGroupToLayer(konvaCanvas.konvaStage, annotation.konvaString)
+            const restoredGroup = konvaCanvas.konvaStage.findOne((node: Konva.Node) => (
+                node.getType() === 'Group'
+                && node.name() === SHAPE_GROUP_NAME
+                && node.id() === annotation.id
+            ))
+            if (restoredGroup && entry.konvaIndex !== null) {
+                const siblingCount = restoredGroup.getParent()?.getChildren().length ?? 1
+                restoredGroup.zIndex(Math.min(entry.konvaIndex, siblingCount - 1))
+            }
+            konvaCanvas.konvaStage.batchDraw()
+        }
+
+        this.authorLabels.refreshAnnotation(annotation.id)
+        this.hoverPreview.refresh()
+        const annotationType = annotationDefinitions.find((item) => item.pdfjsAnnotationType === annotation.pdfjsType)
+        this.onAnnotationAdd(annotation, false, annotationType)
+        return true
+    }
+
+    private restoreDeletedComment(entry: DeletedCommentEntry): boolean {
+        const annotation = useAnnotationStore.getState().getAnnotation(entry.annotationId)
+        if (!annotation || annotation.comments.some((comment) => comment.id === entry.comment.id)) return false
+
+        const comments = [...annotation.comments]
+        const insertionIndex = Math.max(0, Math.min(entry.commentIndex, comments.length))
+        comments.splice(insertionIndex, 0, cloneCommentForUndo(entry.comment))
+        return Boolean(this.updateStore(annotation.id, { comments }, true, null))
+    }
+
     /**
      * 关闭绘画
      */
@@ -979,9 +1059,68 @@ export class Painter {
      * @param id
      */
     public delete(id: string, emit: boolean = false): boolean {
+        const annotationStore = useAnnotationStore.getState().getAnnotation(id)
+        if (!annotationStore || !this.can('annotation.delete', annotationStore)) return false
+        const undoEntry = emit ? this.createDeletedAnnotationEntry(annotationStore) : null
         const deleted = this.deleteAnnotation(id, emit)
         if (deleted) this.selector.delete()
+        if (deleted && undoEntry) this.deleteUndoController?.add(undoEntry)
         return deleted
+    }
+
+    public deleteComment(annotationId: string, commentId: string): boolean {
+        const annotation = useAnnotationStore.getState().getAnnotation(annotationId)
+        const commentIndex = annotation?.comments.findIndex((comment) => comment.id === commentId) ?? -1
+        if (!annotation || commentIndex < 0) return false
+        const comment = annotation.comments[commentIndex]
+        if (!this.can('comment.delete', annotation, comment)) return false
+
+        const undoEntry: DeletedCommentEntry = {
+            kind: 'comment',
+            annotationId,
+            annotationReferenceNumber: annotation.referenceNumber,
+            previewAnnotation: cloneAnnotationForUndo(annotation),
+            comment: cloneCommentForUndo(comment),
+            commentIndex
+        }
+        const comments = annotation.comments.filter((item) => item.id !== commentId)
+        const updated = this.updateStore(annotationId, { comments }, true, 'comment.delete', comment)
+        if (!updated) return false
+        this.deleteUndoController?.add(undoEntry)
+        return true
+    }
+
+    public subscribeDeleteUndo(listener: () => void): () => void {
+        return this.deleteUndoController?.subscribe(listener) ?? (() => {})
+    }
+
+    public getDeleteUndoSnapshot(): DeleteUndoSnapshot | null {
+        return this.deleteUndoController?.getSnapshot() ?? null
+    }
+
+    public pauseDeleteUndo(): void {
+        this.deleteUndoController?.pause()
+    }
+
+    public resumeDeleteUndo(): void {
+        this.deleteUndoController?.resume()
+    }
+
+    public undoDelete(): number {
+        const entries = this.deleteUndoController?.takeEntries() ?? []
+        let restoredCount = 0
+        const blockedAnnotationIds = new Set<string>()
+        entries.reverse().forEach((entry) => {
+            if (entry.kind === 'comment' && blockedAnnotationIds.has(entry.annotationId)) return
+            const restored = entry.kind === 'annotation'
+                ? this.restoreDeletedAnnotation(entry)
+                : this.restoreDeletedComment(entry)
+            if (entry.kind === 'annotation' && !restored) {
+                blockedAnnotationIds.add(entry.annotation.id)
+            }
+            if (restored) restoredCount += 1
+        })
+        return restoredCount
     }
 
     private cancelHighlightRequest(): number {
@@ -1098,6 +1237,7 @@ export class Painter {
     public destroy(): void {
 
         this.cancelHighlightRequest()
+        this.deleteUndoController?.clear()
         this.disablePainting()
         this.webSelection.destroy()
         this.passiveHover.destroy()

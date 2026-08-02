@@ -1,0 +1,51 @@
+.overlay {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    z-index: 2147483000;
+    width: max-content;
+    max-width: calc(100% - 24px);
+    pointer-events: none;
+    transform: translateX(-50%);
+    background-color: var(--bg-color);
+}
+
+.snackbar {
+    pointer-events: auto;
+    padding: 4px 6px;
+}
+
+.content {
+    min-width: 0;
+}
+
+.message {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.reference {
+    appearance: none;
+    padding: 0 1px;
+    border: 0;
+    border-radius: 2px;
+    background: transparent;
+    color: var(--accent-11);
+    font: inherit;
+    line-height: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    cursor: help;
+
+    &:hover {
+        background-color: var(--accent-a3);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--accent-8);
+        outline-offset: 1px;
+    }
+}

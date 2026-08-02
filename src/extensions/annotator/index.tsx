@@ -17,6 +17,7 @@ import {
     NAVIGATION_PAGE_MARKERS_CHANGED_EVENT,
     type NavigationPageMarkersChangedEvent,
 } from '@/components/navigation_page_markers'
+import { DeleteUndoSnackbar } from './components/delete_undo_snackbar'
 
 const ANNOTATOR_PAGE_MARKER_SOURCE = 'inklayer-annotator'
 
@@ -279,6 +280,7 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
         <>
             <SelectionBar ref={selectionBarRef} />
             <MenuBar ref={menuBarRef} />
+            <DeleteUndoSnackbar />
         </>
     )
 }

@@ -21,6 +21,8 @@ export default {
         reply: '回复',
         edit: '编辑',
         delete: '删除',
+        restore: '恢复',
+        restoreAll: '全部恢复',
         more: '更多',
         color: '颜色',
         strokeWidth: '笔触宽度',
@@ -102,6 +104,24 @@ export default {
         authorLabels: {
             show: '显示所有批注作者 · 按住 {{shortcut}} 临时查看',
             hide: '隐藏批注作者'
+        },
+        deleteUndo: {
+            annotationDeleted: '已删除{{reference}}',
+            annotationDeletedDetailed: '已删除{{reference}} · {{detail}}',
+            commentDeleted: '已删除{{reference}} 的评论',
+            commentDeletedDetailed: '已删除{{reference}} 的评论 · {{detail}}',
+            commentDeletedByAuthor: '已删除{{reference}} 中 {{author}} 的评论',
+            annotationsDeleted: '已删除 {{count}} 个批注',
+            annotationsDeletedDetailed: '已删除 {{count}} 个批注 · {{references}}',
+            commentsDeleted: '已删除 {{count}} 条评论',
+            commentsDeletedDetailed: '已删除 {{count}} 条评论 · {{references}}',
+            itemsDeleted: '已删除 {{count}} 项',
+            itemsDeletedDetailed: '已删除 {{count}} 项 · {{references}}',
+            typeAndPage: '{{type}}，第 {{page}} 页',
+            page: '第 {{page}} 页',
+            referencesMore: '{{references}} 等',
+            deletedCommentPreview: '已删除的评论',
+            deletedCommentsMore: '另有 {{count}} 条'
         },
         common: {
             createStamp: '创建印章',

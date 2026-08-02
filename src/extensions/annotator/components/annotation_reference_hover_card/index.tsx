@@ -2,26 +2,31 @@ import React, { useState } from 'react'
 import { HoverCard } from '@radix-ui/themes'
 import { useTranslation } from 'react-i18next'
 
-import type { IAnnotationStore } from '../../const/definitions'
+import type { IAnnotationComment, IAnnotationStore } from '../../const/definitions'
 import { createAnnotationPreview } from './annotation_preview'
 import styles from './styles.module.scss'
 
 interface AnnotationReferenceHoverCardProps {
     annotation: IAnnotationStore
     children: React.ReactElement
-    onActivate: (annotationId: string) => void
+    onActivate?: (annotationId: string) => void
+    onOpenChange?: (open: boolean) => void
+    previewComments?: readonly IAnnotationComment[]
 }
 
 export const AnnotationReferenceHoverCard: React.FC<AnnotationReferenceHoverCardProps> = ({
     annotation,
     children,
-    onActivate
+    onActivate,
+    onOpenChange,
+    previewComments = []
 }) => {
     const { t } = useTranslation('annotator', { useSuspense: false })
     const [open, setOpen] = useState(false)
-    const commentPreview = createAnnotationPreview(annotation.contentsObj?.text)
+    const annotationPreview = createAnnotationPreview(annotation.contentsObj?.text)
     const selectedTextPreview = createAnnotationPreview(annotation.contentsObj?.selectedText)
-    const hasPreview = Boolean(commentPreview || selectedTextPreview)
+    const hasDeletedCommentPreview = previewComments.length > 0
+    const hasPreview = Boolean(annotationPreview || selectedTextPreview || hasDeletedCommentPreview)
     const authorName = annotation.user?.name || annotation.title
     const replyCount = annotation.comments?.length ?? 0
     const referenceLabel = annotation.referenceNumber === undefined
@@ -29,14 +34,20 @@ export const AnnotationReferenceHoverCard: React.FC<AnnotationReferenceHoverCard
         : `#${annotation.referenceNumber}`
 
     const activate = () => {
+        if (!onActivate) return
         setOpen(false)
         onActivate(annotation.id)
+    }
+
+    const handleOpenChange = (nextOpen: boolean) => {
+        setOpen(nextOpen)
+        onOpenChange?.(nextOpen)
     }
 
     return (
         <HoverCard.Root
             open={open}
-            onOpenChange={setOpen}
+            onOpenChange={handleOpenChange}
             openDelay={350}
             closeDelay={150}
         >
@@ -51,16 +62,22 @@ export const AnnotationReferenceHoverCard: React.FC<AnnotationReferenceHoverCard
             >
                 <div className={styles.header}>
                     <span className={styles.identity}>
-                        <button
-                            type="button"
-                            className={styles.referenceLabel}
-                            aria-label={t('comment.reference.open', {
-                                value: referenceLabel
-                            })}
-                            onClick={activate}
-                        >
-                            {referenceLabel}
-                        </button>
+                        {
+                            onActivate
+                                ? (
+                                    <button
+                                        type="button"
+                                        className={styles.referenceLabel}
+                                        aria-label={t('comment.reference.open', {
+                                            value: referenceLabel
+                                        })}
+                                        onClick={activate}
+                                    >
+                                        {referenceLabel}
+                                    </button>
+                                )
+                                : <span className={styles.referenceLabelStatic}>{referenceLabel}</span>
+                        }
                         <span className={styles.separator} aria-hidden="true">·</span>
                         <span className={styles.author}>{authorName}</span>
                     </span>
@@ -80,8 +97,41 @@ export const AnnotationReferenceHoverCard: React.FC<AnnotationReferenceHoverCard
                         : null
                 }
                 {
-                    commentPreview
-                        ? <p className={styles.preview}>{commentPreview}</p>
+                    !hasDeletedCommentPreview && annotationPreview
+                        ? <p className={styles.preview}>{annotationPreview}</p>
+                        : null
+                }
+                {
+                    hasDeletedCommentPreview
+                        ? (
+                            <section className={styles.deletedComments}>
+                                <div className={styles.deletedCommentsTitle}>
+                                    {t('deleteUndo.deletedCommentPreview')}
+                                </div>
+                                {previewComments.slice(0, 3).map((comment) => (
+                                    <div className={styles.deletedComment} key={comment.id}>
+                                        <span className={styles.deletedCommentAuthor}>
+                                            {comment.user?.name || comment.title}
+                                        </span>
+                                        <p className={styles.deletedCommentContent}>
+                                            {createAnnotationPreview(comment.content)
+                                                || t('comment.reference.previewNoContent')}
+                                        </p>
+                                    </div>
+                                ))}
+                                {
+                                    previewComments.length > 3
+                                        ? (
+                                            <div className={styles.deletedCommentsMore}>
+                                                {t('deleteUndo.deletedCommentsMore', {
+                                                    count: previewComments.length - 3
+                                                })}
+                                            </div>
+                                        )
+                                        : null
+                                }
+                            </section>
+                        )
                         : null
                 }
                 {
@@ -94,7 +144,7 @@ export const AnnotationReferenceHoverCard: React.FC<AnnotationReferenceHoverCard
                         )
                 }
                 {
-                    replyCount > 0
+                    replyCount > 0 && !hasDeletedCommentPreview
                         ? (
                             <div className={styles.footer}>
                                 {t('comment.reference.replyCount', {
