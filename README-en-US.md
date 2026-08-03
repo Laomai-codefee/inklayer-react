@@ -178,11 +178,31 @@ For a fully read-only annotator, pass `annotationPermissions={{ can: () => false
 
 ---
 
-## 💬 Feedback
+## 💬 Community & Commercial Support
 
-Questions? Feature requests? Drop by [GitHub Discussions](https://github.com/Laomai-codefee/inklayer-react/discussions) or email us: [codefee@foxmail.com](mailto:codefee@foxmail.com)
+The core InkLayer SDK is MIT licensed and free to use in personal and commercial projects.
 
-Bug reports → [GitHub Issues](https://github.com/Laomai-codefee/inklayer-react/issues)
+### Community Support
+
+- Questions and feature ideas: [GitHub Discussions](https://github.com/Laomai-codefee/inklayer-react/discussions)
+- Bug reports: [GitHub Issues](https://github.com/Laomai-codefee/inklayer-react/issues)
+- Documentation: https://inklayer.dev/docs/react
+
+Community support is provided on a best-effort basis as maintainer time allows, without a guaranteed response time.
+
+### Commercial Technical Support
+
+Contact the maintainer if your project needs:
+
+- React or Vue integration and troubleshooting
+- Annotation persistence and backend integration
+- User, role, and workflow permission integration
+- Custom features or support for another framework
+- Ongoing maintenance and priority response for a private project
+
+Email: [codefee@foxmail.com](mailto:codefee@foxmail.com?subject=InkLayer%20Project%20Inquiry)
+
+Please include your use case, technology stack, required capabilities, and target timeline.
 
 ---
 

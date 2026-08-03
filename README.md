@@ -178,11 +178,31 @@ export default function App() {
 
 ---
 
-## 💬 反馈
+## 💬 社区与商业支持
 
-有问题？想提建议？欢迎来 [GitHub Discussions](https://github.com/Laomai-codefee/inklayer-react/discussions) 聊聊，或者直接发邮件：[codefee@foxmail.com](mailto:codefee@foxmail.com)
+InkLayer 基础 SDK 采用 MIT 协议，可以免费用于个人和商业项目。
 
-Bug 报告请走 [GitHub Issues](https://github.com/Laomai-codefee/inklayer-react/issues)
+### 社区支持
+
+- 使用交流与功能建议：[GitHub Discussions](https://github.com/Laomai-codefee/inklayer-react/discussions)
+- Bug 报告：[GitHub Issues](https://github.com/Laomai-codefee/inklayer-react/issues)
+- 项目文档：https://inklayer.dev/zh-cn/docs/react
+
+社区支持按项目维护者的时间尽力提供，不承诺响应时间。
+
+### 商业技术支持
+
+如果你的项目需要以下服务，可以联系项目维护者：
+
+- React / Vue 项目接入与问题排查
+- 批注数据持久化和业务系统对接
+- 用户、角色及流程权限接入
+- 功能定制和其他框架适配
+- 私有项目的持续维护与优先响应
+
+邮件：[codefee@foxmail.com](mailto:codefee@foxmail.com?subject=InkLayer%20项目咨询)
+
+来信建议说明项目场景、技术栈、所需功能和计划时间。
 
 ---
 
