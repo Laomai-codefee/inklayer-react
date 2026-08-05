@@ -38,7 +38,7 @@ const GithubStar: React.FC = () => (
 )
 
 const App = () => {
-    const [activeTab, setActiveTab] = React.useState('PdfAnnotatorPermissions')
+    const [activeTab, setActiveTab] = React.useState('PdfAnnotatorBasic')
     const headless = window.location.hash === '#headless'
     const showCodeRef = useRef<ShowCodeHandle>(null)
 

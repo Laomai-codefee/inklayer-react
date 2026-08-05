@@ -74,6 +74,13 @@ http://localhost:5173
 
 ## 📣 Recent updates
 
+### 🔥 1.2.2
+
+- Refined annotation interactions: Sidebar and PDF synchronize on selection only, while Canvas hover keeps author labels without a distracting outline
+- Fixed annotation navigation at automatic zoom, clipped Sidebar editors, and menu positioning after user or permission changes
+- Improved PDF and Excel numbering: main PDF annotations use `Author · #N`, while Excel uses stable `#N / #N.1` references
+- Localized annotation-type filters, preserved filter state, and polished collaborative permission and read-only behavior
+
 ### 🔥 1.2.1
 
 - Restore a deleted annotation or reply before the notification disappears

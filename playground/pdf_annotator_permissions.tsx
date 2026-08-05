@@ -3,12 +3,11 @@ import { PdfAnnotator } from '@/features/annotator'
 import type { Annotation } from '@/core/annotation.core'
 import type { AnnotationPermissions } from '@/extensions/annotator/types/annotator'
 import type { User } from '@/types'
-import { SegmentedControl } from '@radix-ui/themes'
 
 const USERS: User[] = [
-    { id: 'alice', name: '王芳' },
-    { id: 'bob', name: '李明' },
-    { id: 'admin', name: '管理员' }
+    { id: 'alice', name: 'Alice' },
+    { id: 'bob', name: 'Bob' },
+    { id: 'admin', name: 'Admin' }
 ]
 
 const OWNER_ONLY_PERMISSIONS: AnnotationPermissions = {
@@ -54,7 +53,7 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
         "payload": {
             "kind": "text-markup",
             "variant": "highlight",
-            "text": "这里是文档渲染的核心说明，具体实现请参考 #6",
+            "text": "This is the core rendering promise. The implementation is summarized in #6",
             "selectedText": "coordinate transforms and zoom-level alignment",
             "color": "#b4fa56"
         },
@@ -70,7 +69,7 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
             "updatedAt": "D:20260726111503+08'00'",
             "authorId": {
                 "id": "alice",
-                "name": "王芳"
+                "name": "Alice"
             },
             "isNative": false,
             "source": "inklayer"
@@ -91,9 +90,9 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
             },
             "legacy": {
                 "annotationType": 1,
-                "title": "王芳",
+                "title": "Alice",
                 "contentsObj": {
-                    "text": "这里是文档渲染的核心说明，具体实现请参考 #6",
+                    "text": "This is the core rendering promise. The implementation is summarized in #6",
                     "selectedText": "coordinate transforms and zoom-level alignment",
                     "references": [
                         {
@@ -106,12 +105,12 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
                 "comments": [
                     {
                         "id": "3Lq7rMaeSEDDZ-HHuUJwp",
-                        "title": "李明",
+                        "title": "Bob",
                         "date": "D:20260726111604+08'00'",
-                        "content": "已确认在 50%、100% 和 200% 缩放比例下显示正常。",
+                        "content": "Confirmed at 50%, 100%, and 200% zoom.",
                         "user": {
                             "id": "bob",
-                            "name": "李明"
+                            "name": "Bob"
                         }
                     }
                 ]
@@ -163,7 +162,7 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
             "updatedAt": "D:20260726111440+08'00'",
             "authorId": {
                 "id": "bob",
-                "name": "李明"
+                "name": "Bob"
             },
             "isNative": false,
             "source": "inklayer"
@@ -184,9 +183,9 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
             },
             "legacy": {
                 "annotationType": 13,
-                "title": "李明",
+                "title": "Bob",
                 "contentsObj": {
-                    "text": "查看器与批注器的组件划分很清晰，PdfAnnotator 的接入方式请参考 #4",
+                    "text": "The two-component model is clear. The working PdfAnnotator setup is shown in #4",
                     "references": [
                         {
                             "type": "annotation",
@@ -198,12 +197,12 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
                 "comments": [
                     {
                         "id": "BKcYbhjsunrUa_0p6Qxhr",
-                        "title": "王芳",
+                        "title": "Alice",
                         "date": "D:20260726111618+08'00'",
-                        "content": "同意，PdfViewer 继续保持轻量查看器的定位。",
+                        "content": "Agreed—keep PdfViewer positioned as the lightweight option.",
                         "user": {
                             "id": "alice",
-                            "name": "王芳"
+                            "name": "Alice"
                         }
                     }
                 ]
@@ -256,7 +255,7 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
             "updatedAt": "D:20260726111526+08'00'",
             "authorId": {
                 "id": "alice",
-                "name": "王芳"
+                "name": "Alice"
             },
             "isNative": false,
             "source": "inklayer"
@@ -277,9 +276,9 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
             },
             "legacy": {
                 "annotationType": 8,
-                "title": "王芳",
+                "title": "Alice",
                 "contentsObj": {
-                    "text": "这里进一步补充了 #1 中的说明",
+                    "text": "This callout reinforces the promise in #1",
                     "references": [
                         {
                             "type": "annotation",
@@ -325,7 +324,7 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
         "payload": {
             "kind": "text-markup",
             "variant": "underline",
-            "text": "这是最小化的 React 接入示例，将 #1 中的说明落实为可运行代码。",
+            "text": "Minimal React integration. It turns #1 into working code.",
             "selectedText": "PdfAnnotator",
             "color": "#1272e8"
         },
@@ -341,7 +340,7 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
             "updatedAt": "D:20260726111548+08'00'",
             "authorId": {
                 "id": "alice",
-                "name": "王芳"
+                "name": "Alice"
             },
             "isNative": false,
             "source": "inklayer"
@@ -362,9 +361,9 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
             },
             "legacy": {
                 "annotationType": 3,
-                "title": "王芳",
+                "title": "Alice",
                 "contentsObj": {
-                    "text": "这是最小化的 React 接入示例，将 #1 中的说明落实为可运行代码。",
+                    "text": "Minimal React integration. It turns #1 into working code.",
                     "selectedText": "PdfAnnotator",
                     "references": [
                         {
@@ -377,19 +376,19 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
                 "comments": [
                     {
                         "id": "0nLmmL_fEbRnZPj1kVG-a",
-                        "title": "李明",
+                        "title": "Bob",
                         "date": "D:20260726111644+08'00'",
-                        "content": "依赖引入和样式入口已经验证。",
+                        "content": "Package import and stylesheet entry verified.",
                         "user": {
                             "id": "bob",
-                            "name": "李明"
+                            "name": "Bob"
                         }
                     },
                     {
                         "id": "HDpmhkPGb_qyT7E-UKHoU",
-                        "title": "王芳",
+                        "title": "Alice",
                         "date": "D:20260726111701+08'00'",
-                        "content": "可以进入 #5 对应的审批确认环节。",
+                        "content": "Ready for the approval checkpoint in #5",
                         "references": [
                             {
                                 "type": "annotation",
@@ -399,7 +398,7 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
                         ],
                         "user": {
                             "id": "alice",
-                            "name": "王芳"
+                            "name": "Alice"
                         }
                     }
                 ]
@@ -424,8 +423,8 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
         },
         "payload": {
             "kind": "stamp",
-            "name": "李明",
-            "label": "李明",
+            "name": "Bob",
+            "label": "Bob",
             "source": "custom"
         },
         "appearance": {
@@ -438,7 +437,7 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
             "updatedAt": "D:20260726111416+08'00'",
             "authorId": {
                 "id": "bob",
-                "name": "李明"
+                "name": "Bob"
             },
             "isNative": false,
             "source": "inklayer"
@@ -459,9 +458,9 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
             },
             "legacy": {
                 "annotationType": 10,
-                "title": "李明",
+                "title": "Bob",
                 "contentsObj": {
-                    "text": "参考 #4 完成检查后，1.2.0 演示内容已通过审核",
+                    "text": "1.2.0 playground content approved after #4",
                     "image": "data:image/png;base64,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",
                     "references": [
                         {
@@ -474,23 +473,23 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
                 "comments": [
                     {
                         "id": "yqjMWHg3wP0erdpwRbrBx",
-                        "title": "王芳",
+                        "title": "Alice",
                         "date": "D:20260726111720+08'00'",
-                        "content": "所有审阅意见均已处理。",
+                        "content": "All review notes resolved.",
                         "user": {
                             "id": "alice",
-                            "name": "王芳"
+                            "name": "Alice"
                         }
                     },
                     {
                         "id": "alEkFC2AWFhxkOABALJ4X",
-                        "title": "李明",
+                        "title": "Bob",
                         "date": "D:20260726111734+08'00'",
-                        "content": "状态已设置为：接受",
+                        "content": "Set Status: Accepted",
                         "status": "Accepted",
                         "user": {
                             "id": "bob",
-                            "name": "李明"
+                            "name": "Bob"
                         }
                     }
                 ]
@@ -529,7 +528,7 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
             "updatedAt": "D:20260726111357+08'00'",
             "authorId": {
                 "id": "bob",
-                "name": "李明"
+                "name": "Bob"
             },
             "isNative": false,
             "source": "inklayer"
@@ -550,16 +549,16 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
             },
             "legacy": {
                 "annotationType": 5,
-                "title": "李明",
+                "title": "Bob",
                 "contentsObj": {
-                    "text": "批注引擎负责坐标转换、命中检测和批量操作。"
+                    "text": "The Annotation Engine explains where coordinate transforms, hit testing, and batch operations live."
                 },
                 "comments": [
                     {
                         "id": "It-vBYnf8UQqma8Th2ghE",
-                        "title": "王芳",
+                        "title": "Alice",
                         "date": "D:20260726111752+08'00'",
-                        "content": "这解决了 #1 中提出的实现问题。",
+                        "content": "This closes the implementation question raised in #1",
                         "references": [
                             {
                                 "type": "annotation",
@@ -569,7 +568,7 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
                         ],
                         "user": {
                             "id": "alice",
-                            "name": "王芳"
+                            "name": "Alice"
                         }
                     }
                 ]
@@ -581,72 +580,71 @@ const INITIAL_ANNOTATIONS: Annotation[] = [
 const PdfAnnotatorPermissions: React.FC = () => {
     const [user, setUser] = useState(USERS[1])
     const [permissionPreset, setPermissionPreset] = useState<'owner-only' | 'read-only'>('owner-only')
-    const [, setLastEvent] = useState('正在等待 PDF 加载')
+    const [lastEvent, setLastEvent] = useState('Waiting for PDF')
     const permissions = permissionPreset === 'read-only' ? READ_ONLY_PERMISSIONS : OWNER_ONLY_PERMISSIONS
 
     return (
-            <PdfAnnotator
-                title={(
-                    <div
-                        style={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            alignItems: 'center',
-                            gap: 8,
-                            padding: '8px 12px'
-                        }}
+        <div style={{ display: 'grid', height: '100%', gridTemplateRows: 'auto minmax(0, 1fr)' }}>
+            <div
+                style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '8px 12px',
+                    borderTop: '1px solid var(--gray-5)',
+                    borderBottom: '1px solid var(--gray-5)'
+                }}
+            >
+                <strong>Current user: <span data-testid="current-user">{user.name}</span></strong>
+                {USERS.map(option => (
+                    <button
+                        key={option.id}
+                        data-testid={`switch-${option.id}`}
+                        aria-pressed={option.id === user.id}
+                        onClick={() => setUser(option)}
                     >
-                        <strong>当前用户</strong>
-                        <SegmentedControl.Root
-                            data-testid="current-user"
-                            aria-label="当前用户"
-                            value={user.id}
-                            onValueChange={(value) => {
-                                const selectedUser = USERS.find(option => option.id === value)
-                                if (selectedUser) setUser(selectedUser)
-                            }}
-                            size="2"
-                            radius="full"
-                        >
-                            {USERS.map(option => (
-                                <SegmentedControl.Item key={option.id} value={option.id} data-testid={`switch-${option.id}`}>
-                                    {option.name}
-                                </SegmentedControl.Item>
-                            ))}
-                        </SegmentedControl.Root>
-                        <strong style={{ marginLeft: 12 }}>权限模式</strong>
-                        <SegmentedControl.Root
-                            data-testid="current-permission"
-                            aria-label="权限模式"
-                            value={permissionPreset}
-                            onValueChange={value => setPermissionPreset(value as 'owner-only' | 'read-only')}
-                            size="2"
-                            radius="full"
-                        >
-                            <SegmentedControl.Item value="owner-only" data-testid="permission-owner-only">
-                                仅限本人
-                            </SegmentedControl.Item>
-                            <SegmentedControl.Item value="read-only" data-testid="permission-read-only">
-                                只读
-                            </SegmentedControl.Item>
-                        </SegmentedControl.Root>
-                    </div>
-                )}
+                        {option.name}
+                    </button>
+                ))}
+                <strong style={{ marginLeft: 12 }}>
+                    Permission: <span data-testid="current-permission">{permissionPreset === 'read-only' ? 'Read only' : 'Owner only'}</span>
+                </strong>
+                <button
+                    data-testid="permission-owner-only"
+                    aria-pressed={permissionPreset === 'owner-only'}
+                    onClick={() => setPermissionPreset('owner-only')}
+                >
+                    Owner only
+                </button>
+                <button
+                    data-testid="permission-read-only"
+                    aria-pressed={permissionPreset === 'read-only'}
+                    onClick={() => setPermissionPreset('read-only')}
+                >
+                    Read only
+                </button>
+                <span style={{ marginLeft: 'auto' }} data-testid="permission-event">{lastEvent}</span>
+            </div>
+            <PdfAnnotator
+                title={<strong>COLLABORATION PERMISSIONS</strong>}
                 url="https://inklayer.dev/inklayer-demo.pdf"
                 user={user}
                 annotationPermissions={permissions}
                 initialAnnotations={INITIAL_ANNOTATIONS}
+                defaultShowAnnotationAuthorLabels
                 defaultShowAnnotationsSidebar
-                locale="zh-CN"
+                locale="en-US"
                 onSave={(annotations) => {
                     console.log('Saved:', annotations)
                 }}
-                layoutStyle={{ width: '100%', height: 'calc(100vh - 5px)' }}
-                onLoad={() => setLastEvent('PDF 已加载')}
-                onAnnotationAdded={(annotation) => setLastEvent(`已添加批注 ${annotation.id}`)}
-                onAnnotationUpdated={(annotation) => setLastEvent(`已更新批注 ${annotation.id}`)}
-                onAnnotationDeleted={(id) => setLastEvent(`已删除批注 ${id}`)}
+                layoutStyle={{ height: '100%' }}
+                onLoad={() => setLastEvent('PDF loaded')}
+                onAnnotationAdded={(annotation) => setLastEvent(`Added ${annotation.id}`)}
+                onAnnotationUpdated={(annotation) => setLastEvent(`Updated ${annotation.id}`)}
+                onAnnotationDeleted={(id) => setLastEvent(`Deleted ${id}`)}
             />
+        </div>
     )
 }
 
