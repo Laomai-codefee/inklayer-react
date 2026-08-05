@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.2](https://github.com/Laomai-codefee/inklayer-react/compare/v1.2.1...v1.2.2) (2026-08-05)
+
+
+### Bug Fixes
+
+* **annotator:** polish interactions and exports ([ffea89d](https://github.com/Laomai-codefee/inklayer-react/commit/ffea89d7e2c226df9c110e657b5b6d099b9eae71))
+
 ### [1.2.1](https://github.com/Laomai-codefee/inklayer-react/compare/v1.2.0...v1.2.1) (2026-08-02)
 
 
