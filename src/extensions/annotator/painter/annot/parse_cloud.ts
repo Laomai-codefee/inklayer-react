@@ -109,7 +109,7 @@ export class CloudParser extends AnnotationParser {
             Rect: rect,
             InkList: context.obj([inkPoints]),
             C: context.obj([red, green, blue]),
-            T: stringToPDFHexString(annotation.title || t('normal.unknownUser')),
+            T: stringToPDFHexString(this.getExportTitle(t('normal.unknownUser'))),
             Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
             M: PDFString.of(annotation.date || ''),
             NM: PDFString.of(annotation.id),

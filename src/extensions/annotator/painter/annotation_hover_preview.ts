@@ -7,14 +7,12 @@ import {
 } from './const'
 
 interface AnnotationHoverPreviewOptions {
-    primaryColor: string
     getAnnotation: (id: string) => IAnnotationStore | undefined
     getStage: (pageNumber: number) => Konva.Stage | undefined
     getAnnotationGroup: (annotation: IAnnotationStore, stage: Konva.Stage) => Konva.Group | null
 }
 
 export class AnnotationHoverPreview {
-    private readonly primaryColor: string
     private readonly getAnnotation: (id: string) => IAnnotationStore | undefined
     private readonly getStage: (pageNumber: number) => Konva.Stage | undefined
     private readonly getAnnotationGroup: (annotation: IAnnotationStore, stage: Konva.Stage) => Konva.Group | null
@@ -23,8 +21,7 @@ export class AnnotationHoverPreview {
     private previewRect: Konva.Rect | null = null
     private boundGroup: Konva.Group | null = null
 
-    constructor({ primaryColor, getAnnotation, getStage, getAnnotationGroup }: AnnotationHoverPreviewOptions) {
-        this.primaryColor = primaryColor
+    constructor({ getAnnotation, getStage, getAnnotationGroup }: AnnotationHoverPreviewOptions) {
         this.getAnnotation = getAnnotation
         this.getStage = getStage
         this.getAnnotationGroup = getAnnotationGroup
@@ -65,11 +62,11 @@ export class AnnotationHoverPreview {
             y: rect.y - padding,
             width: rect.width + padding * 2,
             height: rect.height + padding * 2,
-            stroke: this.primaryColor,
-            strokeWidth: 1.5,
+            stroke: '#8b8d98',
+            strokeWidth: 1,
             dash: [],
             strokeScaleEnabled: false,
-            opacity: 0.7,
+            opacity: 0.65,
             listening: false,
             perfectDrawEnabled: false
         })

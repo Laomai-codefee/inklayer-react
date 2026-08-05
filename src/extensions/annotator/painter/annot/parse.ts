@@ -1,5 +1,6 @@
 import { PDFArray, PDFDocument, PDFName, PDFPage, PDFRef } from 'pdf-lib'
 import { IAnnotationStore } from '../../const/definitions'
+import { isValidReferenceNumber } from '../../references/annotation_numbering'
 import { PDFPageView } from 'pdfjs-dist/types/web/pdf_page_view'
 
 export interface SerializedKonvaAttributes {
@@ -56,6 +57,16 @@ export abstract class AnnotationParser {
         } else {
             page.node.set(PDFName.of('Annots'), page.doc.context.obj([annotRef]))
         }
+    }
+
+    protected getExportTitle(fallbackAuthor: string): string {
+        const author = this.annotation.user?.name?.trim()
+            || this.annotation.title?.trim()
+            || fallbackAuthor
+
+        return isValidReferenceNumber(this.annotation.referenceNumber)
+            ? `${author} · #${this.annotation.referenceNumber}`
+            : author
     }
 
     protected extractGroupTransform(konvaGroup: SerializedKonvaNode): { groupX: number; groupY: number; scaleX: number; scaleY: number } {

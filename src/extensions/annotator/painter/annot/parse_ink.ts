@@ -52,7 +52,7 @@ export class InkParser extends AnnotationParser {
             Rect: rect,
             InkList: inkList,
             C: context.obj([PDFNumber.of(r), PDFNumber.of(g), PDFNumber.of(b)]),
-            T: stringToPDFHexString(annotation.title || t('normal.unknownUser')),
+            T: stringToPDFHexString(this.getExportTitle(t('normal.unknownUser'))),
             Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
             M: PDFString.of(annotation.date || ''),
             NM: PDFString.of(annotation.id),

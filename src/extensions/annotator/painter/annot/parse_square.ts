@@ -27,7 +27,7 @@ export class SquareParser extends AnnotationParser {
             Subtype: PDFName.of('Square'),
             Rect: convertKonvaRectToPdfRect(annotation.konvaClientRect, pageView),
             C: rgbToPdfColor(annotation.color || '#000000'), // 边框颜色
-            T: stringToPDFHexString(annotation.title || t('normal.unknownUser')), // 作者
+            T: stringToPDFHexString(this.getExportTitle(t('normal.unknownUser'))), // 编号与作者
             Contents: stringToPDFHexString(annotation.contentsObj?.text || ''), // 说明文字
             M: PDFString.of(annotation.date || ''),
             NM: PDFString.of(annotation.id), // 唯一标识

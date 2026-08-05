@@ -263,6 +263,7 @@ export const AnnotationReferenceInput: React.FC<AnnotationReferenceInputProps> =
     return (
         <div
             ref={rootRef}
+            data-annotation-editor
             className={`${styles.referenceInput} ${className ?? ''}`}
             onBlurCapture={handleBlur}
             onClick={(event) => event.stopPropagation()}

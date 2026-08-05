@@ -31,7 +31,6 @@ describe('AnnotationHoverPreview', () => {
             pageNumber: 1
         } as IAnnotationStore
         const preview = new AnnotationHoverPreview({
-            primaryColor: '#6e56cf',
             getAnnotation: (id) => id === annotation.id ? annotation : undefined,
             getStage: () => stage,
             getAnnotationGroup: () => group
@@ -45,10 +44,10 @@ describe('AnnotationHoverPreview', () => {
 
         expect(previewRect).toBeInstanceOf(Konva.Rect)
         expect(previewRect.listening()).toBe(false)
-        expect(previewRect.stroke()).toBe('#6e56cf')
-        expect(previewRect.strokeWidth()).toBe(1.5)
+        expect(previewRect.stroke()).toBe('#8b8d98')
+        expect(previewRect.strokeWidth()).toBe(1)
         expect(previewRect.dash()).toEqual([])
-        expect(previewRect.opacity()).toBe(0.7)
+        expect(previewRect.opacity()).toBe(0.65)
         expect(previewRect.strokeScaleEnabled()).toBe(false)
         expect(previewRect.x()).toBe(groupRect.x - 1)
         expect(previewRect.y()).toBe(groupRect.y - 1)
@@ -71,7 +70,6 @@ describe('AnnotationHoverPreview', () => {
 
         const annotation = { id: group.id(), pageNumber: 1 } as IAnnotationStore
         const preview = new AnnotationHoverPreview({
-            primaryColor: '#6e56cf',
             getAnnotation: () => annotation,
             getStage: () => stage,
             getAnnotationGroup: () => group

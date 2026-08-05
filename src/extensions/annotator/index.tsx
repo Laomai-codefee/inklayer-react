@@ -235,6 +235,7 @@ export const AnnotatorExtension: React.FC<AnnotatorExtensionProps> = ({
 
     useLayoutEffect(() => {
         if (latestUserRef.current) {
+            menuBarRef.current?.close()
             painterRef.current?.setPermissionContext(latestUserRef.current, latestPermissionsRef.current)
             if (painterRef.current) refreshPainter()
         }

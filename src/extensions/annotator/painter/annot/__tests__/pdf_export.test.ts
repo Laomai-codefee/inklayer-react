@@ -164,6 +164,28 @@ function getRedPixelBounds(data: Buffer) {
 }
 
 describe('PDF annotation export', () => {
+    it('adds the stable annotation number after the author while keeping reply titles unchanged', async () => {
+        const annotation = createAnnotation({
+            referenceNumber: 5,
+            title: 'Legacy Alice',
+            user: { id: 'alice', name: 'Alice' },
+            comments: [{
+                id: 'reply-1',
+                title: 'Bob',
+                date: null,
+                content: 'See #5'
+            }]
+        })
+
+        const result = await buildAnnotatedPdf(createViewer(await createBlankPdf()), [annotation])
+        const exported = await PDFDocument.load(result)
+        const [mainAnnotation, reply] = getAnnotationDictionaries(exported)
+
+        expect(mainAnnotation.lookup(PDFName.of('T'), PDFHexString).decodeText()).toBe('Alice · #5')
+        expect(reply.lookup(PDFName.of('T'), PDFHexString).decodeText()).toBe('Bob')
+        expect(reply.lookup(PDFName.of('Contents'), PDFHexString).decodeText()).toBe('See #5')
+    })
+
     it('preserves annotations that InkLayer does not replace', async () => {
         const source = await PDFDocument.create()
         const page = source.addPage([PAGE_WIDTH, PAGE_HEIGHT])

@@ -1,11 +1,10 @@
 /** @jest-environment jsdom */
 
-import { act, createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Theme } from '@radix-ui/themes'
 
 import { UserContext } from '@/context/user_context'
 import type { IAnnotationStore } from '../../../const/definitions'
-import { AnnotationHoverCoordinator } from '../../../painter/annotation_hover'
 import { Sidebar } from '..'
 
 jest.mock('../styles.module.scss', () => ({
@@ -13,7 +12,6 @@ jest.mock('../styles.module.scss', () => ({
     list: 'list',
     group: 'group',
     comment: 'comment',
-    preview: 'preview',
     selected: 'selected',
     title: 'title',
     annotationHeader: 'annotationHeader',
@@ -92,24 +90,19 @@ function renderSidebar(
     can: (action: string) => boolean = () => false,
     selectionSource = 'sidebar'
 ) {
-    const coordinator = new AnnotationHoverCoordinator()
     const setSelectedAnnotation = jest.fn()
     const clearSelectedAnnotation = jest.fn()
     const highlight = jest.fn()
-    const setAnnotationHover = jest.fn((source, annotationId) => {
-        coordinator.set(source, annotationId)
-    })
-    const clearAnnotationHover = jest.fn((source, annotationId) => {
-        coordinator.clear(source, annotationId)
-    })
+    const setAnnotationHover = jest.fn()
+    const clearAnnotationHover = jest.fn()
+    const subscribeAnnotationHover = jest.fn()
     mockPainter = {
         can: jest.fn(can),
         highlight,
         update: jest.fn(),
         setAnnotationHover,
         clearAnnotationHover,
-        subscribeAnnotationHover: coordinator.subscribe,
-        getAnnotationHoverSnapshot: coordinator.getSnapshot
+        subscribeAnnotationHover
     }
     mockStoreState = {
         annotations: new Map(annotationList.map((item) => [item.id, item])),
@@ -134,17 +127,30 @@ function renderSidebar(
     return {
         ...view,
         rerenderSidebar: () => view.rerender(renderTree()),
-        coordinator,
         setSelectedAnnotation,
         clearSelectedAnnotation,
         setAnnotationHover,
         clearAnnotationHover,
+        subscribeAnnotationHover,
         highlight
     }
 }
 
-describe('Sidebar annotation hover', () => {
-    it('previews a card from a mouse pointer without selecting, navigating, or scrolling', () => {
+describe('Sidebar annotation interaction', () => {
+    const originalScrollIntoView = Element.prototype.scrollIntoView
+
+    afterEach(() => {
+        if (originalScrollIntoView) {
+            Object.defineProperty(Element.prototype, 'scrollIntoView', {
+                configurable: true,
+                value: originalScrollIntoView
+            })
+        } else {
+            delete (Element.prototype as { scrollIntoView?: Element['scrollIntoView'] }).scrollIntoView
+        }
+    })
+
+    it('keeps pointer hover local without selecting, navigating, scrolling, or notifying Canvas', () => {
         const {
             setAnnotationHover,
             clearAnnotationHover,
@@ -152,131 +158,57 @@ describe('Sidebar annotation hover', () => {
             highlight
         } = renderSidebar()
         const card = document.getElementById(`annotation-${annotation.id}`)!
-        const heading = card.querySelector('.annotationHeading')!
         const list = document.querySelector('.list') as HTMLDivElement
         list.scrollTop = 120
 
         fireEvent.pointerEnter(card, { pointerType: 'mouse' })
 
-        expect(setAnnotationHover).toHaveBeenCalledWith('sidebar-pointer', annotation.id)
-        expect(card.classList.contains('preview')).toBe(true)
-        expect(heading.classList.contains('annotationHeadingActive')).toBe(true)
+        expect(setAnnotationHover).not.toHaveBeenCalled()
         expect(setSelectedAnnotation).not.toHaveBeenCalled()
         expect(highlight).not.toHaveBeenCalled()
         expect(list.scrollTop).toBe(120)
 
         fireEvent.pointerLeave(card, { pointerType: 'mouse' })
-        expect(clearAnnotationHover).toHaveBeenCalledWith('sidebar-pointer', annotation.id)
-        expect(card.classList.contains('preview')).toBe(false)
-        expect(heading.classList.contains('annotationHeadingActive')).toBe(false)
+        expect(clearAnnotationHover).not.toHaveBeenCalled()
     })
 
-    it('ignores touch pointer entry', () => {
-        const { setAnnotationHover } = renderSidebar()
+    it('does not subscribe the Sidebar to Canvas hover changes', () => {
+        const { subscribeAnnotationHover } = renderSidebar()
+
+        expect(subscribeAnnotationHover).not.toHaveBeenCalled()
+    })
+
+    it('shows cross-panel state only after selection', () => {
+        const { setSelectedAnnotation, highlight } = renderSidebar()
         const card = document.getElementById(`annotation-${annotation.id}`)!
 
-        const touchEnter = createEvent.pointerEnter(card)
-        Object.defineProperty(touchEnter, 'pointerType', { value: 'touch' })
-        fireEvent(card, touchEnter)
+        fireEvent.click(card)
 
-        expect(setAnnotationHover).not.toHaveBeenCalled()
-        expect(card.classList.contains('preview')).toBe(false)
+        expect(setSelectedAnnotation).toHaveBeenCalledWith(annotation, 'sidebar')
+        expect(highlight).toHaveBeenCalledWith(annotation)
     })
 
-    it('keeps focus preview while focus moves within the same annotation owner', () => {
-        const { setAnnotationHover, clearAnnotationHover } = renderSidebar()
-        const card = document.getElementById(`annotation-${annotation.id}`)!
-        const ownedPortal = document.createElement('div')
-        ownedPortal.dataset.annotationHoverOwner = annotation.id
-        document.body.appendChild(ownedPortal)
-        const outside = document.createElement('button')
-        document.body.appendChild(outside)
-
-        fireEvent.focus(card)
-        expect(setAnnotationHover).toHaveBeenCalledWith('sidebar-focus', annotation.id)
-        expect(card.classList.contains('preview')).toBe(true)
-
-        fireEvent.blur(card, { relatedTarget: ownedPortal })
-        expect(clearAnnotationHover).not.toHaveBeenCalledWith('sidebar-focus', annotation.id)
-
-        fireEvent.blur(card, { relatedTarget: outside })
-        expect(clearAnnotationHover).toHaveBeenCalledWith('sidebar-focus', annotation.id)
-        expect(card.classList.contains('preview')).toBe(false)
-
-        ownedPortal.remove()
-        outside.remove()
-    })
-
-    it('adds preview styling while the selected annotation is actively hovered', () => {
-        const { coordinator } = renderSidebar(true)
-        const card = document.getElementById(`annotation-${annotation.id}`)!
-        const heading = card.querySelector('.annotationHeading')!
-        const list = document.querySelector('.list') as HTMLDivElement
-        list.scrollTop = 80
-
-        act(() => coordinator.set('canvas', annotation.id))
-
-        expect(card.classList.contains('preview')).toBe(true)
-        expect(card.classList.contains('selected')).toBe(true)
-        expect(heading.classList.contains('annotationHeadingActive')).toBe(true)
-        expect(list.scrollTop).toBe(80)
-    })
-
-    it('does not use a focus preview as a hover border on a selected card', () => {
-        const { coordinator } = renderSidebar(true)
-        const selectedCard = document.getElementById(`annotation-${annotation.id}`)!
-
-        act(() => coordinator.set('sidebar-focus', annotation.id))
-
-        expect(selectedCard.classList.contains('selected')).toBe(true)
-        expect(selectedCard.classList.contains('preview')).toBe(false)
-    })
-
-    it('removes preview styling from a selected card after its pointer hover clears', () => {
-        const { coordinator } = renderSidebar(true, [annotation, secondAnnotation])
-        const selectedCard = document.getElementById(`annotation-${annotation.id}`)!
-        const otherCard = document.getElementById(`annotation-${secondAnnotation.id}`)!
-
-        act(() => coordinator.set('sidebar-pointer', annotation.id))
-        expect(selectedCard.classList.contains('selected')).toBe(true)
-        expect(selectedCard.classList.contains('preview')).toBe(true)
-
-        act(() => coordinator.clear('sidebar-pointer', annotation.id))
-        expect(selectedCard.classList.contains('preview')).toBe(false)
-
-        act(() => coordinator.set('sidebar-pointer', secondAnnotation.id))
-        expect(otherCard.classList.contains('preview')).toBe(true)
-
-        act(() => coordinator.clear('sidebar-pointer', secondAnnotation.id))
-        expect(selectedCard.classList.contains('preview')).toBe(false)
-        expect(otherCard.classList.contains('preview')).toBe(false)
-    })
-
-    it('clears focus hover when a focused reply editor is submitted and unmounted', async () => {
-        const {
-            coordinator,
-            clearAnnotationHover
-        } = renderSidebar(
-            true,
-            [annotation],
-            (action) => action === 'annotation.comment',
-            'canvas'
-        )
-        const input = await screen.findByRole('combobox')
-        await waitFor(() => expect(document.activeElement).toBe(input))
-        expect(coordinator.getSnapshot()).toEqual({
-            annotationId: annotation.id,
-            source: 'sidebar-focus'
+    it('scrolls a newly opened Canvas editor into view after it mounts', async () => {
+        const scrollIntoView = jest.fn()
+        Object.defineProperty(Element.prototype, 'scrollIntoView', {
+            configurable: true,
+            value: scrollIntoView
         })
 
-        fireEvent.change(input, { target: { value: 'Reply' } })
-        fireEvent.keyDown(input, { key: 'Enter' })
+        renderSidebar(
+            true,
+            [annotation],
+            (action) => action === 'annotation.edit',
+            'canvas'
+        )
 
-        await waitFor(() => expect(screen.queryByRole('combobox')).toBeNull())
-        expect(clearAnnotationHover).toHaveBeenCalledWith('sidebar-focus', annotation.id)
-        expect(coordinator.getSnapshot()).toEqual({
-            annotationId: null,
-            source: null
+        const input = await screen.findByRole('combobox')
+        await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1))
+        expect(scrollIntoView.mock.instances[0]).toBe(input.closest('[data-annotation-editor]'))
+        expect(scrollIntoView).toHaveBeenCalledWith({
+            behavior: 'auto',
+            block: 'nearest',
+            inline: 'nearest'
         })
     })
 
@@ -375,9 +307,21 @@ describe('Sidebar annotation hover', () => {
         ).toBe('unchecked')
     })
 
-    it('clears active Sidebar sources when it unmounts', () => {
+    it('uses translated InkLayer tool names in the annotation type filter', async () => {
+        renderSidebar(false, [annotation])
+
+        fireEvent.click(screen.getAllByRole('button')[0])
+
+        expect(
+            await screen.findByRole('checkbox', { name: /annotator:tool\.underline \(1\)/ })
+        ).not.toBeNull()
+        expect(screen.queryByText(/Square/)).toBeNull()
+    })
+
+    it('does not broadcast hover sources when it unmounts', () => {
         const {
             unmount,
+            setAnnotationHover,
             clearAnnotationHover
         } = renderSidebar()
         const card = document.getElementById(`annotation-${annotation.id}`)!
@@ -386,7 +330,7 @@ describe('Sidebar annotation hover', () => {
         fireEvent.focus(card)
         unmount()
 
-        expect(clearAnnotationHover).toHaveBeenCalledWith('sidebar-pointer', annotation.id)
-        expect(clearAnnotationHover).toHaveBeenCalledWith('sidebar-focus', annotation.id)
+        expect(setAnnotationHover).not.toHaveBeenCalled()
+        expect(clearAnnotationHover).not.toHaveBeenCalled()
     })
 })

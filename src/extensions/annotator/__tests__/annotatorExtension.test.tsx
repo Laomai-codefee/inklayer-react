@@ -6,6 +6,7 @@ import { AnnotatorExtension } from '..'
 const mockSetPainter = jest.fn()
 const mockRefreshPainter = jest.fn()
 const mockClearAnnotations = jest.fn()
+const mockMenuBarClose = jest.fn()
 const mockEventBus = {
     on: jest.fn(),
     _on: jest.fn(),
@@ -95,7 +96,12 @@ jest.mock('../components/selection_bar', () => {
 
 jest.mock('../components/menu_bar', () => {
     const React = jest.requireActual('react')
-    return { MenuBar: React.forwardRef(() => null) }
+    return {
+        MenuBar: React.forwardRef((_props: unknown, ref: React.Ref<unknown>) => {
+            React.useImperativeHandle(ref, () => ({ close: mockMenuBarClose }))
+            return null
+        })
+    }
 })
 
 const requiredProps = {
@@ -172,12 +178,14 @@ describe('AnnotatorExtension lifecycle', () => {
             await Promise.resolve()
         })
         const painter = mockPainterInstances[0]
+        mockMenuBarClose.mockClear()
 
         mockUser = { id: 'user-2', name: 'Another User' }
         const nextPermissions = { mode: 'unrestricted' as const }
         rerender(<AnnotatorExtension {...requiredProps} annotationPermissions={nextPermissions} />)
 
         expect(mockPainterInstances).toHaveLength(1)
+        expect(mockMenuBarClose).toHaveBeenCalledTimes(1)
         expect(painter.setPermissionContext).toHaveBeenLastCalledWith(mockUser, nextPermissions)
         expect(mockRefreshPainter).toHaveBeenCalled()
     })

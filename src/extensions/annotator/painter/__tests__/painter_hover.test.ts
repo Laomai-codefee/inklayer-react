@@ -60,7 +60,7 @@ describe('Painter annotation hover', () => {
         })
     })
 
-    it('shows only the author label for passive Canvas hover', () => {
+    it('shows only the author label for Canvas hover', () => {
         const painter = new Painter({
             primaryColor: '#6e56cf',
             defaultOptions: {} as PdfAnnotatorOptions,
@@ -81,14 +81,15 @@ describe('Painter annotation hover', () => {
         const setLabelHovered = jest.spyOn(internals.authorLabels, 'setHovered')
         const setPreviewHovered = jest.spyOn(internals.hoverPreview, 'setHovered')
 
-        painter.setAnnotationHover('canvas-passive', 'annotation-1')
+        painter.setAnnotationHover('canvas', 'annotation-1')
         expect(setLabelHovered).toHaveBeenLastCalledWith('annotation-1')
         expect(setPreviewHovered).toHaveBeenLastCalledWith(null)
 
-        painter.setAnnotationHover('sidebar-pointer', 'annotation-1')
-        expect(setPreviewHovered).toHaveBeenLastCalledWith('annotation-1')
+        painter.clearAnnotationHover('canvas', 'annotation-1')
+        expect(setLabelHovered).toHaveBeenLastCalledWith(null)
+        expect(setPreviewHovered).toHaveBeenLastCalledWith(null)
 
-        painter.clearAnnotationHover('sidebar-pointer', 'annotation-1')
+        painter.setAnnotationHover('canvas-passive', 'annotation-1')
         expect(setLabelHovered).toHaveBeenLastCalledWith('annotation-1')
         expect(setPreviewHovered).toHaveBeenLastCalledWith(null)
 

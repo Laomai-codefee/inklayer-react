@@ -12,8 +12,8 @@ export function getTransformerPermissionStyle(transformAllowed: boolean): Transf
     return {
         borderStrokeWidth: 2,
         borderDash: transformAllowed ? [] : [3, 3],
-        opacity: transformAllowed ? 1 : 0.8,
-        authorLabelOpacity: transformAllowed ? 1 : 0.8,
+        opacity: transformAllowed ? 1 : 1,
+        authorLabelOpacity: 0.9,
         anchorFill: transformAllowed ? '#fff' : 'transparent',
         anchorStrokeWidth: transformAllowed ? 2 : 0,
         anchorSize: transformAllowed ? 10 : 0

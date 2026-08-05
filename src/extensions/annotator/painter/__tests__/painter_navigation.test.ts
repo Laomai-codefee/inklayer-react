@@ -46,14 +46,17 @@ function createPainter(editorStore = new Map<string, unknown>()): {
     painter: NavigationPainter
     scrollPageIntoView: jest.Mock
     getPageView: jest.Mock
+    convertToPdfPoint: jest.Mock
     select: jest.Mock
     activate: jest.Mock
 } {
     const painter = Object.create(Painter.prototype) as NavigationPainter
     const scrollPageIntoView = jest.fn()
+    const convertToPdfPoint = jest.fn(() => [30, 40])
     const getPageView = jest.fn(() => ({
         viewport: {
-            convertToPdfPoint: jest.fn(() => [30, 40])
+            scale: 1.5,
+            convertToPdfPoint
         }
     }))
     const select = jest.fn()
@@ -78,6 +81,7 @@ function createPainter(editorStore = new Map<string, unknown>()): {
         painter,
         scrollPageIntoView,
         getPageView,
+        convertToPdfPoint,
         select,
         activate
     }
@@ -96,6 +100,7 @@ describe('Painter annotation reference navigation', () => {
             painter,
             scrollPageIntoView,
             getPageView,
+            convertToPdfPoint,
             select,
             activate
         } = createPainter(editorStore)
@@ -104,6 +109,7 @@ describe('Painter annotation reference navigation', () => {
             .resolves.toBe(true)
 
         expect(getPageView).toHaveBeenCalledWith(1)
+        expect(convertToPdfPoint).toHaveBeenCalledWith(15, 130)
         expect(scrollPageIntoView).toHaveBeenCalledWith({
             pageNumber: 2,
             destArray: [null, { name: 'XYZ' }, 30, 40, null],

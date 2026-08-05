@@ -37,7 +37,7 @@ export class FreeTextParser extends AnnotationParser {
             NM: PDFString.of(annotation.id), // 唯一标识
             Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
             Name: PDFName.of('Comment'),
-            T: stringToPDFHexString(annotation.title || t('normal.unknownUser')),
+            T: stringToPDFHexString(this.getExportTitle(t('normal.unknownUser'))),
             M: PDFString.of(annotation.date || ''),
             C: rgbToPdfColor(annotation.color || '#000000'),
             CA: PDFNumber.of(opacity),

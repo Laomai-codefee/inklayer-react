@@ -36,7 +36,7 @@ export class UnderlineParser extends AnnotationParser {
             Rect: convertKonvaRectToPdfRect(annotation.konvaClientRect, pageView),
             QuadPoints: quadPoints,
             C: rgbToPdfColor(annotation.color || '#000000'),
-            T: stringToPDFHexString(annotation.title || t('normal.unknownUser')),
+            T: stringToPDFHexString(this.getExportTitle(t('normal.unknownUser'))),
             // QuadPoints anchor the source text; Contents is only the user-authored note.
             Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
             M: PDFString.of(annotation.date || ''),

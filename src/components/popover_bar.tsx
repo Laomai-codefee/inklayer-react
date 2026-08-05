@@ -241,7 +241,47 @@ const PopoverBar = forwardRef<PopoverBarRef, PopoverBarProps>(function PopoverBa
         })
     }, [close, positionOptions, setVisible])
 
+    // 渲染按钮
+    const renderedButtons = useMemo(() => {
+        const buttonList = renderButtons
+            ? renderButtons({ range: rangeRef.current, rect: rectRef.current, close })
+            : buttons || []
+
+        return buttonList.map((button) => (
+            <Button
+                key={button.key}
+                size="2"
+                variant="ghost"
+                color="gray"
+                highContrast
+                style={{
+                    opacity: button.disabled ? 0.5 : 1,
+                    boxShadow: 'none',
+                    margin: '0'
+                }}
+                onMouseDown={() => {
+                    button.onClick(rangeRef.current, rectRef.current)
+                }}
+                disabled={button.disabled}
+            >
+                {button.icon}
+                {button.title}
+            </Button>
+        ))
+    }, [buttons, close, renderButtons])
+
+    const hasContent = renderedButtons.length > 0 || Boolean(children)
+
     useEffect(() => {
+        if (!hasContent) {
+            // Dynamic actions can disappear after a permission update. Preserve
+            // the last anchor so a later action can mount at the right place.
+            if (isVisible && rectRef.current && pendingRect === null) {
+                setPendingRect(rectRef.current)
+            }
+            return
+        }
+
         if (isVisible && containerRef.current && pendingRect) {
             const virtualEl = {
                 getBoundingClientRect: () => pendingRect
@@ -262,7 +302,7 @@ const PopoverBar = forwardRef<PopoverBarRef, PopoverBarProps>(function PopoverBa
 
             setPendingRect(null)
         }
-    }, [isVisible, pendingRect, positionOptions])
+    }, [hasContent, isVisible, pendingRect, positionOptions])
 
     const openWithRect = useCallback((rect: DOMRect) => {
         rangeRef.current = null
@@ -306,35 +346,6 @@ const PopoverBar = forwardRef<PopoverBarRef, PopoverBarProps>(function PopoverBa
         close
     }), [open, openWithRect, close])
 
-    // 渲染按钮
-    const renderedButtons = useMemo(() => {
-        const buttonList = renderButtons
-            ? renderButtons({ range: rangeRef.current, rect: rectRef.current, close })
-            : buttons || []
-
-        return buttonList.map((button) => (
-            <Button
-                key={button.key}
-                size="2"
-                variant='ghost'
-                color='gray'
-                highContrast
-                style={{
-                    opacity: button.disabled ? 0.5 : 1,
-                    boxShadow: 'none',
-                    margin: '0'
-                }}
-                onMouseDown={() => {
-                    button.onClick(rangeRef.current, rectRef.current)
-                }}
-                disabled={button.disabled}
-            >
-                {button.icon}
-                {button.title}
-            </Button>
-        ))
-    }, [buttons, close, renderButtons])
-
     const { appearance } = useThemeContext()
 
     const baseStyle: React.CSSProperties = {
@@ -352,7 +363,7 @@ const PopoverBar = forwardRef<PopoverBarRef, PopoverBarProps>(function PopoverBa
     };
 
     // 如果没有按钮且没有子元素，则不渲染
-    if (renderedButtons.length === 0 && !children) {
+    if (!hasContent) {
         return null
     }
 

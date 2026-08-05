@@ -1,6 +1,6 @@
 import styles from './styles.module.scss';
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { annotationDefinitions, CommentStatus, IAnnotationComment, IAnnotationStore, PdfjsAnnotationSubtype } from '../../const/definitions'
+import React, { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { AnnotationType, annotationDefinitions, CommentStatus, IAnnotationComment, IAnnotationStore } from '../../const/definitions'
 import { useTranslation } from 'react-i18next'
 import { formatPDFCompactDateTime, formatTimestamp, generateUUID } from '../../utils/utils'
 import { Button, Checkbox, DropdownMenu, Flex, IconButton, Popover, Text, Tooltip } from '@radix-ui/themes'
@@ -32,7 +32,6 @@ import {
 import { getAnnotationAuthorName } from '../../painter/editor/annotation_author_label'
 import { isValidReferenceNumber } from '../../references/annotation_numbering'
 import { AnnotationTypeIcon } from '../annotation_type_icon'
-import { useAnnotationHoverSnapshot } from '../../context/use_annotation_hover'
 
 interface StatusOption {
     labelKey: string // i18n key
@@ -83,19 +82,15 @@ const Sidebar: React.FC = () => {
     const currentUser = useContext(UserContext)
     const { isSidebarCollapsed } = usePdfViewerContext()
     const { painter } = usePainter()
-    const annotationHover = useAnnotationHoverSnapshot()
-    const hoveredAnnotationId = annotationHover.annotationId
     const currentAnnotation = useAnnotationStore((state) => state.selectedAnnotation)
     const selectionRevision = useAnnotationStore((state) => state.selectionRevision)
     const setCurrentAnnotation = useAnnotationStore((state) => state.setSelectedAnnotation)
     const [editorState, setEditorState] = useState<SidebarEditorState | null>(null)
     const [selectedUsers, setSelectedUsers] = useState<string[]>([])
-    const [selectedTypes, setSelectedTypes] = useState<PdfjsAnnotationSubtype[]>([])
+    const [selectedTypes, setSelectedTypes] = useState<AnnotationType[]>([])
     const [pendingReferenceAnnotationId, setPendingReferenceAnnotationId] = useState<string | null>(null)
     const knownUsersRef = useRef<Set<string> | null>(null)
-    const knownTypesRef = useRef<Set<PdfjsAnnotationSubtype> | null>(null)
-    const pointerHoveredAnnotationIdRef = useRef<string | null>(null)
-    const focusedAnnotationIdRef = useRef<string | null>(null)
+    const knownTypesRef = useRef<Set<AnnotationType> | null>(null)
     const pendingMenuActionRef = useRef<(() => void) | null>(null)
     const pendingMenuActionFrameRef = useRef<number | null>(null)
 
@@ -137,6 +132,22 @@ const Sidebar: React.FC = () => {
 
     const annotationRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
+    useLayoutEffect(() => {
+        if (!editorState) return
+
+        const frame = requestAnimationFrame(() => {
+            const card = annotationRefs.current[editorState.annotationId]
+            const editor = card?.querySelector<HTMLElement>('[data-annotation-editor]')
+            editor?.scrollIntoView?.({
+                behavior: 'auto',
+                block: 'nearest',
+                inline: 'nearest'
+            })
+        })
+
+        return () => cancelAnimationFrame(frame)
+    }, [editorState])
+
     const allUsers = useMemo(() => {
         const map = new Map<string, number>()
         annotations.forEach((a) => {
@@ -146,11 +157,15 @@ const Sidebar: React.FC = () => {
     }, [annotations])
 
     const allTypes = useMemo(() => {
-        const types = new Map<PdfjsAnnotationSubtype, number>()
+        const types = new Map<AnnotationType, { count: number; fallbackLabel: string }>()
         annotations.forEach((a) => {
-            types.set(a.subtype, (types.get(a.subtype) || 0) + 1)
+            const current = types.get(a.type)
+            types.set(a.type, {
+                count: (current?.count || 0) + 1,
+                fallbackLabel: current?.fallbackLabel || a.subtype
+            })
         })
-        return Array.from(types.entries()) // [subtype, count]
+        return Array.from(types.entries())
     }, [annotations])
 
     useEffect(() => {
@@ -198,24 +213,9 @@ const Sidebar: React.FC = () => {
         }
     }, [])
 
-    useEffect(() => {
-        return () => {
-            const pointerHoveredId = pointerHoveredAnnotationIdRef.current
-            const focusedId = focusedAnnotationIdRef.current
-            if (pointerHoveredId) {
-                painter?.clearAnnotationHover('sidebar-pointer', pointerHoveredId)
-            }
-            if (focusedId) {
-                painter?.clearAnnotationHover('sidebar-focus', focusedId)
-            }
-            pointerHoveredAnnotationIdRef.current = null
-            focusedAnnotationIdRef.current = null
-        }
-    }, [painter])
-
     const filteredAnnotations = useMemo(() => {
         if (selectedUsers.length === 0 || selectedTypes.length === 0) return []
-        return Array.from(annotations.values()).filter((a) => selectedUsers.includes(a.title) && selectedTypes.includes(a.subtype))
+        return Array.from(annotations.values()).filter((a) => selectedUsers.includes(a.title) && selectedTypes.includes(a.type))
     }, [annotations, selectedUsers, selectedTypes])
 
     useEffect(() => {
@@ -239,33 +239,13 @@ const Sidebar: React.FC = () => {
         }
 
         setEditorState(null)
-        if (focusedAnnotationIdRef.current === editorState.annotationId) {
-            focusedAnnotationIdRef.current = null
-            painter?.clearAnnotationHover('sidebar-focus', editorState.annotationId)
-        }
     }, [
         currentAnnotation?.source,
         currentAnnotation?.store?.id,
         editorState,
         filteredAnnotations,
-        isSidebarCollapsed,
-        painter
+        isSidebarCollapsed
     ])
-
-    useEffect(() => {
-        const visibleAnnotationIds = new Set(filteredAnnotations.map((annotation) => annotation.id))
-        const pointerHoveredId = pointerHoveredAnnotationIdRef.current
-        const focusedId = focusedAnnotationIdRef.current
-
-        if (pointerHoveredId && (isSidebarCollapsed || !visibleAnnotationIds.has(pointerHoveredId))) {
-            painter?.clearAnnotationHover('sidebar-pointer', pointerHoveredId)
-            pointerHoveredAnnotationIdRef.current = null
-        }
-        if (focusedId && (isSidebarCollapsed || !visibleAnnotationIds.has(focusedId))) {
-            painter?.clearAnnotationHover('sidebar-focus', focusedId)
-            focusedAnnotationIdRef.current = null
-        }
-    }, [filteredAnnotations, isSidebarCollapsed, painter])
 
     const referenceCandidates = useMemo(
         () => Array.from(annotations.values()),
@@ -306,7 +286,7 @@ const Sidebar: React.FC = () => {
         setSelectedUsers((prev) => (prev.includes(username) ? prev.filter((u) => u !== username) : [...prev, username]))
     }
 
-    const handleTypeToggle = (type: PdfjsAnnotationSubtype) => {
+    const handleTypeToggle = (type: AnnotationType) => {
         setSelectedTypes((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]))
     }
 
@@ -327,16 +307,23 @@ const Sidebar: React.FC = () => {
             </ul>
             <Text as="div">{t('type')}</Text>
             <ul>
-                {allTypes.map(([type, count]) => (
-                    <li key={type}>
-                        <Text as="label" size="2">
-                            <Flex gap="2">
-                                <Checkbox checked={selectedTypes.includes(type)} onCheckedChange={() => handleTypeToggle(type)} />
-                                {type} ({count})
-                            </Flex>
-                        </Text>
-                    </li>
-                ))}
+                {allTypes.map(([type, { count, fallbackLabel }]) => {
+                    const annotationToolName = annotationToolNames.get(type)
+                    const typeLabel = annotationToolName
+                        ? t(`annotator:tool.${annotationToolName}`)
+                        : fallbackLabel
+
+                    return (
+                        <li key={type}>
+                            <Text as="label" size="2">
+                                <Flex gap="2">
+                                    <Checkbox checked={selectedTypes.includes(type)} onCheckedChange={() => handleTypeToggle(type)} />
+                                    {typeLabel} ({count})
+                                </Flex>
+                            </Text>
+                        </li>
+                    )
+                })}
             </ul>
             <Flex gap="3" mt="2" justify="between">
                 <Button
@@ -378,7 +365,6 @@ const Sidebar: React.FC = () => {
             && activeEditorAnnotationId !== annotation.id
         ) {
             setEditorState(null)
-            clearAnnotationFocus(activeEditorAnnotationId)
         }
         setCurrentAnnotation(annotation, SelectionSource.SIDEBAR)
         void painter?.highlight(annotation)
@@ -392,7 +378,6 @@ const Sidebar: React.FC = () => {
         event.preventDefault()
         event.stopPropagation()
         setEditorState(null)
-        clearAnnotationFocus(activeEditorAnnotationId)
     }
 
     const openAnnotationReply = (annotation: IAnnotationStore) => {
@@ -443,44 +428,6 @@ const Sidebar: React.FC = () => {
         })
     }
 
-    const handleAnnotationPointerEnter = (annotationId: string, event: React.PointerEvent<HTMLDivElement>) => {
-        if (event.pointerType === 'touch') return
-        pointerHoveredAnnotationIdRef.current = annotationId
-        painter?.setAnnotationHover('sidebar-pointer', annotationId)
-    }
-
-    const handleAnnotationPointerLeave = (annotationId: string) => {
-        if (pointerHoveredAnnotationIdRef.current === annotationId) {
-            pointerHoveredAnnotationIdRef.current = null
-        }
-        painter?.clearAnnotationHover('sidebar-pointer', annotationId)
-    }
-
-    const getAnnotationFocusOwner = (target: EventTarget | null): string | null => {
-        if (!(target instanceof Element)) return null
-        return target.closest<HTMLElement>('[data-annotation-hover-owner]')
-            ?.dataset.annotationHoverOwner ?? null
-    }
-
-    const handleAnnotationFocus = (annotationId: string) => {
-        focusedAnnotationIdRef.current = annotationId
-        painter?.setAnnotationHover('sidebar-focus', annotationId)
-    }
-
-    const clearAnnotationFocus = (annotationId: string) => {
-        if (focusedAnnotationIdRef.current !== annotationId) return
-        focusedAnnotationIdRef.current = null
-        painter?.clearAnnotationHover('sidebar-focus', annotationId)
-    }
-
-    const handleAnnotationBlur = (
-        annotationId: string,
-        event: React.FocusEvent<HTMLElement>
-    ) => {
-        if (getAnnotationFocusOwner(event.relatedTarget) === annotationId) return
-        clearAnnotationFocus(annotationId)
-    }
-
     const handleReferenceClick = (annotationId: string) => {
         const annotation = annotations.get(annotationId)
         if (!annotation) return
@@ -491,9 +438,9 @@ const Sidebar: React.FC = () => {
                 : [...previous, annotation.title]
         ))
         setSelectedTypes((previous) => (
-            previous.includes(annotation.subtype)
+            previous.includes(annotation.type)
                 ? previous
-                : [...previous, annotation.subtype]
+                : [...previous, annotation.type]
         ))
         setPendingReferenceAnnotationId(annotation.id)
         setCurrentAnnotation(annotation, SelectionSource.SIDEBAR)
@@ -509,7 +456,6 @@ const Sidebar: React.FC = () => {
         }, 'annotation.edit')
 
         setEditorState(null)
-        clearAnnotationFocus(latestAnnotation.id)
     }
 
     const addReply = (annotation: IAnnotationStore, draft: AnnotationReferenceDraft, status?: CommentStatus) => {
@@ -532,7 +478,6 @@ const Sidebar: React.FC = () => {
         }, action)
 
         setEditorState(null)
-        clearAnnotationFocus(latestAnnotation.id)
     }
 
     const updateReply = (annotation: IAnnotationStore, reply: IAnnotationComment, draft: AnnotationReferenceDraft) => {
@@ -558,7 +503,6 @@ const Sidebar: React.FC = () => {
         }, 'comment.edit', latestReply)
 
         setEditorState(null)
-        clearAnnotationFocus(latestAnnotation.id)
     }
 
     const deleteAnnotation = (annotation: IAnnotationStore) => {
@@ -571,7 +515,6 @@ const Sidebar: React.FC = () => {
 
         if (editorState?.kind === 'reply-edit' && editorState.replyId === reply.id) {
             setEditorState(null)
-            clearAnnotationFocus(annotation.id)
         }
     }
 
@@ -593,7 +536,6 @@ const Sidebar: React.FC = () => {
                     onSubmit={(draft) => updateComment(annotation, draft)}
                     onCancel={() => {
                         setEditorState(null)
-                        clearAnnotationFocus(annotation.id)
                     }}
                 />
             )
@@ -631,7 +573,6 @@ const Sidebar: React.FC = () => {
                     onSubmit={(draft) => addReply(annotation, draft)}
                     onCancel={() => {
                         setEditorState(null)
-                        clearAnnotationFocus(annotation.id)
                     }}
                 />
             )
@@ -657,7 +598,6 @@ const Sidebar: React.FC = () => {
                     onSubmit={(draft) => updateReply(annotation, reply, draft)}
                     onCancel={() => {
                         setEditorState(null)
-                        clearAnnotationFocus(annotation.id)
                     }}
                 />
             )
@@ -693,9 +633,6 @@ const Sidebar: React.FC = () => {
                 </Flex>
                 {sortedAnnotations.map((annotation) => {
                     const isSelected = annotation.id === currentAnnotation?.store?.id
-                    const isPreviewed = annotation.id === hoveredAnnotationId
-                    const showPreviewStyle = isPreviewed
-                        && (!isSelected || annotationHover.source !== 'sidebar-focus')
                     const canComment = Boolean(painter?.can('annotation.comment', annotation))
                     const canEdit = Boolean(painter?.can('annotation.edit', annotation))
                     const canDelete = Boolean(painter?.can('annotation.delete', annotation))
@@ -706,7 +643,7 @@ const Sidebar: React.FC = () => {
                     const annotationHeading = hasReferenceNumber
                         ? `#${annotation.referenceNumber}`
                         : annotationAuthorName
-                    const isHeadingActive = hasReferenceNumber && (isPreviewed || isSelected)
+                    const isHeadingActive = hasReferenceNumber && isSelected
                     const annotationDateTime = formatPDFCompactDateTime(annotation.date)
                     const annotationToolName = annotationToolNames.get(annotation.type)
                     const annotationTypeLabel = annotationToolName
@@ -715,21 +652,15 @@ const Sidebar: React.FC = () => {
                     const commonProps = {
                         className: [
                             styles.comment,
-                            showPreviewStyle ? styles.preview : '',
                             isSelected ? styles.selected : ''
                         ].filter(Boolean).join(' '),
-                        id: `annotation-${annotation.id}`,
-                        'data-annotation-hover-owner': annotation.id
+                        id: `annotation-${annotation.id}`
                     }
                     return (
                         <div
                             {...commonProps}
                             key={annotation.id}
                             onClick={() => handleAnnotationClick(annotation)}
-                            onPointerEnter={(event) => handleAnnotationPointerEnter(annotation.id, event)}
-                            onPointerLeave={() => handleAnnotationPointerLeave(annotation.id)}
-                            onFocusCapture={() => handleAnnotationFocus(annotation.id)}
-                            onBlurCapture={(event) => handleAnnotationBlur(annotation.id, event)}
                             ref={(el) => (annotationRefs.current[annotation.id] = el)}
                         >
                             <div className={`${styles.title} ${styles.annotationHeader}`}>
@@ -771,9 +702,6 @@ const Sidebar: React.FC = () => {
                                             </IconButton>
                                         </DropdownMenu.Trigger>
                                         <DropdownMenu.Content
-                                            data-annotation-hover-owner={annotation.id}
-                                            onFocusCapture={() => handleAnnotationFocus(annotation.id)}
-                                            onBlurCapture={(event) => handleAnnotationBlur(annotation.id, event)}
                                             onCloseAutoFocus={handleMenuCloseAutoFocus}
                                         >
                                             {Object.entries(commentStatusOptions).map(([statusKey, option]) => (
@@ -811,9 +739,6 @@ const Sidebar: React.FC = () => {
                                             </IconButton>
                                         </DropdownMenu.Trigger>
                                         <DropdownMenu.Content
-                                            data-annotation-hover-owner={annotation.id}
-                                            onFocusCapture={() => handleAnnotationFocus(annotation.id)}
-                                            onBlurCapture={(event) => handleAnnotationBlur(annotation.id, event)}
                                             onCloseAutoFocus={handleMenuCloseAutoFocus}
                                         >
                                             {canComment && <DropdownMenu.Item
@@ -922,9 +847,6 @@ const Sidebar: React.FC = () => {
                                                             </IconButton>
                                                         </DropdownMenu.Trigger>
                                                         <DropdownMenu.Content
-                                                            data-annotation-hover-owner={annotation.id}
-                                                            onFocusCapture={() => handleAnnotationFocus(annotation.id)}
-                                                            onBlurCapture={(event) => handleAnnotationBlur(annotation.id, event)}
                                                             onCloseAutoFocus={handleMenuCloseAutoFocus}
                                                         >
                                                             {canEditReply && <DropdownMenu.Item

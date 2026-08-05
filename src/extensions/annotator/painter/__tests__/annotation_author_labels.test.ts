@@ -108,10 +108,10 @@ describe('AnnotationAuthorLabels', () => {
         labels.setSelected(alice.id)
 
         expect(aliceLabel.style.display).toBe('block')
-        expect(aliceLabel.style.opacity).toBe('1')
+        expect(aliceLabel.style.opacity).toBe('0.9')
         expect(aliceLabel.style.transform).toBe('translate3d(82px, 50px, 0)')
         expect(bobLabel.style.display).toBe('none')
-        expect(bobLabel.style.opacity).toBe('0.8')
+        expect(bobLabel.style.opacity).toBe('0.9')
 
         aliceRect.x = 60
         aliceGroup.emitChange()

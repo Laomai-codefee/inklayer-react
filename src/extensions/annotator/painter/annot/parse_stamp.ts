@@ -76,7 +76,7 @@ export class StampParser extends AnnotationParser {
             Rect: rect,
             NM: PDFString.of(annotation.id),
             Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
-            T: stringToPDFHexString(annotation.title || t('normal.unknownUser')),
+            T: stringToPDFHexString(this.getExportTitle(t('normal.unknownUser'))),
             M: PDFString.of(annotation.date || ''),
             Open: false,
             P: page.ref,

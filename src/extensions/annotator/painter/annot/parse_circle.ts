@@ -34,7 +34,7 @@ export class CircleParser extends AnnotationParser {
             Subtype: PDFName.of('Circle'),
             Rect: rect,
             C: rgbToPdfColor(annotation.color || '#000000'),
-            T: stringToPDFHexString(annotation.title || t('normal.unknownUser')),
+            T: stringToPDFHexString(this.getExportTitle(t('normal.unknownUser'))),
             Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
             M: PDFString.of(annotation.date || ''),
             NM: PDFString.of(annotation.id),
