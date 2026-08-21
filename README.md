@@ -74,6 +74,12 @@ http://localhost:5173
 
 ## 📣 最新动态
 
+### 🔥 1.2.3
+
+- 修复原生 `/Line` 批注缺少 `/LE` 时无法导出的问题，并使用精确的 595-byte PDF 样本补充回归测试
+- `enableNativeAnnotations` 关闭时保留 PDF 中已有的原生批注，避免导出时意外移除
+- `exportToPdf` 现在返回 `Promise`，调用方可以等待导出完成并处理失败
+
 ### 🔥 1.2.2
 
 - 优化批注交互：Sidebar 与 PDF 仅在选中时联动，Canvas 悬停保留作者标签并移除干扰边框

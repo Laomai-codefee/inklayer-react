@@ -74,6 +74,12 @@ http://localhost:5173
 
 ## 📣 Recent updates
 
+### 🔥 1.2.3
+
+- Fixed exports for native `/Line` annotations without `/LE`, with a regression test using the exact 595-byte PDF fixture
+- Preserved existing native PDF annotations when `enableNativeAnnotations` is disabled instead of removing them during export
+- `exportToPdf` now returns a `Promise`, allowing callers to await completion and handle export failures
+
 ### 🔥 1.2.2
 
 - Refined annotation interactions: Sidebar and PDF synchronize on selection only, while Canvas hover keeps author labels without a distracting outline
