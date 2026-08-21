@@ -131,6 +131,7 @@ function getNestedNumberArray(dictionary: PDFDict, key: string, index = 0): numb
 }
 
 function readAnnotationsWithRealPdfJs(fixturePath: string): Array<Record<string, unknown>> {
+    const outputMarker = '__INKLAYER_PDFJS_ANNOTATIONS__'
     const script = [
         "import { readFileSync } from 'node:fs'",
         "import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'",
@@ -138,14 +139,16 @@ function readAnnotationsWithRealPdfJs(fixturePath: string): Array<Record<string,
         'const document = await task.promise',
         'const page = await document.getPage(1)',
         'const annotations = await page.getAnnotations()',
-        'process.stdout.write(JSON.stringify(annotations, (_key, value) => ArrayBuffer.isView(value) ? Array.from(value) : value))',
-        'await task.destroy()'
+        'await task.destroy()',
+        `process.stdout.write('${outputMarker}' + JSON.stringify(annotations, (_key, value) => ArrayBuffer.isView(value) ? Array.from(value) : value))`
     ].join(';')
     const output = execFileSync(process.execPath, ['--input-type=module', '-e', script, fixturePath], {
         encoding: 'utf8',
         timeout: 5000
     })
-    return JSON.parse(output) as Array<Record<string, unknown>>
+    const markerIndex = output.lastIndexOf(outputMarker)
+    if (markerIndex === -1) throw new Error('PDF.js annotation subprocess returned no result marker.')
+    return JSON.parse(output.slice(markerIndex + outputMarker.length)) as Array<Record<string, unknown>>
 }
 
 function getPpmPixels(data: Buffer): { width: number; height: number; pixels: Buffer } {
