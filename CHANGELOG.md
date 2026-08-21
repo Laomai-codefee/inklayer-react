@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.3](https://github.com/Laomai-codefee/inklayer-react/compare/v1.2.2...v1.2.3) (2026-08-21)
+
+
+### Bug Fixes
+
+* **annotator:** preserve native PDF lines and annotations ([9f68356](https://github.com/Laomai-codefee/inklayer-react/commit/9f6835625d0eed09603805c99835ad7dc524516e)), closes [#6](https://github.com/Laomai-codefee/inklayer-react/issues/6)
+
 ### [1.2.2](https://github.com/Laomai-codefee/inklayer-react/compare/v1.2.1...v1.2.2) (2026-08-05)
 
 
