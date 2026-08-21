@@ -10,6 +10,7 @@ import {
     PDFString
 } from 'pdf-lib'
 import type { PDFViewer } from 'pdfjs-dist/types/web/pdf_viewer'
+import { saveAs } from 'file-saver'
 import { execFileSync, spawnSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -20,9 +21,17 @@ import {
     PdfjsAnnotationType,
     type IAnnotationStore
 } from '../../../const/definitions'
-import { buildAnnotatedPdf } from '..'
+import { buildAnnotatedPdf, exportAnnotationsToPdf } from '..'
 import { generateCloudPathData } from '../../cloud_path'
 import { Transform } from '../../transform/transform'
+
+jest.mock('i18next', () => ({
+    __esModule: true,
+    default: { t: (key: string) => key },
+    t: (key: string) => key
+}))
+
+jest.mock('file-saver', () => ({ saveAs: jest.fn() }))
 
 jest.mock('../../../utils/utils', () => ({
     convertKonvaRectToPdfRect: (
@@ -58,13 +67,13 @@ const CLOUD_PATH = generateCloudPathData([
     { x: 100, y: 100 }
 ])
 
-function createPageView(scale = 1) {
+function createPageView(scale = 1, pageWidth = PAGE_WIDTH, pageHeight = PAGE_HEIGHT) {
     return {
         viewport: {
             scale,
-            width: PAGE_WIDTH * scale,
-            height: PAGE_HEIGHT * scale,
-            convertToPdfPoint: (x: number, y: number) => [x / scale, PAGE_HEIGHT - y / scale]
+            width: pageWidth * scale,
+            height: pageHeight * scale,
+            convertToPdfPoint: (x: number, y: number) => [x / scale, pageHeight - y / scale]
         }
     }
 }
@@ -119,6 +128,24 @@ function getNumberArray(dictionary: PDFDict, key: string): number[] {
 function getNestedNumberArray(dictionary: PDFDict, key: string, index = 0): number[] {
     const arrays = dictionary.lookup(PDFName.of(key), PDFArray)
     return arrays.lookup(index, PDFArray).asArray().map(item => (item as PDFNumber).asNumber())
+}
+
+function readAnnotationsWithRealPdfJs(fixturePath: string): Array<Record<string, unknown>> {
+    const script = [
+        "import { readFileSync } from 'node:fs'",
+        "import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'",
+        'const task = getDocument({ data: new Uint8Array(readFileSync(process.argv[1])) })',
+        'const document = await task.promise',
+        'const page = await document.getPage(1)',
+        'const annotations = await page.getAnnotations()',
+        'process.stdout.write(JSON.stringify(annotations, (_key, value) => ArrayBuffer.isView(value) ? Array.from(value) : value))',
+        'await task.destroy()'
+    ].join(';')
+    const output = execFileSync(process.execPath, ['--input-type=module', '-e', script, fixturePath], {
+        encoding: 'utf8',
+        timeout: 5000
+    })
+    return JSON.parse(output) as Array<Record<string, unknown>>
 }
 
 function getPpmPixels(data: Buffer): { width: number; height: number; pixels: Buffer } {
@@ -209,6 +236,30 @@ describe('PDF annotation export', () => {
         )
 
         expect(subtypes).toEqual(['/Link', '/Square'])
+    })
+
+    it('preserves existing native annotations when replacement is disabled', async () => {
+        const source = await PDFDocument.create()
+        const page = source.addPage([PAGE_WIDTH, PAGE_HEIGHT])
+        const oldSquare = source.context.register(source.context.obj({
+            Type: PDFName.of('Annot'),
+            Subtype: PDFName.of('Square'),
+            Rect: [10, 10, 30, 30],
+            NM: PDFString.of('old-square')
+        }))
+        page.node.set(PDFName.of('Annots'), source.context.obj([oldSquare]))
+
+        const result = await buildAnnotatedPdf(
+            createViewer(await source.save()),
+            [createAnnotation({ id: 'new-square' })],
+            { replaceNativeAnnotations: false }
+        )
+        const exported = await PDFDocument.load(result)
+        const ids = getAnnotationDictionaries(exported).map(annotation =>
+            annotation.lookup(PDFName.of('NM'), PDFString).decodeText()
+        )
+
+        expect(ids).toEqual(['old-square', 'new-square'])
     })
 
     it.each([
@@ -397,6 +448,109 @@ describe('PDF annotation export', () => {
         expect(arrow.lookup(PDFName.of('InkList'), PDFArray).size()).toBe(1)
         expect(inkPoints.slice(0, 4)).toEqual([40, 740, 100, 695])
         expect(Math.hypot(headRight.x - headLeft.x, headRight.y - headLeft.y)).toBeCloseTo(17.68, 2)
+    })
+
+    it('round-trips a native Line without line endings as a plain PDF Line', async () => {
+        const sourceData = await createBlankPdf()
+        const pdfjsAnnotation = {
+            annotationType: PdfjsAnnotationType.LINE,
+            id: 'plain-line',
+            pageNumber: 1,
+            pageViewer: createPageView(),
+            rect: [90, 590, 410, 660],
+            lineCoordinates: [100, 600, 400, 650],
+            color: new Uint8ClampedArray([255, 0, 0]),
+            borderStyle: { width: 2, style: 1, dashArray: [] },
+            titleObj: { str: 'Alice' },
+            contentsObj: { str: '' },
+            modificationDate: null,
+            subtype: 'Line'
+        }
+        const viewer = {
+            pdfDocument: {
+                numPages: 1,
+                getData: async () => sourceData,
+                getPage: async () => ({ getAnnotations: async () => [pdfjsAnnotation] }),
+                annotationStorage: { setValue: jest.fn() }
+            },
+            getPageView: () => createPageView()
+        } as unknown as PDFViewer
+
+        const stores = await new Transform(viewer).decodePdfAnnotation()
+        const restored = stores.get('plain-line')
+        expect(JSON.parse(restored!.konvaString).children[0].className).toBe('Line')
+
+        const result = await buildAnnotatedPdf(createViewer(sourceData), [restored!])
+        const exported = await PDFDocument.load(result)
+        const [line] = getAnnotationDictionaries(exported)
+        const lineEndings = line.lookup(PDFName.of('LE'), PDFArray)
+
+        expect(line.lookup(PDFName.of('Subtype'), PDFName).toString()).toBe('/Line')
+        expect(getNumberArray(line, 'L')).toEqual([100, 600, 400, 650])
+        expect(lineEndings.lookup(0, PDFName).toString()).toBe('/None')
+        expect(lineEndings.lookup(1, PDFName).toString()).toBe('/None')
+    })
+
+    it('exports the exact 595-byte PDF.js /Line fixture that omits /LE', async () => {
+        const fixturePath = join(
+            process.cwd(),
+            'src/extensions/annotator/painter/annot/__tests__/fixtures/line-without-le.pdf'
+        )
+        const sourceData = new Uint8Array(readFileSync(fixturePath))
+        expect(sourceData.byteLength).toBe(595)
+
+        const sourceDocument = await PDFDocument.load(sourceData)
+        const [sourceLine] = getAnnotationDictionaries(sourceDocument)
+        expect(sourceLine.lookup(PDFName.of('Subtype'), PDFName).toString()).toBe('/Line')
+        expect(getNumberArray(sourceLine, 'L')).toEqual([100, 600, 400, 650])
+        expect(sourceLine.has(PDFName.of('LE'))).toBe(false)
+
+        const pageView = createPageView(1, 612, 792)
+        const pdfjsAnnotations = readAnnotationsWithRealPdfJs(fixturePath).map(annotation => ({
+            ...annotation,
+            color: annotation.color === null
+                ? null
+                : new Uint8ClampedArray(annotation.color as number[]),
+            pageNumber: 1,
+            pageViewer: pageView
+        }))
+        expect(pdfjsAnnotations).toHaveLength(1)
+        expect(pdfjsAnnotations[0]).toMatchObject({
+            annotationType: PdfjsAnnotationType.LINE,
+            lineCoordinates: [100, 600, 400, 650],
+            lineEndings: ['None', 'None']
+        })
+
+        const viewer = {
+            pdfDocument: {
+                numPages: 1,
+                getData: async () => sourceData,
+                getPage: async () => ({ getAnnotations: async () => pdfjsAnnotations }),
+                annotationStorage: { setValue: jest.fn() }
+            },
+            getPageView: () => pageView
+        } as unknown as PDFViewer
+        const stores = await new Transform(viewer).decodePdfAnnotation()
+        const restored = stores.get('5R')
+        expect(restored).toBeDefined()
+        expect(JSON.parse(restored!.konvaString).children[0].className).toBe('Line')
+
+        const result = await buildAnnotatedPdf(viewer, [restored!])
+        const exported = await PDFDocument.load(result)
+        const [exportedLine] = getAnnotationDictionaries(exported)
+        const exportedLineEndings = exportedLine.lookup(PDFName.of('LE'), PDFArray)
+
+        expect(exportedLine.lookup(PDFName.of('Subtype'), PDFName).toString()).toBe('/Line')
+        expect(getNumberArray(exportedLine, 'L')).toEqual([100, 600, 400, 650])
+        expect(exportedLineEndings.lookup(0, PDFName).toString()).toBe('/None')
+        expect(exportedLineEndings.lookup(1, PDFName).toString()).toBe('/None')
+
+        const mockedSaveAs = jest.mocked(saveAs)
+        mockedSaveAs.mockClear()
+        await exportAnnotationsToPdf(viewer, [restored!], 'out.pdf')
+        expect(mockedSaveAs).toHaveBeenCalledTimes(1)
+        expect(mockedSaveAs).toHaveBeenCalledWith(expect.any(Blob), 'out.pdf')
+        expect(mockedSaveAs.mock.calls[0]?.[0]).toMatchObject({ type: 'application/pdf' })
     })
 
     it('restores marked Text and Ink annotations as FreeText and Arrow', async () => {

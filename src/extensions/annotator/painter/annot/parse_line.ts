@@ -29,46 +29,17 @@ export class LineParser extends AnnotationParser {
         const { annotation, page, pdfDoc, pageView } = this
         const context = pdfDoc.context
         const konvaGroup = JSON.parse(annotation.konvaString)
-        const lines = konvaGroup.children.filter((item: { className?: string }) => item.className === 'Arrow')
-        if (lines.length === 0) throw new Error(`Arrow annotation ${annotation.id} has no arrow shape.`)
+        const arrows = konvaGroup.children.filter((item: { className?: string }) => item.className === 'Arrow')
+        const lines = konvaGroup.children.filter((item: { className?: string }) => item.className === 'Line')
+        if (arrows.length === 0 && lines.length === 0) {
+            throw new Error(`Line annotation ${annotation.id} has no line or arrow shape.`)
+        }
 
-        const inkList = context.obj(
-            lines.map((line: { attrs: Record<string, unknown> }) => {
-                const points = line.attrs.points as number[]
-                if (!points || points.length < 4) {
-                    throw new Error(`Arrow annotation ${annotation.id} needs at least two points.`)
-                }
-                const transformedPoints: number[] = []
-
-                for (let i = 0; i < points.length; i += 2) {
-                    const transformed = transformPointByGroup({ x: points[i], y: points[i + 1] }, konvaGroup)
-                    const [pdfX, pdfY] = convertKonvaPointToPdf(transformed, pageView)
-                    transformedPoints.push(pdfX, pdfY)
-                }
-
-                const length = points.length
-                const head = buildArrowHeadPoints(
-                    points[length - 4],
-                    points[length - 3],
-                    points[length - 2],
-                    points[length - 1],
-                    typeof line.attrs.pointerLength === 'number' ? line.attrs.pointerLength : 10,
-                    typeof line.attrs.pointerWidth === 'number' ? line.attrs.pointerWidth : 10
-                )
-                for (let i = 0; i < head.length; i += 2) {
-                    const transformed = transformPointByGroup({ x: head[i], y: head[i + 1] }, konvaGroup)
-                    const [pdfX, pdfY] = convertKonvaPointToPdf(transformed, pageView)
-                    transformedPoints.push(pdfX, pdfY)
-                }
-
-                return context.obj(transformedPoints)
-            })
-        )
-
-        const firstLine = lines[0]?.attrs || {}
-        const strokeWidth = firstLine.strokeWidth ?? 1
-        const opacity = firstLine.opacity ?? 1
-        const color = firstLine.stroke ?? annotation.color ?? 'rgb(255, 0, 0)'
+        const shape = arrows[0] ?? lines[0]
+        const shapeAttrs = shape?.attrs || {}
+        const strokeWidth = shapeAttrs.strokeWidth ?? 1
+        const opacity = shapeAttrs.opacity ?? 1
+        const color = shapeAttrs.stroke ?? annotation.color ?? 'rgb(255, 0, 0)'
         const [r, g, b] = rgbToPdfColor(color)
 
         const bs = context.obj({
@@ -76,23 +47,88 @@ export class LineParser extends AnnotationParser {
             S: PDFName.of('S') // Solid border style
         })
 
-        const mainAnn = context.obj({
-            Type: PDFName.of('Annot'),
-            // Ink is intentional: the sampled arrowhead renders consistently in PDF viewers.
-            Subtype: PDFName.of('Ink'),
-            InkLayerType: PDFName.of('Arrow'),
-            Rect: convertKonvaRectToPdfRect(annotation.konvaClientRect, pageView),
-            InkList: inkList,
-            C: context.obj([PDFNumber.of(r), PDFNumber.of(g), PDFNumber.of(b)]),
-            T: stringToPDFHexString(this.getExportTitle(t('normal.unknownUser'))),
-            Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
-            M: PDFString.of(annotation.date || ''),
-            NM: PDFString.of(annotation.id),
-            BS: bs,
-            F: PDFNumber.of(4),
-            P: page.ref,
-            CA: PDFNumber.of(opacity) // Constant opacity for the Ink stroke.
-        })
+        let mainAnn
+
+        if (arrows.length === 0) {
+            const points = shapeAttrs.points as number[]
+            if (!points || points.length < 4) {
+                throw new Error(`Line annotation ${annotation.id} needs at least two points.`)
+            }
+            const transformedPoints: number[] = []
+            for (let i = 0; i < 4; i += 2) {
+                const transformed = transformPointByGroup({ x: points[i], y: points[i + 1] }, konvaGroup)
+                const [pdfX, pdfY] = convertKonvaPointToPdf(transformed, pageView)
+                transformedPoints.push(pdfX, pdfY)
+            }
+
+            mainAnn = context.obj({
+                Type: PDFName.of('Annot'),
+                Subtype: PDFName.of('Line'),
+                Rect: convertKonvaRectToPdfRect(annotation.konvaClientRect, pageView),
+                L: context.obj(transformedPoints),
+                LE: context.obj([PDFName.of('None'), PDFName.of('None')]),
+                C: context.obj([PDFNumber.of(r), PDFNumber.of(g), PDFNumber.of(b)]),
+                T: stringToPDFHexString(this.getExportTitle(t('normal.unknownUser'))),
+                Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
+                M: PDFString.of(annotation.date || ''),
+                NM: PDFString.of(annotation.id),
+                BS: bs,
+                F: PDFNumber.of(4),
+                P: page.ref,
+                CA: PDFNumber.of(opacity)
+            })
+        } else {
+            const inkList = context.obj(
+                arrows.map((line: { attrs: Record<string, unknown> }) => {
+                    const points = line.attrs.points as number[]
+                    if (!points || points.length < 4) {
+                        throw new Error(`Arrow annotation ${annotation.id} needs at least two points.`)
+                    }
+                    const transformedPoints: number[] = []
+
+                    for (let i = 0; i < points.length; i += 2) {
+                        const transformed = transformPointByGroup({ x: points[i], y: points[i + 1] }, konvaGroup)
+                        const [pdfX, pdfY] = convertKonvaPointToPdf(transformed, pageView)
+                        transformedPoints.push(pdfX, pdfY)
+                    }
+
+                    const length = points.length
+                    const head = buildArrowHeadPoints(
+                        points[length - 4],
+                        points[length - 3],
+                        points[length - 2],
+                        points[length - 1],
+                        typeof line.attrs.pointerLength === 'number' ? line.attrs.pointerLength : 10,
+                        typeof line.attrs.pointerWidth === 'number' ? line.attrs.pointerWidth : 10
+                    )
+                    for (let i = 0; i < head.length; i += 2) {
+                        const transformed = transformPointByGroup({ x: head[i], y: head[i + 1] }, konvaGroup)
+                        const [pdfX, pdfY] = convertKonvaPointToPdf(transformed, pageView)
+                        transformedPoints.push(pdfX, pdfY)
+                    }
+
+                    return context.obj(transformedPoints)
+                })
+            )
+
+            mainAnn = context.obj({
+                Type: PDFName.of('Annot'),
+                // Ink is intentional: the sampled arrowhead renders consistently in PDF viewers.
+                Subtype: PDFName.of('Ink'),
+                InkLayerType: PDFName.of('Arrow'),
+                Rect: convertKonvaRectToPdfRect(annotation.konvaClientRect, pageView),
+                InkList: inkList,
+                C: context.obj([PDFNumber.of(r), PDFNumber.of(g), PDFNumber.of(b)]),
+                T: stringToPDFHexString(this.getExportTitle(t('normal.unknownUser'))),
+                Contents: stringToPDFHexString(annotation.contentsObj?.text || ''),
+                M: PDFString.of(annotation.date || ''),
+                NM: PDFString.of(annotation.id),
+                BS: bs,
+                F: PDFNumber.of(4),
+                P: page.ref,
+                CA: PDFNumber.of(opacity) // Constant opacity for the Ink stroke.
+            })
+        }
 
         const mainAnnRef = context.register(mainAnn)
         this.addAnnotationToPage(page, mainAnnRef)

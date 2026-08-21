@@ -226,7 +226,7 @@ declare module 'pdfjs' {
     interface LineAnnotation extends Annotation {
         annotationType: 4
         lineCoordinates: [number, number, number, number]
-        lineEndings: [string, string]
+        lineEndings?: [string, string]
     }
 
     // Polygon annotation

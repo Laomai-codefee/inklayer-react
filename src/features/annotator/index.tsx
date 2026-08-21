@@ -96,7 +96,9 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
         const handleExportToPdf = async (fileName?: string) => {
             if (painter && pdfViewer) {
                 const annotations = painter.getData()
-                await exportAnnotationsToPdf(pdfViewer, annotations, fileName)
+                await exportAnnotationsToPdf(pdfViewer, annotations, fileName, {
+                    replaceNativeAnnotations: enableNativeAnnotations
+                })
             }
         }
 
@@ -112,7 +114,7 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
                     save: () => void
                     getAnnotations: () => ReturnType<typeof storesToAnnotations>
                     exportToExcel: (fileName?: string) => void
-                    exportToPdf: (fileName?: string) => void
+                    exportToPdf: (fileName?: string) => Promise<void>
                 }>
                 return (
                     <ExtraComponent
@@ -121,9 +123,7 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
                         exportToExcel={(fileName?: string) => {
                             handleExportToExcel(fileName)
                         }}
-                        exportToPdf={(fileName?: string) => {
-                            handleExportToPdf(fileName)
-                        }}
+                        exportToPdf={handleExportToPdf}
                     />
                 )
             }
@@ -133,9 +133,7 @@ export const PdfAnnotator: React.FC<PdfAnnotatorProps> = ({
                 exportToExcel: (fileName?: string) => {
                     handleExportToExcel(fileName)
                 },
-                exportToPdf: (fileName?: string) => {
-                    handleExportToPdf(fileName)
-                }
+                exportToPdf: handleExportToPdf
             })
         }
 

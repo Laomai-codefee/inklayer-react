@@ -18,7 +18,7 @@ export class LineDecoder extends Decoder {
             name: SHAPE_GROUP_NAME,
             id: annotation.id
         })
-        const createLine = (points: number[], _lineEndings: [string, string]) => {     
+        const createLine = (points: number[]) => {
             return new Konva.Line({
                 strokeScaleEnabled: false,
                 stroke: color,
@@ -34,7 +34,7 @@ export class LineDecoder extends Decoder {
             annotation.pageViewer.viewport.scale,
             annotation.pageViewer.viewport.height
         )
-        const line = createLine([x, y, x1, y1], annotation.lineEndings)
+        const line = createLine([x, y, x1, y1])
         ghostGroup.add(line)
         const annotationStore: IAnnotationStore = {
             id: annotation.id,

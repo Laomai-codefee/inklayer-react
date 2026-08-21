@@ -91,7 +91,7 @@ function downloadPdf(data: Uint8Array, filename: string) {
     // 创建 Blob
     const blob = new Blob([arrayBuffer], { type: 'application/pdf' })
     // 使用 saveAs 下载
-    saveAs(blob, `${filename}.pdf`)
+    saveAs(blob, filename.toLowerCase().endsWith('.pdf') ? filename : `${filename}.pdf`)
 }
 
 function downloadExcel(data: ArrayBuffer, filename: string) {
@@ -109,6 +109,10 @@ export interface ExcelExportRow {
     content: string
     date: string
     status: string
+}
+
+export interface PdfExportOptions {
+    replaceNativeAnnotations?: boolean
 }
 
 /**
@@ -133,7 +137,8 @@ function removeReplaceableAnnotations(pdfDoc: PDFDocument) {
 
 export async function buildAnnotatedPdf(
     PDFViewerApplication: PDFViewer,
-    annotations: IAnnotationStore[]
+    annotations: IAnnotationStore[],
+    options: PdfExportOptions = {}
 ): Promise<Uint8Array> {
     const pdfDocument = PDFViewerApplication.pdfDocument
     if (!pdfDocument) throw new Error('Cannot export annotations before the PDF document is ready.')
@@ -154,7 +159,9 @@ export async function buildAnnotatedPdf(
         return { annotation, page, pageView }
     })
 
-    removeReplaceableAnnotations(pdfDoc)
+    if (options.replaceNativeAnnotations !== false) {
+        removeReplaceableAnnotations(pdfDoc)
+    }
     for (const { annotation, page, pageView } of exportEntries) {
         await parseAnnotationToPdf(annotation, page, pdfDoc, pageView)
     }
@@ -169,8 +176,13 @@ export async function buildAnnotatedPdf(
  * @param url - 要加载的 PDF 文件 URL
  * @param annotations - 解析后的批注数据数组
  */
-async function exportAnnotationsToPdf(PDFViewerApplication: PDFViewer, annotations: IAnnotationStore[], baseName?: string) {
-    const modifiedPdf = await buildAnnotatedPdf(PDFViewerApplication, annotations)
+async function exportAnnotationsToPdf(
+    PDFViewerApplication: PDFViewer,
+    annotations: IAnnotationStore[],
+    baseName?: string,
+    options: PdfExportOptions = {}
+) {
+    const modifiedPdf = await buildAnnotatedPdf(PDFViewerApplication, annotations, options)
     const fileName = baseName || `annotated_${getTimestampString()}`
 
     downloadPdf(modifiedPdf, fileName)
